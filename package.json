@@ -1,0 +1,21 @@
+{
+  "scripts": {
+    "start": "neutrino start --use neutrino-preset-react",
+    "build": "neutrino build --use neutrino-preset-react"
+  },
+  "devDependencies": {
+    "neutrino": "^5.7.0",
+    "neutrino-preset-react": "^5.7.0"
+  },
+  "dependencies": {
+    "bootstrap": "4.0.0-alpha.6",
+    "d3-time-format": "^2.0.5",
+    "lodash": "^4.17.4",
+    "react": "^15.5.4",
+    "react-addons-css-transition-group": "^15.5.2",
+    "react-addons-transition-group": "^15.5.2",
+    "react-dom": "^15.5.4",
+    "react-metrics-graphics": "^0.6.0",
+    "reactstrap": "^4.5.0"
+  }
+}
