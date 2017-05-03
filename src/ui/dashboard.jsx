@@ -17,27 +17,27 @@ export default class Dashboard extends React.Component {
             function(response) {
 	        return response.json();
             }).then(function(data) {
-                let crashCardsMap = {};
+                let cardMap = {};
                 data.query_result.data.rows.forEach(row => {
                     let osname = row.os_name;
                     let channel = row.channel;
-                    if (!crashCardsMap[osname]) {
-                        crashCardsMap[osname] = {};
+                    if (!cardMap[osname]) {
+                        cardMap[osname] = {};
                     }
-                    if (!crashCardsMap[osname][channel]) {
-                        crashCardsMap[osname][channel] = {
+                    if (!cardMap[osname][channel]) {
+                        cardMap[osname][channel] = {
                             name: `${osname}-${channel}`,
                             data: []
                         };
                     }
 
-                    crashCardsMap[osname][channel].data.push({
+                    cardMap[osname][channel].data.push({
                         main_rate: row.main_rate,
                         usage_khours: row.usage_khours,
                         date: new Date(row.date)
                     });
                 });
-                let cards = _.flattenDeep(_.values(crashCardsMap).map(channelMap => _.values(channelMap)));
+                let cards = _.flattenDeep(_.values(cardMap).map(channelMap => _.values(channelMap)));
                 cards.forEach(c => {
                     c.data.sort(d => { return d.date; });
                 });
