@@ -1,13 +1,14 @@
 {
   "scripts": {
-    "start": "neutrino start --use neutrino-preset-react",
-    "build": "neutrino build --use neutrino-preset-react",
+    "start": "neutrino start --use neutrino-preset-airbnb-base neutrino-preset-react",
+    "build": "neutrino build --use neutrino-preset-airbnb-base neutrino-preset-react",
     "test": "neutrino test --use neutrino-preset-react neutrino-preset-jest",
     "coverage": "neutrino test --coverage"
   },
   "devDependencies": {
     "enzyme": "^2.8.2",
     "neutrino": "^5.7.0",
+    "neutrino-preset-airbnb-base": "^5.8.0",
     "neutrino-preset-jest": "^5.7.0",
     "neutrino-preset-react": "^5.7.0",
     "react-addons-test-utils": "^15.5.1"
@@ -16,6 +17,7 @@
     "bootstrap": "4.0.0-alpha.6",
     "d3-time-format": "^2.0.5",
     "lodash": "^4.17.4",
+    "metrics-graphics": "^2.11.0",
     "react": "^15.5.4",
     "react-addons-css-transition-group": "^15.5.2",
     "react-addons-transition-group": "^15.5.2",
