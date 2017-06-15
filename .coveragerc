@@ -1,0 +1,5 @@
+[run]
+source = missioncontrol
+
+[report]
+omit = */migrations/*

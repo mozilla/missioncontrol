@@ -1,0 +1,9 @@
+{
+  "name": "missioncontrol",
+  "description": " Backend service powering the Mission Control dashboard",
+  "repository": {
+    "url": "https://github.com/mozilla/missioncontrol/",
+    "license": "MPL 2.0",
+    "tests": "https://travis-ci.org/mozilla/missioncontrol/"
+  }
+}
