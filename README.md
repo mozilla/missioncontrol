@@ -16,9 +16,9 @@ The main web service is available at localhost:8000/api/aggregates/ and it accep
 2 query parameters:
  - measurements: list
  - dimensions: list
- Every other query parameter matching one of the dimension names will be considered as an exact filter over that dimension.
+ Every other query parameter matching one of the dimension names will be considered as a filter over that dimension. The only types of filter supported are exact match and range comparison. Single-valued query parameters are interpreted as  exact matches, while multi-value parameters are interpreted as range comparison. In the example below, `country` is an exact match, while `version` is a range comparison.
 
- Example query string: [dimensions=os_name&dimensions=os_version&dimensions=country&measurements=main_crashes&country=GB](http://localhost:8000/api/aggregates/?dimensions=os_name&dimensions=os_version&dimensions=country&measurements=main_crashes&country=GB)
+ Example query string: [dimensions=os_name&dimensions=os_version&dimensions=country&measurements=main_crashes&country=GB](http://localhost:8000/api/aggregates/?dimensions=os_name&dimensions=os_version&dimensions=country&measurements=main_crashes&country=GB&version=53&version=57)
 
 Instructions for deployment
 ---------------------------

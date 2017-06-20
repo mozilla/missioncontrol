@@ -59,9 +59,10 @@ class QueryBuilder(object):
 
         selectable = select(measurements, from_obj=self.table)
 
-        if self.conditions:
-            for k, v in self.conditions.items():
-                selectable = selectable.where(getattr(self.table.c, k) == v)
+        for k, values in self.conditions.items():
+            selectable = selectable.where(getattr(self.table.c, k) >= min(values))
+            if len(values) > 1:
+                selectable = selectable.where(getattr(self.table.c, k) <= max(values))
 
         # Always select the window dimension
         if 'window' not in self.dimensions:

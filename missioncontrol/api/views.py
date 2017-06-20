@@ -11,7 +11,10 @@ def aggregates(request):
     if results is None:
         measurements = request.GET.getlist('measurements')
         dimensions = request.GET.getlist('dimensions')
-        conditions = dict((k, v) for k, v in request.GET.items() if k in DIMENSION_LIST)
+        conditions = {}
+        for dimension in DIMENSION_LIST:
+            if dimension in request.GET:
+                conditions[dimension] = request.GET.getlist(dimension)
         query_builder = QueryBuilder(measurements, conditions, dimensions)
         results = [dict(row) for row in query_builder.execute().fetchall()]
         cache.set('aggregates:%s' % url_path, results)
