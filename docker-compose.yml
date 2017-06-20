@@ -21,7 +21,7 @@ services:
         - SECRET_KEY=59114b6a-2858-4caf-8878-482a24ee9542
       command:
         ./bin/run-dev.sh
-  postgresql:
+  hive-db:
     image: postgres:9.5
     logging:
       driver: "none"
@@ -57,11 +57,11 @@ services:
     ports:
       - "9083:9083"
     depends_on:
-      - postgresql
+      - hive-db
       - hdfs-namenode
     environment:
       - CORE_CONF_fs_defaultFS=hdfs://hdfs-namenode:8020
-      - DB_URI=postgresql
+      - DB_URI=hive-db
       - DB_USER=hive
       - DB_PASSWORD=password
   presto:
