@@ -13,6 +13,7 @@ import sys
 
 import dj_database_url
 from decouple import Csv, config
+import django_cache_url
 
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
@@ -80,6 +81,8 @@ DATABASES = {
         cast=dj_database_url.parse
     )
 }
+
+CACHES = {'default': django_cache_url.config()}
 
 PRESTO_URL = config('PRESTO_URL')
 MISSION_CONTROL_TABLE = config('MISSION_CONTROL_TABLE',
