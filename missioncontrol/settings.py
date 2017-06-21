@@ -13,6 +13,7 @@ import sys
 
 import dj_database_url
 from decouple import Csv, config
+import django_cache_url
 
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
@@ -81,7 +82,11 @@ DATABASES = {
     )
 }
 
+CACHES = {'default': django_cache_url.config()}
+
 PRESTO_URL = config('PRESTO_URL')
+MISSION_CONTROL_TABLE = config('MISSION_CONTROL_TABLE',
+                               default='telemetry.error_aggregates')
 
 # Internationalization
 # https://docs.djangoproject.com/en/1.9/topics/i18n/
@@ -186,26 +191,60 @@ SECURE_CONTENT_TYPE_NOSNIFF = config('SECURE_CONTENT_TYPE_NOSNIFF', default=True
 if 'test' in sys.argv[1:2]:
     SECURE_SSL_REDIRECT = False
 
+LOGGING_USE_JSON = config('LOGGING_USE_JSON', default=True, cast=bool)
 
 LOGGING = {
     'version': 1,
+    'disable_existing_loggers': False,
     'formatters': {
         'json': {
             '()': 'dockerflow.logging.JsonLogFormatter',
-            'logger_name': 'missioncontrol'
-        }
+            'logger_name': 'atmo',
+        },
+        'verbose': {
+            'format': '%(levelname)s %(asctime)s %(name)s %(message)s',
+        },
+        'django.server': {
+            '()': 'django.utils.log.ServerFormatter',
+            'format': '[%(server_time)s] %(message)s',
+        },
     },
     'handlers': {
         'console': {
             'level': 'DEBUG',
             'class': 'logging.StreamHandler',
-            'formatter': 'json'
+            'formatter': 'json' if LOGGING_USE_JSON else 'verbose',
+        },
+        'django.server': {
+            'level': 'INFO',
+            'class': 'logging.StreamHandler',
+            'formatter': 'django.server',
         },
     },
     'loggers': {
-        'request.summary': {
+        'root': {
+            'level': 'INFO',
             'handlers': ['console'],
-            'level': 'DEBUG',
         },
-    }
+        'django.db.backends': {
+            'level': 'ERROR',
+            'handlers': ['console'],
+            'propagate': False,
+        },
+        'django.server': {
+            'handlers': ['django.server'],
+            'level': 'INFO',
+            'propagate': False,
+        },
+        'missioncontrol': {
+            'level': 'DEBUG',
+            'handlers': ['console'],
+            'propagate': False,
+        },
+        'request.summary': {
+            'level': 'DEBUG',
+            'handlers': ['console'],
+            'propagate': False,
+        },
+    },
 }
