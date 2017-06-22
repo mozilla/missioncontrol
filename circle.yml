@@ -13,7 +13,7 @@ dependencies:
     - sudo apt-get update
     - sudo apt-get install python-dev
     # run tests using an upgraded version of docker-compose
-    - pip install docker-compose==1.10.1
+    - pip install --upgrade docker-compose
   override:
     - docker info
     - docker --version
