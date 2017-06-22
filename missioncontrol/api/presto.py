@@ -68,7 +68,7 @@ class QueryBuilder(object):
                 selectable = selectable.where(column <= max(values))
 
         # Always select the window dimension
-        if 'window' not in self.dimensions:
+        if 'window' not in self.dimensions and 'submission_date' not in self.dimensions:
             self.dimensions.append('window')
         selectable = selectable.group_by(*self.dimensions)
         for d in self.dimensions:
