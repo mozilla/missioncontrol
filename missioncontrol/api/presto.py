@@ -39,6 +39,11 @@ def get_table():
     return table
 
 
+def raw_query(raw_sql):
+    engine = get_engine()
+    return engine.execute(raw_sql).fetchall()
+
+
 class QueryBuilder(object):
 
     def __init__(self, measurements, conditions=None, dimensions=None):
