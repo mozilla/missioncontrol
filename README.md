@@ -9,7 +9,7 @@ Instructions for development
 ----------------------------
 
 0. Make sure you have [docker](https://docker.io) and [docker-compose](https://github.com/docker/compose)
-1. docker-compose up
+1. make up
 2. make fixtures
 
 The main web service is available at localhost:8000/api/aggregates/ and it accepts

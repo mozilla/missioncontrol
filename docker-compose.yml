@@ -1,4 +1,4 @@
-version: "3"
+version: "2"
 services:
   db:
     image: postgres:9.5
@@ -26,13 +26,13 @@ services:
         - LOGGING_USE_JSON=0
         - MISSION_CONTROL_TABLE=error_aggregates
       command:
-        ./bin/run-dev.sh
+        "web-dev"
   hive-db:
     image: postgres:9.5
     logging:
       driver: "none"
     ports:
-        - "5432:5432"
+        - "15432:5432"
     environment:
         - POSTGRES_USER=hive
         - POSTGRESS_PASSWORD=password
