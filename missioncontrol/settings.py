@@ -194,7 +194,7 @@ LOGGING = {
     'formatters': {
         'json': {
             '()': 'dockerflow.logging.JsonLogFormatter',
-            'logger_name': 'atmo',
+            'logger_name': 'missioncontrol',
         },
         'verbose': {
             'format': '%(levelname)s %(asctime)s %(name)s %(message)s',
