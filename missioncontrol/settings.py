@@ -9,7 +9,6 @@ https://docs.djangoproject.com/en/1.9/ref/settings/
 """
 
 import os
-import sys
 
 import dj_database_url
 from decouple import Csv, config
@@ -186,10 +185,6 @@ SECURE_CONTENT_TYPE_NOSNIFF = config('SECURE_CONTENT_TYPE_NOSNIFF', default=True
 # See also https://docs.djangoproject.com/en/1.9/ref/settings/#secure-proxy-ssl-header
 # SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 
-
-# This is the bottom of settings.py
-if 'test' in sys.argv[1:2]:
-    SECURE_SSL_REDIRECT = False
 
 LOGGING_USE_JSON = config('LOGGING_USE_JSON', default=True, cast=bool)
 

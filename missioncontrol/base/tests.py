@@ -4,9 +4,9 @@ from django.test import TestCase
 
 class HomeTests(TestCase):
 
-    def test_base(self):
+    def test_page_title(self):
         response = self.client.get(reverse('home'))
-        assert b'csrfmiddlewaretoken' in response.content
+        self.assertIn('<h1>Mission Control Api</h1>', response.content.decode('utf-8'))
 
 
 class TestContribute(TestCase):
