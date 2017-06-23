@@ -1,4 +1,4 @@
-.PHONY: build migrate shell up fixtures
+.PHONY: build migrate shell presto-cli up fixtures tests flake8 docs ci
 
 help:
 	@echo "Welcome to the Mission Control Api Service\n"
@@ -9,6 +9,10 @@ help:
 	@echo "  presto-cli Opens a Presto command line client"
 	@echo "  up         Runs the whole stack, served under http://localhost:8000/"
 	@echo "  fixtures   Generates sample data"
+	@echo "  tests      Run pytest tests using tox"
+	@echo "  flake8     Run flake8 using tox"
+	@echo "  docs       Build the docs using tox"
+	@echo "  ci         Run tests, flake8 and docs"
 
 build:
 	docker-compose build
@@ -27,3 +31,15 @@ up:
 
 fixtures:
 	@bin/fixtures_init.sh
+
+tests:
+	docker-compose run web tox -etests
+
+flake8:
+	docker-compose run web tox -eflake8
+
+docs:
+	docker-compose run web tox -edocs
+
+ci:
+	docker-compose run web tox
