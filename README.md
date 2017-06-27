@@ -2,6 +2,7 @@ missioncontrol api services
 ===========================
 
 [![CircleCI](https://img.shields.io/circleci/project/github/mozilla/missioncontrol/master.svg)](https://circleci.com/gh/mozilla/missioncontrol)
+[![codecov](https://codecov.io/gh/mozilla/missioncontrol/branch/master/graph/badge.svg)](https://codecov.io/gh/mozilla/missioncontrol)
 
 Backend service powering the Mission Control dashboard
 
