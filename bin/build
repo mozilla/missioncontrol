@@ -2,7 +2,7 @@
 set -eo pipefail
 
 # create a version.json
-[ -z $CIRCLE_TAG ] || printf '{"commit":"%s","version":"%s","source":"https://github.com/%s/%s","build":"%s"}\n' \
+printf '{"commit":"%s","version":"%s","source":"https://github.com/%s/%s","build":"%s"}\n' \
   "$CIRCLE_SHA1" \
   "$CIRCLE_TAG" \
   "$CIRCLE_PROJECT_USERNAME" \
