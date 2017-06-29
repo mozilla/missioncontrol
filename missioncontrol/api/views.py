@@ -34,7 +34,7 @@ def _validate_list_params(request, param_name):
     return params
 
 
-def windowed_aggregates(request):
+def measures_with_interval(request):
     url_path = request.GET.urlencode()
 
     cached_data = cache.get('windowed_aggregates:%s' % url_path)
