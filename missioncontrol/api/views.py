@@ -46,7 +46,7 @@ def measures_with_interval(request):
     os_names = _validate_list_params(request, 'os_names')
     channels = _validate_list_params(request, 'channels')
 
-    default_columns = [('window.start', 'time'),
+    default_columns = [('window_start', 'time'),
                        ('channel', 'channel'),
                        ('os_name', 'os_name'),
                        ('version', 'version')]
@@ -55,7 +55,7 @@ def measures_with_interval(request):
         from error_aggregates where application=\'Firefox\' and
         ({}) and
         ({}) and
-        window.start > current_timestamp - (1 * interval \'{}\' second)
+        window_start > current_timestamp - (1 * interval \'{}\' second)
         group by {}
         '''.format(','.join(['{} as {}'.format(*column_tuple) for column_tuple
                              in default_columns] +
