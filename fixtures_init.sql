@@ -1,5 +1,6 @@
 CREATE TABLE hive.default.error_aggregates (
-  window row(start timestamp, "end" timestamp),
+  window_start timestamp,
+  window_end timestamp,
   channel varchar,
   version varchar,
   build_id varchar,

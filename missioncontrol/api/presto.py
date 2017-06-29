@@ -5,6 +5,8 @@ from sqlalchemy import select, text, MetaData, Table
 
 
 DIMENSION_LIST = (
+    'windw_start',
+    'window_end',
     'submission_date',
     'channel',
     'version',
@@ -73,8 +75,9 @@ class QueryBuilder(object):
                 selectable = selectable.where(column <= max(values))
 
         # Always select the window dimension
-        if 'window' not in self.dimensions and 'submission_date' not in self.dimensions:
-            self.dimensions.append('window')
+        temporal_dimensions = set(('window_start', 'window_end', 'submission_date'))
+        if temporal_dimensions.isdisjoint(self.dimensions):
+            self.dimensions.append('window_start')
         selectable = selectable.group_by(*self.dimensions)
         for d in self.dimensions:
             selectable = selectable.column(text(d))
