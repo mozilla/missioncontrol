@@ -37,7 +37,7 @@ def _validate_list_params(request, param_name):
 def measures_with_interval(request):
     url_path = request.GET.urlencode()
 
-    cached_data = cache.get('windowed_aggregates:%s' % url_path)
+    cached_data = cache.get('measures_with_interval:%s' % url_path)
     if cached_data is not None:
         return JsonResponse(data=cached_data)
 
@@ -73,6 +73,6 @@ def measures_with_interval(request):
         'columns': [ct[1] for ct in default_columns] + measures,
         'rows': rows
     }
-    cache.set('windowed_aggregates:%s' % url_path, response)
+    cache.set('measures_with_interval:%s' % url_path, response)
 
     return JsonResponse(data=response)
