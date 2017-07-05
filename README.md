@@ -10,7 +10,7 @@ Backend service powering the Mission Control dashboard
 Instructions for development
 ----------------------------
 
-0. Make sure you have [docker](https://docker.io) and [docker-compose](https://github.com/docker/compose)
+0. Make sure you have [docker](https://docker.io), [docker-compose](https://github.com/docker/compose), and [yarn](https://yarnpkg.com/)
 1. make up
 2. make fixtures
 
