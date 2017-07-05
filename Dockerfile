@@ -28,11 +28,20 @@ COPY requirements.txt /app/requirements.txt
 RUN pip install --require-hashes --no-cache-dir -r requirements.txt
 
 COPY bin /app/bin
+COPY dist /app/dist
 COPY missioncontrol /app/missioncontrol
 COPY manage.py setup.py tox.ini /app/
 
 RUN chown webdev:webdev -R .
 USER webdev
+
+RUN DEBUG=False SECRET_KEY=foo ALLOWED_HOSTS=localhost, PRESTO_URL=foo DATABASE_URL=sqlite:// ./manage.py collectstatic --noinput -c
+
+# Generate gzipped versions of files that would benefit from compression, that
+# WhiteNoise can then serve in preference to the originals. This is required
+# since WhiteNoise's Django storage backend only gzips assets handled by
+# collectstatic, and so does not affect files in the `dist/` directory.
+RUN python -m whitenoise.compress dist
 
 # Using /bin/bash as the entrypoint works around some volume mount issues on Windows
 # where volume-mounted files do not have execute bits set.

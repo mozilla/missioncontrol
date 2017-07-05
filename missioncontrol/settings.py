@@ -49,6 +49,9 @@ INSTALLED_APPS = [
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
+    # Disable Django's own staticfiles handling in favour of WhiteNoise, for
+    # greater consistency between gunicorn and `./manage.py runserver`.
+    'whitenoise.runserver_nostatic',
     'django.contrib.staticfiles',
 ]
 
@@ -58,6 +61,7 @@ for app in config('EXTRA_APPS', default='', cast=Csv()):
 
 MIDDLEWARE_CLASSES = (
     'django.middleware.security.SecurityMiddleware',
+    'missioncontrol.middleware.CustomWhiteNoise',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'corsheaders.middleware.CorsMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -104,9 +108,15 @@ USE_L10N = config('USE_L10N', default=True, cast=bool)
 
 USE_TZ = config('USE_TZ', default=True, cast=bool)
 
+# Files in this directory will be served by WhiteNoise at the site root.
+WHITENOISE_ROOT = os.path.join(ROOT, 'dist')
+
 STATIC_ROOT = config('STATIC_ROOT', default=os.path.join(BASE_DIR, 'static'))
 STATIC_URL = config('STATIC_URL', '/static/')
-STATICFILES_STORAGE = 'whitenoise.django.GzipManifestStaticFilesStorage'
+
+# Create hashed+gzipped versions of assets during collectstatic,
+# which will then be served by WhiteNoise with a suitable max-age.
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 MEDIA_ROOT = config('MEDIA_ROOT', default=os.path.join(BASE_DIR, 'media'))
 MEDIA_URL = config('MEDIA_URL', '/media/')

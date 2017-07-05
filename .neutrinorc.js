@@ -1,5 +1,6 @@
 module.exports = {
   options: {
+    output: 'dist',
     source: 'frontend'
   },
   use: [
