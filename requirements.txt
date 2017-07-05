@@ -35,9 +35,9 @@ gunicorn==19.6.0 \
 whitenoise==2.0.6 \
     --hash=sha256:826ffe5d608c9dc8daebef1b0b43d01f7958f17c2fce36e75c80e26160172c4f \
     --hash=sha256:5aea935dfc09ef2beeb76960b4a808b0bbe65e85fb0b0312434b9c365ca02a41
-django-csp==3.2 \
-    --hash=sha256:7cec78ba7c426deba6d4bea188dcfc1a8b2609ad98dd539c365605c9ec2996b2 \
-    --hash=sha256:fb56c0126b4e69f854fd1581a4bef25fa7cac1f10235e95f697e297ceef88132
+django-csp==3.3 \
+    --hash=sha256:a95eeeb04df155b6270612238700f16abd2b0cc3d32dbcfca8c7fd06d26dacba \
+    --hash=sha256:db082b75075672fb9cf4a622c75c94ee624cb566ffe9d2a645687e58598b6d39
 pytz==2016.10 \
     --hash=sha256:c9bd582ebc202972182dc254541c7bd29195648d798feaffb0480fb679c347ec \
     --hash=sha256:a707e2a9c825aa5b4798f2368dc65a85966ccd6a2a42e14fc93364c614bc0e77 \
