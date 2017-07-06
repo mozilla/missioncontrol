@@ -133,9 +133,9 @@ six==1.10.0 \
 monotonic==1.3 \
     --hash=sha256:a8c7690953546c6bc8a4f05d347718db50de1225b29f4b9f346c0c6f19bdc286 \
     --hash=sha256:2b469e2d7dd403f7f7f79227fe5ad551ee1e76f8bb300ae935209884b93c7c1b
-botocore==1.5.71 \
-    --hash=sha256:c3c8bcb554e450be658d183548e7d4ea24099cf3a4b18a95fe2e376c03c76cd1 \
-    --hash=sha256:d5f5e1f4ea8df0efd7fa597ed2e6f73c620ea8696b5ec90779c46baa2012efb9
+botocore==1.5.79 \
+    --hash=sha256:715ef412d25a99014c873d297e1c8d855d9add492dd80d1b619f95cf33bbdd89 \
+    --hash=sha256:9cc00205be25dade6261486cb1e9ad7e79cc101c7dc9ce9569a9afaa2aba6336
 jmespath==0.9.3 \
     --hash=sha256:f11b4461f425740a1d908e9a3f7365c3d2e569f6ca68a2ff8bc5bcd9676edd63 \
     --hash=sha256:6a81d4c9aa62caf061cb517b4d9ad1dd300374cd4706997aff9cd6aedd61fc64
