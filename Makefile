@@ -24,7 +24,7 @@ shell:
 	docker-compose run web bash
 
 django-shell:
-	docker compose run web manage.py shell
+	docker-compose run web ./manage.py shell
 
 presto-cli:
 	docker-compose exec presto presto-cli
