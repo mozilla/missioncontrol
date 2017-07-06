@@ -27,8 +27,10 @@ RUN ./bin/pipstrap.py
 COPY requirements.txt /app/requirements.txt
 RUN pip install --require-hashes --no-cache-dir -r requirements.txt
 
-COPY . /app
-RUN DEBUG=False SECRET_KEY=foo ALLOWED_HOSTS=localhost, PRESTO_URL=foo DATABASE_URL=sqlite:// ./manage.py collectstatic --noinput -c
+COPY bin /app/bin
+COPY missioncontrol /app/missioncontrol
+COPY manage.py setup.py tox.ini /app/
+
 RUN chown webdev:webdev -R .
 USER webdev
 
