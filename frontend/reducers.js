@@ -1,11 +1,9 @@
 import _ from 'lodash';
 import { combineReducers } from 'redux';
-import { REQUEST_VERSION_DATA, RECEIVE_VERSION_DATA, REQUEST_CRASH_DATA, RECEIVE_CRASH_DATA } from './actions';
+import { REQUEST_VERSION_DATA, RECEIVE_VERSION_DATA, REQUEST_CRASH_DATA, RECEIVE_CRASH_DATA,
+         REQUEST_AGGREGATE_DATA, RECEIVE_AGGREGATE_DATA } from './actions';
 import { CHANNELS, CRASH_TYPES, EXPECTED_NUM_DATAPOINTS_PER_OS_CHANNEL, OS_MAPPING } from './schema';
-
-function getMajorVersion(verString) {
-  return parseInt(verString.split('.')[0], 10);
-}
+import { getMajorVersion } from './version';
 
 function processVersionMatrix(rawVersionMatrix) {
   return {
@@ -125,9 +123,33 @@ function crashData(state = {}, action) {
   }
 }
 
+function processAggregates(rawAggregates) {
+  return rawAggregates.map(aggregate => ({
+    ...aggregate,
+    date: new Date(aggregate.time)
+  }));
+}
+
+function aggregates(state = {}, action) {
+  switch (action.type) {
+    case REQUEST_AGGREGATE_DATA:
+      return Object.assign({}, state, {
+        isFetching: true
+      });
+    case RECEIVE_AGGREGATE_DATA:
+      return Object.assign({}, state, {
+        isFetching: false,
+        aggregates: processAggregates(action.aggregates)
+      });
+    default:
+      return state;
+  }
+}
+
 const rootReducer = combineReducers({
   versionInfo,
-  crashData
+  crashData,
+  aggregates
 });
 
 export default rootReducer;

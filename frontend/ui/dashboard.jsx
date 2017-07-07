@@ -4,7 +4,8 @@ import { HashRouter as Router, Route } from 'react-router-dom';
 import MainView from './mainview.jsx';
 import SubView from './subview.jsx';
 import DetailView from './detailview.jsx';
-import { fetchCrashData, fetchVersionData } from '../actions';
+import PropsRoute from './PropsRoute.jsx';
+import { fetchAggregateData, fetchCrashData, fetchVersionData } from '../actions';
 
 export default class Dashboard extends React.Component {
   constructor(props) {
@@ -47,7 +48,14 @@ export default class Dashboard extends React.Component {
             <div>
               <Route exact path="/" component={MainView} />
               <Route exact path="/:channel/:platform" component={SubView} />
-              <Route exact name="measureDetail" path="/:channel/:platform/:measure" component={DetailView} />
+              <PropsRoute
+                exact
+                name="measureDetail"
+                path="/:channel/:platform/:measure"
+                component={DetailView}
+                fetchVersionData={() => this.state.store.dispatch(fetchVersionData())}
+                fetchAggregates={params => this.state.store.dispatch(
+                  fetchAggregateData(params))} />
             </div>
           </Router>
         </Provider>

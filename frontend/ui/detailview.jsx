@@ -5,59 +5,70 @@ import { Helmet } from 'react-helmet';
 import { connect } from 'react-redux';
 import MeasureGraph from './measuregraph.jsx';
 import SubViewNav from './subviewnav.jsx';
-import { DEFAULT_TIME_INTERVAL, TIME_INTERVALS } from '../schema';
+import { DEFAULT_TIME_INTERVAL, OS_MAPPING, TIME_INTERVALS } from '../schema';
+import { getMajorVersion } from '../version';
 
 const mapStateToProps = (state, ownProps) => {
   const channel = ownProps.match.params.channel;
-  const platform = ownProps.match.params.platform;
-  // const measure = ownProps.match.params.measure;
-  if (state.crashData && state.crashData.channels &&
-      state.crashData.channels[platform] &&
-      state.crashData.channels[platform][channel] &&
-      state.crashData.channels[platform][channel] &&
-      state.crashData.channels[platform][channel].data) {
-    const seriesMap = state.crashData.channels[platform][channel].data;
-    let seriesList;
-    if (Object.keys(seriesMap).length > 3) {
-      // show two most recent versions in graph as their own series, aggregate
-      // out the rest
-      const mostRecent = Object.keys(seriesMap).sort().slice(-2);
-      const aggregated = _.reduce(
-        _.filter(seriesMap, (series, version) => _.indexOf(mostRecent, version) === (-1)),
-        (result, series) => {
-          const newResult = _.clone(result);
-          series.forEach((datum) => {
-            if (!result[datum.date]) {
-              newResult[datum.date] = datum;
-            } else {
-              Object.keys(result[datum.date]).forEach((k) => {
-                if (k !== 'date') {
-                  newResult[datum.date][k] += datum[k];
-                }
-              });
-            }
-          });
-          return newResult;
-        }, {});
 
-      seriesList = [
-        { name: mostRecent[1], data: seriesMap[mostRecent[1]] },
-        { name: mostRecent[0], data: seriesMap[mostRecent[0]] },
-        { name: 'Older', data: _.values(aggregated) }
-      ];
-    } else {
-      seriesList = _.map(seriesMap, (data, version) => ({
-        name: version,
-        data: data.sort((a, b) => a.date > b.date)
-      }));
+  if (state.aggregates.aggregates) {
+    const currentVersion = state.versionInfo.matrix[channel];
+    // filter bogus submissions greater than the current release on the channel
+    // (FIXME: do this server-side)
+    const filteredAggregates = state.aggregates.aggregates.filter(
+      (aggregate) => {
+        const majorVersion = getMajorVersion(aggregate.version);
+        return (majorVersion <= currentVersion && majorVersion > currentVersion - 1);
+      }).filter(aggregate => aggregate.usage_hours > 100.0);
+
+    const seriesMap = {};
+    filteredAggregates.forEach((aggregate) => {
+      if (!seriesMap[aggregate.version]) {
+        seriesMap[aggregate.version] = [];
+      }
+      seriesMap[aggregate.version].push(aggregate);
+    });
+    if (Object.keys(seriesMap).length < 3) {
+      return {
+        status: 'success',
+        isLoading: false,
+        seriesList: _.map(seriesMap, (data, version) => ({
+          name: version,
+          data
+        }))
+      };
     }
+    const mostRecent = Object.keys(seriesMap).sort().slice(-2);
+    const aggregated = _.reduce(
+      _.filter(seriesMap, (series, version) => _.indexOf(mostRecent, version) === (-1)),
+      (result, series) => {
+        const newResult = _.clone(result);
+        series.forEach((datum) => {
+          if (!result[datum.time]) {
+            newResult[datum.time] = datum;
+          } else {
+            Object.keys(result[datum.time]).forEach((k) => {
+              if (k !== 'date') {
+                newResult[datum.time][k] += datum[k];
+              }
+            });
+          }
+        });
+        return newResult;
+      }, {});
+
+    const seriesList = [
+      { name: mostRecent[1], data: seriesMap[mostRecent[1]] },
+      { name: mostRecent[0], data: seriesMap[mostRecent[0]] },
+      { name: 'Older', data: _.values(aggregated) }
+    ];
+
     return {
       status: 'success',
       isLoading: false,
       seriesList
     };
   }
-
   return {
     status: 'loading',
     isLoading: true,
@@ -103,6 +114,8 @@ class DetailViewComponent extends React.Component {
       measure: props.match.params.measure,
       customStartDate: undefined,
       customEndDate: undefined,
+      fetchVersionData: this.props.fetchVersionData,
+      fetchAggregates: this.props.fetchAggregates,
       ...getOptionalParameters(props)
     };
 
@@ -112,6 +125,18 @@ class DetailViewComponent extends React.Component {
     this.customStartDateChanged = this.customStartDateChanged.bind(this);
     this.customEndDateChanged = this.customEndDateChanged.bind(this);
     this.isCustomTimeIntervalValid = this.isCustomTimeIntervalValid.bind(this);
+  }
+
+  componentDidMount() {
+    this.state.fetchVersionData().then(() =>
+      this.state.fetchAggregates({
+        measures: [this.state.measure, 'usage_hours'],
+        interval: [this.state.timeInterval],
+        os_names: [_.findKey(OS_MAPPING,
+          mappedValue => mappedValue === this.state.platform)
+        ],
+        channels: [this.state.channel]
+      }));
   }
 
   componentWillUpdate(nextProps) {
@@ -185,6 +210,12 @@ class DetailViewComponent extends React.Component {
             { name: this.state.measure,
               link: `/${this.state.channel}/${this.state.platform}/${this.state.measure}` }
           ]} />
+        {
+          this.props.isLoading &&
+            <div className="container center">
+              <p>Loading...</p>
+            </div>
+        }
         {
           !this.props.isLoading &&
             <div className="container center">
@@ -262,7 +293,7 @@ class DetailViewComponent extends React.Component {
                     <MeasureGraph
                       title="Usage khours"
                       seriesList={this.props.seriesList}
-                      y={'usage_khours'}
+                      y={'usage_hours'}
                       linked={true}
                       linked_format="%Y-%m-%d-%H-%M-%S"
                       width={800}
