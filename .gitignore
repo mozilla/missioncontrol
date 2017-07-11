@@ -1,5 +1,6 @@
 *.pyc
 .DS_Store
+.bash_history
 .cache/
 .coverage
 .env
@@ -8,3 +9,4 @@
 MANIFEST
 dist/
 docs/_build
+node_modules/
