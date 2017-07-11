@@ -1,10 +1,10 @@
-.env
 *.pyc
 .DS_Store
-docs/_build
+.cache/
+.coverage
+.env
+.python-version
 .tox/
 MANIFEST
-.coverage
-.python-version
-.cache/
 dist/
+docs/_build
