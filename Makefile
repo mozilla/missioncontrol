@@ -15,7 +15,7 @@ help:
 	@echo "  ci         Run tests, flake8 and docs"
 
 build:
-	yarn build
+	yarn build SERVICE_DOMAIN=""
 	docker-compose build
 
 migrate:
