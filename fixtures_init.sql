@@ -1,6 +1,4 @@
 CREATE TABLE hive.default.error_aggregates (
-  window_start timestamp,
-  window_end timestamp,
   channel varchar,
   version varchar,
   build_id varchar,
@@ -27,6 +25,8 @@ CREATE TABLE hive.default.error_aggregates (
   defective_permissions_sql_removed bigint,
   slow_script_notice_count bigint,
   slow_script_page_count bigint,
-  submission_date varchar
+  submission_date varchar,
+  window_start timestamp,
+  window_end timestamp
 )
 WITH (format = 'parquet');
