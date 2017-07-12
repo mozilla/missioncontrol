@@ -11,8 +11,10 @@ Instructions for development
 ----------------------------
 
 0. Make sure you have [docker](https://docker.io), [docker-compose](https://github.com/docker/compose), and [yarn](https://yarnpkg.com/)
-1. make up
-2. make fixtures
+1. yarn install
+2. make build
+3. make up
+4. make fixtures
 
 The main web service is available at localhost:8000/api/aggregates/ and it accepts
 2 query parameters:
