@@ -1,9 +1,22 @@
+import requests
 from django.http import JsonResponse
 from django.core.cache import cache
 from django.core.exceptions import ValidationError
 from django.core.validators import validate_slug
 
 from .presto import (QueryBuilder, DIMENSION_LIST, raw_query)
+from missioncontrol.settings import FIREFOX_VERSION_URL
+
+
+def _get_firefox_versions():
+    firefox_versions = cache.get('firefox_versions')
+    if firefox_versions:
+        return firefox_versions
+
+    r = requests.get(FIREFOX_VERSION_URL)
+    firefox_versions = r.json()
+    cache.set('firefox_versions', firefox_versions)
+    return firefox_versions
 
 
 def aggregates(request):
@@ -76,3 +89,7 @@ def measures_with_interval(request):
     cache.set('measures_with_interval:%s' % url_path, response)
 
     return JsonResponse(data=response)
+
+
+def versions(request):
+    return JsonResponse(data=_get_firefox_versions())

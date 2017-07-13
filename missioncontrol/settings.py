@@ -257,3 +257,5 @@ LOGGING = {
         },
     },
 }
+
+FIREFOX_VERSION_URL = 'https://product-details.mozilla.org/1.0/firefox_versions.json'
