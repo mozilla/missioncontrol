@@ -129,7 +129,7 @@ class DetailViewComponent extends React.Component {
 
   componentDidMount() {
     this.state.fetchVersionData().then(() =>
-      this.state.fetchAggregates({
+      this.state.fetchMeasureDetailData({
         dimensions: ['version'],
         measures: [this.state.measure, 'usage_hours'],
         interval: [this.state.timeInterval],
