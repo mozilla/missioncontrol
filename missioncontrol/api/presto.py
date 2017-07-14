@@ -5,7 +5,7 @@ from sqlalchemy import select, text, MetaData, Table
 
 
 DIMENSION_LIST = (
-    'windw_start',
+    'window_start',
     'window_end',
     'submission_date',
     'channel',
