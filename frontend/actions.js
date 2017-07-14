@@ -1,6 +1,5 @@
 import _ from 'lodash';
-import { FIREFOX_VERSION_URL, CRASH_DATA_URL,
-         AGGREGATE_DATA_URL } from './schema';
+import { FIREFOX_VERSION_URL, AGGREGATE_DATA_URL } from './schema';
 
 
 export const REQUEST_VERSION_DATA = 'REQUEST_VERSION_DATA';
@@ -29,62 +28,61 @@ export function fetchVersionData() {
   };
 }
 
-export const REQUEST_CRASH_DATA = 'REQUEST_CRASH_DATA';
-function requestCrashData() {
+export const REQUEST_CHANNEL_SUMMARY_DATA = 'REQUEST_CHANNEL_SUMMARY_DATA';
+function requestChannelSummaryData() {
   return {
-    type: REQUEST_CRASH_DATA
+    type: REQUEST_CHANNEL_SUMMARY_DATA
   };
 }
 
-export const RECEIVE_CRASH_DATA = 'RECEIVE_CRASH_DATA';
-function receiveCrashData(crashRows, versionMatrix) {
+export const RECEIVE_CHANNEL_SUMMARY_DATA = 'RECEIVE_CHANNEL_SUMMARY_DATA';
+function receiveChannelSummaryData(data) {
   return {
-    type: RECEIVE_CRASH_DATA,
-    crashRows,
-    versionMatrix,
+    type: RECEIVE_CHANNEL_SUMMARY_DATA,
+    data,
     receivedAt: Date.now()
   };
 }
 
-export function fetchCrashData(versionMatrix) {
-  return (dispatch) => {
-    dispatch(requestCrashData());
-
-    return fetch(CRASH_DATA_URL)
-      .then(response => response.json())
-      .then(json => dispatch(receiveCrashData(json.query_result.data.rows, versionMatrix)));
+export const REQUEST_MEASURE_DETAIL_DATA = 'REQUEST_MEASURE_DETAIL_DATA';
+function requestMeasureDetailData() {
+  return {
+    type: REQUEST_MEASURE_DETAIL_DATA
   };
 }
 
-export const REQUEST_AGGREGATE_DATA = 'REQUEST_AGGREGATE_DATA';
-function requestAggregateData() {
+export const RECEIVE_MEASURE_DETAIL_DATA = 'RECEIVE_MEASURE_DETAIL_DATA';
+function receiveMeasureDetailData(data) {
   return {
-    type: REQUEST_AGGREGATE_DATA
-  };
-}
-
-export const RECEIVE_AGGREGATE_DATA = 'RECEIVE_AGGREGATE_DATA';
-function receiveAggregateData(aggregates) {
-  return {
-    type: RECEIVE_AGGREGATE_DATA,
-    aggregates,
+    type: RECEIVE_MEASURE_DETAIL_DATA,
+    data,
     receivedAt: Date.now()
   };
 }
 
-export function fetchAggregateData(params) {
+function getAggregateData(params, dispatch, receiver) {
+  const searchParamString = _.map(params, (values, paramName) =>
+    values.map(value => `${paramName}=${value}`).join('&')).join('&');
+
+  return fetch(`${AGGREGATE_DATA_URL}?${searchParamString}`)
+    .then(response => response.json())
+    .then(json => dispatch(
+      receiver(
+        json.rows.map(
+          row => _.zipObject(json.columns, row)
+        ))));
+}
+
+export function fetchChannelSummaryData(params) {
   return (dispatch) => {
-    dispatch(requestAggregateData());
+    dispatch(requestChannelSummaryData());
+    return getAggregateData(params, dispatch, receiveChannelSummaryData);
+  };
+}
 
-    const searchParamString = _.map(params, (values, paramName) =>
-      values.map(value => `${paramName}=${value}`).join('&')).join('&');
-
-    return fetch(`${AGGREGATE_DATA_URL}?${searchParamString}`)
-      .then(response => response.json())
-      .then(json => dispatch(
-        receiveAggregateData(
-          json.rows.map(
-            row => _.zipObject(json.columns, row)
-          ))));
+export function fetchMeasureDetailData(params) {
+  return (dispatch) => {
+    dispatch(requestMeasureDetailData());
+    return getAggregateData(params, dispatch, receiveMeasureDetailData);
   };
 }

@@ -5,7 +5,7 @@ import MainView from './mainview.jsx';
 import SubView from './subview.jsx';
 import DetailView from './detailview.jsx';
 import PropsRoute from './PropsRoute.jsx';
-import { fetchAggregateData, fetchCrashData, fetchVersionData } from '../actions';
+import { fetchMeasureDetailData, fetchChannelSummaryData, fetchVersionData } from '../actions';
 
 export default class Dashboard extends React.Component {
   constructor(props) {
@@ -17,14 +17,6 @@ export default class Dashboard extends React.Component {
     };
 
     this.filterChanged = this.filterChanged.bind(this);
-  }
-
-  componentDidMount() {
-    const store = this.state.store;
-    store.dispatch(fetchVersionData()).then(
-      () => {
-        store.dispatch(fetchCrashData(store.getState().versionInfo.matrix));
-      });
   }
 
   filterChanged(ev) {
@@ -47,15 +39,20 @@ export default class Dashboard extends React.Component {
           <Router>
             <div>
               <Route exact path="/" component={MainView} />
-              <Route exact path="/:channel/:platform" component={SubView} />
+              <PropsRoute
+                exact
+                path="/:channel/:platform"
+                component={SubView}
+                fetchChannelSummaryData={params => this.state.store.dispatch(
+                  fetchChannelSummaryData(params))} />
               <PropsRoute
                 exact
                 name="measureDetail"
                 path="/:channel/:platform/:measure"
                 component={DetailView}
                 fetchVersionData={() => this.state.store.dispatch(fetchVersionData())}
-                fetchAggregates={params => this.state.store.dispatch(
-                  fetchAggregateData(params))} />
+                fetchMeasureDetailData={params => this.state.store.dispatch(
+                  fetchMeasureDetailData(params))} />
             </div>
           </Router>
         </Provider>

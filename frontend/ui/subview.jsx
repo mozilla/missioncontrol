@@ -5,60 +5,38 @@ import { Helmet } from 'react-helmet';
 import { connect } from 'react-redux';
 import MeasureGraph from './measuregraph.jsx';
 import SubViewNav from './subviewnav.jsx';
-import { CRASH_TYPES } from '../schema';
+import { DEFAULT_TIME_INTERVAL, MEASURES, OS_MAPPING } from '../schema';
 
-const mapStateToProps = (state, ownProps) => {
-  const channel = ownProps.match.params.channel;
-  const platform = ownProps.match.params.platform;
+const mapStateToProps = (state) => {
+  // const channel = ownProps.match.params.channel;
+  // const platform = ownProps.match.params.platform;
 
   // if present, summarize crash data across versions per crash type
-  if (state.crashData && state.crashData.channels &&
-      state.crashData.channels[platform] &&
-      state.crashData.channels[platform][channel]) {
-    if (state.crashData.channels[platform][channel].data) {
-      const aggregatedDataMap = {};
-      _.forEach(state.crashData.channels[platform][channel].data, (version) => {
-        version.forEach((d) => {
-          CRASH_TYPES.forEach((crashType) => {
-            if (!aggregatedDataMap[crashType]) {
-              aggregatedDataMap[crashType] = {};
-            }
-            if (!aggregatedDataMap[crashType][d.date]) {
-              aggregatedDataMap[crashType][d.date] = {
-                date: d.date,
-                value: 0
-              };
-            }
-            aggregatedDataMap[crashType][d.date].value += d[`crash-${crashType}`];
-          });
-        });
+  if (state.channelSummary && state.channelSummary.data && state.channelSummary.data.length) {
+    const aggregatedDataMap = {};
+    MEASURES.forEach((measure) => {
+      aggregatedDataMap[measure] = {};
+      state.channelSummary.data.forEach((datum) => {
+        aggregatedDataMap[measure][datum.date] = {
+          date: datum.date,
+          value: 0
+        };
+        if (datum[measure]) {
+          aggregatedDataMap[measure][datum.date].value += datum[measure];
+        }
       });
-      return {
-        summary: {
-          crash: _.reduce(aggregatedDataMap, (crashTypes, data, crashType) => ({
-            ...crashTypes,
-            [crashType]: {
-              status: 'success',
-              seriesList: [{
-                name: 'aggregate',
-                data: _.values(data).sort((a, b) => a.date > b.date)
-              }]
-            }
-          }), {})
-        }
-      };
-    }
-
-    // we have data, but it is empty
+    });
     return {
-      summary: {
-        crash: {
-          main: {
-            status: 'warning',
-            seriesList: []
-          }
+      summary: _.reduce(aggregatedDataMap, (measures, data, measure) => ({
+        ...measures,
+        [measure]: {
+          status: 'success',
+          seriesList: [{
+            name: 'aggregate',
+            data: _.values(data).sort((a, b) => a.date > b.date)
+          }]
         }
-      }
+      }), {})
     };
   }
 
@@ -72,10 +50,22 @@ export class SubViewComponent extends React.Component {
     this.state = {
       filter: '',
       channel: props.match.params.channel,
-      platform: props.match.params.platform
+      platform: props.match.params.platform,
+      fetchChannelSummaryData: props.fetchChannelSummaryData
     };
 
     this.cardClicked = this.cardClicked.bind(this);
+  }
+
+  componentDidMount() {
+    this.state.fetchChannelSummaryData({
+      measures: MEASURES,
+      interval: [DEFAULT_TIME_INTERVAL],
+      os_names: [_.findKey(OS_MAPPING,
+        mappedValue => mappedValue === this.state.platform)
+      ],
+      channels: [this.state.channel]
+    });
   }
 
   cardClicked(measure) {
@@ -98,34 +88,30 @@ export class SubViewComponent extends React.Component {
               link: `/${this.state.channel}/${this.state.platform}` }
           ]} />
         <div className="container center">
-          {
-            _.map(this.props.summary, (dimension, dimensionName) => (
-              <Row key={dimensionName}>
-                <CardColumns>
-                  {
-                    _.map(dimension, (measure, dimension2Name) => (
-                      <Card
-                        key={`${dimensionName}-${dimension2Name}`}
-                        onClick={() => this.cardClicked(`${dimensionName}-${dimension2Name}`)}
-                        className="missioncontrol-card">
-                        <CardHeader className={`alert-${measure.status}`}>
-                          { _.capitalize(dimensionName) } { dimension2Name }
-                        </CardHeader>
-                        <CardBlock>
-                          <MeasureGraph
-                            seriesList={measure.seriesList}
-                            xax_format={'%Hh'}
-                            xax_count={4}
-                            width={320}
-                            height={200} />
-                        </CardBlock>
-                      </Card>
-                    ))
-                  }
-                </CardColumns>
-              </Row>
-            ))
-          }
+          <Row>
+            <CardColumns>
+              {
+                _.map(this.props.summary, (measure, measureName) => (
+                  <Card
+                    key={`${measureName}`}
+                    onClick={() => this.cardClicked(`${measureName}`)}
+                    className="missioncontrol-card">
+                    <CardHeader className={`alert-${measure.status}`}>
+                      { measureName }
+                    </CardHeader>
+                    <CardBlock>
+                      <MeasureGraph
+                        seriesList={measure.seriesList}
+                        xax_format={'%Hh'}
+                        xax_count={4}
+                        width={320}
+                        height={200} />
+                    </CardBlock>
+                  </Card>
+                ))
+              }
+            </CardColumns>
+          </Row>
         </div>
       </div>
     );
