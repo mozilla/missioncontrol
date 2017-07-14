@@ -38,10 +38,11 @@ def aggregates(request):
 
 
 # simple function to validate request input parameters to ensure sanity
-def _validate_list_params(request, param_name):
+def _validate_list_params(request, param_name, minimum=0):
     params = request.GET.getlist(param_name)
-    if len(params) < 1:
-        raise ValidationError('Must supply at least one {}'.format(param_name))
+    if len(params) < minimum:
+        raise ValidationError('Must supply at least {} {}'.format(minimum,
+                              param_name))
     for param in params:
         validate_slug(param)
     return params
@@ -55,14 +56,15 @@ def measures_with_interval(request):
         return JsonResponse(data=cached_data)
 
     interval = int(request.GET.get('interval', 86400))
-    measures = _validate_list_params(request, 'measures')
-    os_names = _validate_list_params(request, 'os_names')
-    channels = _validate_list_params(request, 'channels')
+    dimensions = _validate_list_params(request, 'dimensions')
+    measures = _validate_list_params(request, 'measures', minimum=1)
+    os_names = _validate_list_params(request, 'os_names', minimum=1)
+    channels = _validate_list_params(request, 'channels', minimum=1)
 
-    default_columns = [('window_start', 'time'),
-                       ('channel', 'channel'),
-                       ('os_name', 'os_name'),
-                       ('version', 'version')]
+    columns = [('window_start', 'time'),
+               ('channel', 'channel'),
+               ('os_name', 'os_name')] + [(dimension, dimension) for
+                                          dimension in dimensions]
     raw_sql = '''
         select {}
         from error_aggregates where application=\'Firefox\' and
@@ -71,7 +73,7 @@ def measures_with_interval(request):
         window_start > current_timestamp - (1 * interval \'{}\' second)
         group by {}
         '''.format(','.join(['{} as {}'.format(*column_tuple) for column_tuple
-                             in default_columns] +
+                             in columns] +
                             ['sum({}) as {}'.format(*([measure] * 2)) for measure
                              in measures]),
                    ' or '.join(['os_name=\'{}\''.format(os_name) for os_name
@@ -79,11 +81,11 @@ def measures_with_interval(request):
                    ' or '.join(['channel=\'{}\''.format(channel) for channel
                                 in channels]),
                    interval,
-                   ','.join([ct[0] for ct in default_columns])).replace('\n', '')
+                   ','.join([ct[0] for ct in columns])).replace('\n', '')
     rows = [list(row) for row in raw_query(raw_sql)]
     response = {
         'sql': raw_sql,
-        'columns': [ct[1] for ct in default_columns] + measures,
+        'columns': [ct[1] for ct in columns] + measures,
         'rows': rows
     }
     cache.set('measures_with_interval:%s' % url_path, response)
