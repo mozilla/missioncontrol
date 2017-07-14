@@ -4,7 +4,7 @@ export const AGGREGATE_DATA_URL = `${process.env.SERVICE_DOMAIN}/api/measures_wi
 
 export const CHANNELS = ['esr', 'beta', 'release', 'nightly'];
 
-export const CRASH_TYPES = ['content', 'gmplugin', 'gpu', 'main', 'plugin'];
+export const MEASURES = ['content_crashes', 'gmplugin_crashes', 'gpu_crashes', 'main_crashes', 'plugin_crashes'];
 
 export const EXPECTED_NUM_DATAPOINTS_PER_OS_CHANNEL = 287;
 

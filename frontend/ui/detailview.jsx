@@ -11,11 +11,11 @@ import { getMajorVersion } from '../version';
 const mapStateToProps = (state, ownProps) => {
   const channel = ownProps.match.params.channel;
 
-  if (state.aggregates.aggregates) {
+  if (state.measureDetail.data) {
     const currentVersion = state.versionInfo.matrix[channel];
     // filter bogus submissions greater than the current release on the channel
     // (FIXME: do this server-side)
-    const filteredAggregates = state.aggregates.aggregates.filter(
+    const filteredAggregates = state.measureDetail.data.filter(
       (aggregate) => {
         const majorVersion = getMajorVersion(aggregate.version);
         return (majorVersion <= currentVersion && majorVersion > currentVersion - 1);
@@ -115,7 +115,7 @@ class DetailViewComponent extends React.Component {
       customStartDate: undefined,
       customEndDate: undefined,
       fetchVersionData: this.props.fetchVersionData,
-      fetchAggregates: this.props.fetchAggregates,
+      fetchMeasureDetailData: this.props.fetchMeasureDetailData,
       ...getOptionalParameters(props)
     };
 
@@ -130,6 +130,7 @@ class DetailViewComponent extends React.Component {
   componentDidMount() {
     this.state.fetchVersionData().then(() =>
       this.state.fetchAggregates({
+        dimensions: ['version'],
         measures: [this.state.measure, 'usage_hours'],
         interval: [this.state.timeInterval],
         os_names: [_.findKey(OS_MAPPING,

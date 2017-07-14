@@ -1,8 +1,7 @@
-import _ from 'lodash';
 import { combineReducers } from 'redux';
-import { REQUEST_VERSION_DATA, RECEIVE_VERSION_DATA, REQUEST_CRASH_DATA, RECEIVE_CRASH_DATA,
-         REQUEST_AGGREGATE_DATA, RECEIVE_AGGREGATE_DATA } from './actions';
-import { CHANNELS, CRASH_TYPES, EXPECTED_NUM_DATAPOINTS_PER_OS_CHANNEL, OS_MAPPING } from './schema';
+import { REQUEST_VERSION_DATA, RECEIVE_VERSION_DATA,
+         REQUEST_CHANNEL_SUMMARY_DATA, RECEIVE_CHANNEL_SUMMARY_DATA,
+         REQUEST_MEASURE_DETAIL_DATA, RECEIVE_MEASURE_DETAIL_DATA } from './actions';
 import { getMajorVersion } from './version';
 
 function processVersionMatrix(rawVersionMatrix) {
@@ -30,99 +29,6 @@ function versionInfo(state = {}, action) {
   }
 }
 
-function processCrashRows(crashRows, versionMatrix) {
-  const crashes = {};
-
-  crashRows.forEach((row) => {
-    const osname = OS_MAPPING[row.os_name];
-    const channel = row.channel;
-    const version = row.version;
-
-    // ignore older versions (more than one before current)
-    if (getMajorVersion(version) < (versionMatrix[channel] - 1) ||
-        getMajorVersion(version) > versionMatrix[channel]) {
-      return;
-    }
-
-    if (!crashes[osname]) {
-      crashes[osname] = {};
-    }
-    if (!crashes[osname][channel]) {
-      crashes[osname][channel] = {
-        data: {}
-      };
-    }
-    if (!crashes[osname][channel].data[version]) {
-      crashes[osname][channel].data[version] = [];
-    }
-
-    const crashSummary = {
-      usage_khours: (row.usage_hours / 1000.0),
-      date: new Date(row.start)
-    };
-    CRASH_TYPES.forEach((crashType) => {
-      crashSummary[`crash-${crashType}`] = row[crashType];
-    });
-
-    crashes[osname][channel].data[version].push(crashSummary);
-  });
-
-  // we should have at least one version with EXPECTED_NUM_DATAPOINTS --
-  // if there is no data, or some missing, note that
-  _.forEach(crashes, (os, osname) => {
-    CHANNELS.forEach((channelName) => {
-      if (!os[channelName]) {
-        crashes[osname][channelName] = {
-          status: 'warning',
-          insufficientData: [{
-            measure: 'crash',
-            expected: EXPECTED_NUM_DATAPOINTS_PER_OS_CHANNEL,
-            current: 0
-          }]
-        };
-      } else {
-        const channel = crashes[osname][channelName];
-        const numDataPoints = _.max(_.map(channel.data, data => data.length));
-        if (numDataPoints < EXPECTED_NUM_DATAPOINTS_PER_OS_CHANNEL) {
-          crashes[osname][channelName] = {
-            ...channel,
-            status: 'warning',
-            insufficientData: [{
-              measure: 'crash-main',
-              expected: EXPECTED_NUM_DATAPOINTS_PER_OS_CHANNEL,
-              current: numDataPoints
-            }]
-          };
-        } else {
-          crashes[osname][channelName] = {
-            ...channel,
-            status: 'success',
-            passingMeasures: 1
-          };
-        }
-      }
-    });
-  });
-
-  return crashes;
-}
-
-function crashData(state = {}, action) {
-  switch (action.type) {
-    case REQUEST_CRASH_DATA:
-      return Object.assign({}, state, {
-        isFetching: true
-      });
-    case RECEIVE_CRASH_DATA:
-      return Object.assign({}, state, {
-        isFetching: false,
-        channels: processCrashRows(action.crashRows, action.versionMatrix)
-      });
-    default:
-      return state;
-  }
-}
-
 function processAggregates(rawAggregates) {
   return rawAggregates.map(aggregate => ({
     ...aggregate,
@@ -130,16 +36,32 @@ function processAggregates(rawAggregates) {
   }));
 }
 
-function aggregates(state = {}, action) {
+function channelSummary(state = {}, action) {
   switch (action.type) {
-    case REQUEST_AGGREGATE_DATA:
+    case REQUEST_CHANNEL_SUMMARY_DATA:
       return Object.assign({}, state, {
         isFetching: true
       });
-    case RECEIVE_AGGREGATE_DATA:
+    case RECEIVE_CHANNEL_SUMMARY_DATA:
       return Object.assign({}, state, {
         isFetching: false,
-        aggregates: processAggregates(action.aggregates)
+        data: processAggregates(action.data)
+      });
+    default:
+      return state;
+  }
+}
+
+function measureDetail(state = {}, action) {
+  switch (action.type) {
+    case REQUEST_MEASURE_DETAIL_DATA:
+      return Object.assign({}, state, {
+        isFetching: true
+      });
+    case RECEIVE_MEASURE_DETAIL_DATA:
+      return Object.assign({}, state, {
+        isFetching: false,
+        data: processAggregates(action.data)
       });
     default:
       return state;
@@ -148,8 +70,8 @@ function aggregates(state = {}, action) {
 
 const rootReducer = combineReducers({
   versionInfo,
-  crashData,
-  aggregates
+  channelSummary,
+  measureDetail
 });
 
 export default rootReducer;
