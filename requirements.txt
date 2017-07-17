@@ -123,8 +123,8 @@ configparser==3.5.0 \
 dockerflow==2017.5.0 \
     --hash=sha256:eb2fd46a49dbbb07399995d5419074070dc2a13275f92c33f3e25ffcdd2ff014 \
     --hash=sha256:e81e9f709918805d847a3e02a0fc854e5387db7bfd911b0fac3d769eadfac058
-PyHive==0.3.0 \
-    --hash=sha256:e9c6776a80ee7a11235363fde74e3fe9347cc4f06d1faba01df50cb30f634403
+PyHive==0.4.0 \
+    --hash=sha256:320cc6d5e20791c2b25a46c3c8b310a499ad323a6738b115a6d278fe0f34989f
 future==0.16.0 \
     --hash=sha256:e39ced1ab767b5936646cedba8bcce582398233d6a627067d4c6a454c90cfedb
 SQLAlchemy==1.1.11 \
