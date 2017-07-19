@@ -1,5 +1,4 @@
 export const FIREFOX_VERSION_URL = `${process.env.SERVICE_DOMAIN}/api/versions/`;
-export const CRASH_DATA_URL = 'https://storage.googleapis.com/missioncontrol-prototyping/redash.json';
 export const AGGREGATE_DATA_URL = `${process.env.SERVICE_DOMAIN}/api/measures_with_interval/`;
 
 export const CHANNELS = ['esr', 'beta', 'release', 'nightly'];
