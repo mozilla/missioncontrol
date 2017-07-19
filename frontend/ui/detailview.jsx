@@ -6,11 +6,8 @@ import { connect } from 'react-redux';
 import MeasureGraph from './measuregraph.jsx';
 import SubViewNav from './subviewnav.jsx';
 import { DEFAULT_TIME_INTERVAL, OS_MAPPING, TIME_INTERVALS } from '../schema';
-import { getMajorVersion } from '../version';
 
 const mapStateToProps = (state, ownProps) => {
-  const channel = ownProps.match.params.channel;
-
   if (state.measureDetail.data) {
     const seriesMap = {};
     state.measureDetail.data.forEach((aggregate) => {
