@@ -12,17 +12,8 @@ const mapStateToProps = (state, ownProps) => {
   const channel = ownProps.match.params.channel;
 
   if (state.measureDetail.data) {
-    const currentVersion = state.versionInfo.matrix[channel];
-    // filter bogus submissions greater than the current release on the channel
-    // (FIXME: do this server-side)
-    const filteredAggregates = state.measureDetail.data.filter(
-      (aggregate) => {
-        const majorVersion = getMajorVersion(aggregate.version);
-        return (majorVersion <= currentVersion && majorVersion > currentVersion - 1);
-      }).filter(aggregate => aggregate.usage_hours > 100.0);
-
     const seriesMap = {};
-    filteredAggregates.forEach((aggregate) => {
+    state.measureDetail.data.forEach((aggregate) => {
       if (!seriesMap[aggregate.version]) {
         seriesMap[aggregate.version] = [];
       }
