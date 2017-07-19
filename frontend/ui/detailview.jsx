@@ -7,7 +7,7 @@ import MeasureGraph from './measuregraph.jsx';
 import SubViewNav from './subviewnav.jsx';
 import { DEFAULT_TIME_INTERVAL, OS_MAPPING, TIME_INTERVALS } from '../schema';
 
-const mapStateToProps = (state, ownProps) => {
+const mapStateToProps = (state) => {
   if (state.measureDetail.data) {
     const seriesMap = {};
     state.measureDetail.data.forEach((aggregate) => {
