@@ -1,3 +1,6 @@
+from distutils.version import StrictVersion
+from functools import reduce
+
 import requests
 from django.http import JsonResponse
 from django.core.cache import cache
@@ -13,9 +16,17 @@ def _get_firefox_versions():
     if firefox_versions:
         return firefox_versions
 
+    # map the version api's to telemetry channel names
     r = requests.get(FIREFOX_VERSION_URL)
     firefox_versions = r.json()
-    cache.set('firefox_versions', firefox_versions)
+    mapped_versions = {
+        'nightly': firefox_versions['FIREFOX_NIGHTLY'],
+        'esr': firefox_versions['FIREFOX_ESR'],
+        'beta': firefox_versions['LATEST_FIREFOX_DEVEL_VERSION'],
+        'release': firefox_versions['LATEST_FIREFOX_VERSION']
+    }
+    cache.set('firefox_versions', mapped_versions)
+
     return firefox_versions
 
 
@@ -61,6 +72,20 @@ def measures_with_interval(request):
     os_names = _validate_list_params(request, 'os_names', minimum=1)
     channels = _validate_list_params(request, 'channels', minimum=1)
 
+    # some business logic to figure out the min/max allowed versions
+    # based on the version
+    versions = _get_firefox_versions()
+    all_channels = ['esr', 'release', 'beta', 'nightly']
+    latest_channel = reduce(lambda val, chan: chan if val is None and chan in channels else val,
+                            reversed(all_channels), None)
+    earliest_channel = reduce(lambda val, chan: chan if val is None and chan in channels else val,
+                              all_channels, None)
+    latest_version = versions[latest_channel]
+    if earliest_channel == 'esr':
+        earliest_version = str(StrictVersion(versions[earliest_channel]).version[0] - 7)
+    else:
+        earliest_version = str(StrictVersion(versions[earliest_channel]).version[0] - 1)
+
     columns = [('window_start', 'time'),
                ('channel', 'channel'),
                ('os_name', 'os_name')] + [(dimension, dimension) for
@@ -68,6 +93,7 @@ def measures_with_interval(request):
     raw_sql = '''
         select {}
         from error_aggregates where application=\'Firefox\' and
+        (version >= \'{}\' and version <= \'{}\') and
         ({}) and
         ({}) and
         window_start > current_timestamp - (1 * interval \'{}\' second)
@@ -76,12 +102,13 @@ def measures_with_interval(request):
                              in columns] +
                             ['sum({}) as {}'.format(*([measure] * 2)) for measure
                              in measures]),
+                   earliest_version, latest_version,
                    ' or '.join(['os_name=\'{}\''.format(os_name) for os_name
                                 in os_names]),
                    ' or '.join(['channel=\'{}\''.format(channel) for channel
                                 in channels]),
                    interval,
-                   ','.join([ct[0] for ct in columns])).replace('\n', '')
+                   ','.join([ct[0] for ct in columns])).replace('\n', '').strip()
     rows = [list(row) for row in raw_query(raw_sql)]
     response = {
         'sql': raw_sql,
