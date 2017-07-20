@@ -19,7 +19,6 @@ const mapStateToProps = (state) => {
     if (Object.keys(seriesMap).length < 3) {
       return {
         status: 'success',
-        isLoading: false,
         seriesList: _.map(seriesMap, (data, version) => ({
           name: version,
           data
@@ -53,13 +52,11 @@ const mapStateToProps = (state) => {
 
     return {
       status: 'success',
-      isLoading: false,
       seriesList
     };
   }
   return {
     status: 'loading',
-    isLoading: true,
     seriesList: []
   };
 };
@@ -104,6 +101,7 @@ class DetailViewComponent extends React.Component {
       customEndDate: undefined,
       fetchVersionData: this.props.fetchVersionData,
       fetchMeasureDetailData: this.props.fetchMeasureDetailData,
+      isLoading: true,
       ...getOptionalParameters(props)
     };
 
@@ -116,16 +114,15 @@ class DetailViewComponent extends React.Component {
   }
 
   componentDidMount() {
-    this.state.fetchVersionData().then(() =>
-      this.state.fetchMeasureDetailData({
-        dimensions: ['version'],
-        measures: [this.state.measure, 'usage_hours'],
-        interval: [this.state.timeInterval],
-        os_names: [_.findKey(OS_MAPPING,
-          mappedValue => mappedValue === this.state.platform)
-        ],
-        channels: [this.state.channel]
-      }));
+    this.state.fetchMeasureDetailData({
+      dimensions: ['version'],
+      measures: [this.state.measure, 'usage_hours'],
+      interval: [this.state.timeInterval],
+      os_names: [_.findKey(OS_MAPPING,
+        mappedValue => mappedValue === this.state.platform)
+      ],
+      channels: [this.state.channel]
+    }).then(() => this.setState({ isLoading: false }));
   }
 
   componentWillUpdate(nextProps) {
@@ -200,13 +197,13 @@ class DetailViewComponent extends React.Component {
               link: `/${this.state.channel}/${this.state.platform}/${this.state.measure}` }
           ]} />
         {
-          this.props.isLoading &&
+          this.state.isLoading &&
             <div className="container center">
               <p>Loading...</p>
             </div>
         }
         {
-          !this.props.isLoading &&
+          !this.state.isLoading &&
             <div className="container center">
               <Row>
                 <select
