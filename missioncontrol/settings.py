@@ -9,10 +9,12 @@ https://docs.djangoproject.com/en/1.9/ref/settings/
 """
 
 import os
+from datetime import timedelta
 
 import dj_database_url
-from decouple import Csv, config
 import django_cache_url
+from celery.schedules import crontab
+from decouple import Csv, config
 
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
@@ -38,10 +40,13 @@ CORS_ORIGIN_ALLOW_ALL = True
 INSTALLED_APPS = [
     # Project specific apps
     'missioncontrol.base',
+    'missioncontrol.etl',
 
     # Third party apps
     'corsheaders',
     'dockerflow.django',
+    'django_celery_monitor',
+    'django_celery_results',
 
     # Django apps
     'django.contrib.admin',
@@ -199,6 +204,47 @@ SECURE_CONTENT_TYPE_NOSNIFF = config('SECURE_CONTENT_TYPE_NOSNIFF', default=True
 # See also https://docs.djangoproject.com/en/1.9/ref/settings/#secure-proxy-ssl-header
 # SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 
+REDIS_URL_DEFAULT = 'redis://redis:6379/1'
+
+CELERY_BROKER_URL = os.environ.get('REDIS_URL', REDIS_URL_DEFAULT)
+
+CELERY_BROKER_TRANSPORT_OPTIONS = {
+    # only send messages to actual virtual AMQP host instead of all
+    'fanout_prefix': True,
+    # have the workers only subscribe to worker related events (less network traffic)
+    'fanout_patterns': True,
+    # 8 days, since that's longer than our biggest interval to schedule a task (a week)
+    # this is needed to be able to use ETAs and countdowns
+    # http://docs.celeryproject.org/en/latest/getting-started/brokers/redis.html#id1
+    'visibility_timeout': 8 * 24 * 60 * 60,
+}
+#: Use the django_celery_results database backend.
+CELERY_RESULT_BACKEND = 'django-db'
+#: Throw away task results after two weeks, for debugging purposes.
+CELERY_RESULT_EXPIRES = timedelta(days=14)
+#: Track if a task has been started, not only pending etc.
+CELERY_TASK_TRACK_STARTED = True
+#: Add a 5 minute soft timeout to all Celery tasks.
+CELERY_TASK_SOFT_TIME_LIMIT = 60 * 5
+#: And a 10 minute hard timeout.
+CELERY_TASK_TIME_LIMIT = CELERY_TASK_SOFT_TIME_LIMIT * 2
+#: Send SENT events as well to know when the task has left the scheduler.
+CELERY_TASK_SEND_SENT_EVENT = True
+#: Completely disable the rate limiting feature since it's costly
+CELERY_WORKER_DISABLE_RATE_LIMITS = True
+#: The scheduler to use for periodic and scheduled tasks.
+CELERY_BEAT_SCHEDULER = 'redbeat.RedBeatScheduler'
+#: Maximum time to sleep between re-checking the schedule
+CELERY_BEAT_MAX_LOOP_INTERVAL = 5  #: redbeat likes fast loops
+#: Unless refreshed the lock will expire after this time
+CELERY_REDBEAT_LOCK_TIMEOUT = CELERY_BEAT_MAX_LOOP_INTERVAL * 5
+#: The default/initial schedule to use.
+CELERY_BEAT_SCHEDULE = {
+    'fetch_versions': {
+        'schedule': crontab(minute='*'),
+        'task': 'missioncontrol.etl.tasks.fetch_versions'
+    }
+}
 
 LOGGING_USE_JSON = config('LOGGING_USE_JSON', default=True, cast=bool)
 

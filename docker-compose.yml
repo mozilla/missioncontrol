@@ -6,16 +6,11 @@ services:
       driver: "none"
   redis:
     image: redis:3.2
-  web:
+
+  app:
       build: .
-      ports:
-        - "8000:8000"
       volumes:
         - .:/app
-      depends_on:
-        - db
-        - presto
-        - redis
       environment:
         - DATABASE_URL=postgres://postgres@db/postgres
         - PRESTO_URL=presto://presto:8080/hive/default
@@ -25,8 +20,20 @@ services:
         - CACHE_URL=redis://redis:6379/1
         - LOGGING_USE_JSON=0
         - MISSION_CONTROL_TABLE=error_aggregates
+      command: "true"
+
+  web:
+      extends:
+        service: app
+      ports:
+        - "8000:8000"
+      depends_on:
+        - db
+        - presto
+        - redis
       command:
         "web-dev"
+
   hive-db:
     image: postgres:9.5
     logging:
@@ -48,6 +55,7 @@ services:
       - "50070:50070"
     environment:
       - CLUSTER_NAME=hadoop
+
   hdfs-datanode:
     image: uhopper/hadoop-datanode:2.7.2
     logging:
@@ -56,6 +64,7 @@ services:
       - "50010:50010"
     environment:
       - CORE_CONF_fs_defaultFS=hdfs://hdfs-namenode:8020
+
   metastore:
     image: mozdata/docker-hive-metastore:1.2.1
     logging:
@@ -70,6 +79,7 @@ services:
       - DB_URI=hive-db
       - DB_USER=hive
       - DB_PASSWORD=password
+
   presto:
     image: mozdata/docker-presto:0.151
     logging:
@@ -84,3 +94,28 @@ services:
       - CONFIG_CONF_QUERY_MAX___MEMORY___PER___NODE=256MB
       - JVM_CONF_XMX=512M
       - HIVE_CONF_HIVE_METASTORE_URI=thrift://metastore:9083
+
+  worker:
+    extends:
+      service: app
+    depends_on:
+      - db
+      - presto
+      - redis
+    command: worker
+
+  scheduler:
+    extends:
+      service: app
+    links:
+      - db
+      - redis
+    command: scheduler
+
+  monitor:
+    extends:
+      service: app
+    depends_on:
+      - worker
+      - scheduler
+    command: monitor
