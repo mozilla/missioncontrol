@@ -1,4 +1,4 @@
-from distutils.version import StrictVersion
+from distutils.version import LooseVersion
 from functools import reduce
 
 import requests
@@ -27,7 +27,7 @@ def _get_firefox_versions():
     }
     cache.set('firefox_versions', mapped_versions)
 
-    return mapped_versions
+    return firefox_versions
 
 
 def aggregates(request):
@@ -82,9 +82,9 @@ def measures_with_interval(request):
                               all_channels, None)
     latest_version = versions[latest_channel]
     if earliest_channel == 'esr':
-        earliest_version = str(StrictVersion(versions[earliest_channel]).version[0] - 7)
+        earliest_version = str(LooseVersion(versions[earliest_channel]).version[0] - 7)
     else:
-        earliest_version = str(StrictVersion(versions[earliest_channel]).version[0] - 1)
+        earliest_version = str(LooseVersion(versions[earliest_channel]).version[0] - 1)
 
     columns = [('window_start', 'time'),
                ('channel', 'channel'),
