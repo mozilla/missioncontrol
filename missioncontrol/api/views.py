@@ -27,7 +27,7 @@ def _get_firefox_versions():
     }
     cache.set('firefox_versions', mapped_versions)
 
-    return firefox_versions
+    return mapped_versions
 
 
 def aggregates(request):
