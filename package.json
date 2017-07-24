@@ -16,6 +16,7 @@
     "bootstrap": "4.0.0-alpha.6",
     "d3": "^4.9.1",
     "d3-time-format": "^2.0.5",
+    "font-awesome": "^4.7.0",
     "lodash": "^4.17.4",
     "metrics-graphics": "^2.11.0",
     "neutrino-middleware-env": "^6.1.4",

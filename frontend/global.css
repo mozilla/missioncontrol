@@ -16,6 +16,11 @@
     margin: auto;
 }
 
+.loading-widget {
+    height: 200px;
+    font-size: 20px;
+}
+
 html {
     font-size: 14px;
 }
