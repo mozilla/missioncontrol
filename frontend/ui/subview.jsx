@@ -3,6 +3,7 @@ import _ from 'lodash';
 import { Card, CardBlock, CardColumns, CardHeader, Row } from 'reactstrap';
 import { Helmet } from 'react-helmet';
 import { connect } from 'react-redux';
+import Loading from './loading.jsx';
 import MeasureGraph from './measuregraph.jsx';
 import SubViewNav from './subviewnav.jsx';
 import { DEFAULT_TIME_INTERVAL, MEASURES, OS_MAPPING } from '../schema';
@@ -51,7 +52,8 @@ export class SubViewComponent extends React.Component {
       filter: '',
       channel: props.match.params.channel,
       platform: props.match.params.platform,
-      fetchChannelSummaryData: props.fetchChannelSummaryData
+      fetchChannelSummaryData: props.fetchChannelSummaryData,
+      isLoading: true
     };
 
     this.cardClicked = this.cardClicked.bind(this);
@@ -65,7 +67,7 @@ export class SubViewComponent extends React.Component {
         mappedValue => mappedValue === this.state.platform)
       ],
       channels: [this.state.channel]
-    });
+    }).then(() => this.setState({ isLoading: false }));
   }
 
   cardClicked(measure) {
@@ -87,32 +89,38 @@ export class SubViewComponent extends React.Component {
             { name: `${this.state.platform} ${this.state.channel}`,
               link: `/${this.state.channel}/${this.state.platform}` }
           ]} />
-        <div className="container center">
-          <Row>
-            <CardColumns>
-              {
-                _.map(this.props.summary, (measure, measureName) => (
-                  <Card
-                    key={`${measureName}`}
-                    onClick={() => this.cardClicked(`${measureName}`)}
-                    className="missioncontrol-card">
-                    <CardHeader className={`alert-${measure.status}`}>
-                      { measureName }
-                    </CardHeader>
-                    <CardBlock>
-                      <MeasureGraph
-                        seriesList={measure.seriesList}
-                        xax_format={'%Hh'}
-                        xax_count={4}
-                        width={320}
-                        height={200} />
-                    </CardBlock>
-                  </Card>
-                ))
-              }
-            </CardColumns>
-          </Row>
-        </div>
+        {
+          this.state.isLoading && <Loading />
+        }
+        {
+          !this.state.isLoading &&
+            <div className="container center">
+              <Row>
+                <CardColumns>
+                  {
+                    _.map(this.props.summary, (measure, measureName) => (
+                      <Card
+                        key={`${measureName}`}
+                        onClick={() => this.cardClicked(`${measureName}`)}
+                        className="missioncontrol-card">
+                        <CardHeader className={`alert-${measure.status}`}>
+                          { measureName }
+                        </CardHeader>
+                        <CardBlock>
+                          <MeasureGraph
+                            seriesList={measure.seriesList}
+                            xax_format={'%Hh'}
+                            xax_count={4}
+                            width={280}
+                            height={200} />
+                        </CardBlock>
+                      </Card>
+                    ))
+                  }
+                </CardColumns>
+              </Row>
+            </div>
+        }
       </div>
     );
   }
