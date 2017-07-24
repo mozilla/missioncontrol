@@ -25,7 +25,6 @@ export default class MeasureGraph extends React.Component {
         width={this.state.width}
         height={this.state.height}
         interpolate={curveLinear}
-        missing_is_hidden={true}
         missing_text="No data for this measure"
         x_accessor="date"
         y_accessor={this.state.y}
