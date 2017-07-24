@@ -3,6 +3,7 @@ import _ from 'lodash';
 import { Button, FormGroup, Input, Label, Modal, ModalBody, ModalHeader, ModalFooter, Row, Col } from 'reactstrap';
 import { Helmet } from 'react-helmet';
 import { connect } from 'react-redux';
+import Loading from './loading.jsx';
 import MeasureGraph from './measuregraph.jsx';
 import SubViewNav from './subviewnav.jsx';
 import { DEFAULT_TIME_INTERVAL, OS_MAPPING, TIME_INTERVALS } from '../schema';
@@ -197,10 +198,7 @@ class DetailViewComponent extends React.Component {
               link: `/${this.state.channel}/${this.state.platform}/${this.state.measure}` }
           ]} />
         {
-          this.state.isLoading &&
-            <div className="container center">
-              <p>Loading...</p>
-            </div>
+          this.state.isLoading && <Loading />
         }
         {
           !this.state.isLoading &&
