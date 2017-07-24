@@ -102,7 +102,6 @@ class DetailViewComponent extends React.Component {
       customEndDate: undefined,
       fetchVersionData: this.props.fetchVersionData,
       fetchMeasureDetailData: this.props.fetchMeasureDetailData,
-      isLoading: true,
       ...getOptionalParameters(props)
     };
 
@@ -115,14 +114,19 @@ class DetailViewComponent extends React.Component {
   }
 
   componentDidMount() {
+    this.fetchMeasureDetailData(this.state);
+  }
+
+  fetchMeasureDetailData(params) {
+    this.setState({ isLoading: true });
     this.state.fetchMeasureDetailData({
       dimensions: ['version'],
-      measures: [this.state.measure, 'usage_hours'],
-      interval: [this.state.timeInterval],
+      measures: [params.measure, 'usage_hours'],
+      interval: [params.timeInterval],
       os_names: [_.findKey(OS_MAPPING,
-        mappedValue => mappedValue === this.state.platform)
+        mappedValue => mappedValue === params.platform)
       ],
-      channels: [this.state.channel]
+      channels: [params.channel]
     }).then(() => this.setState({ isLoading: false }));
   }
 
@@ -130,6 +134,10 @@ class DetailViewComponent extends React.Component {
     const params = getOptionalParameters(nextProps);
     if (!_.isEqual(params.timeInterval, this.state.timeInterval)) {
       this.setState({
+        ...params
+      });
+      this.fetchMeasureDetailData({
+        ...this.state,
         ...params
       });
     }
@@ -197,62 +205,67 @@ class DetailViewComponent extends React.Component {
             { name: this.state.measure,
               link: `/${this.state.channel}/${this.state.platform}/${this.state.measure}` }
           ]} />
-        {
-          this.state.isLoading && <Loading />
-        }
-        {
-          !this.state.isLoading &&
-            <div className="container center">
-              <Row>
-                <select
-                  value={this.state.timeInterval}
-                  onChange={this.timeIntervalChanged}>
-                  {
-                    this.state.validTimeIntervals.map(
-                      timeInterval => (
-                        <option
-                          key={timeInterval.value}
-                          value={timeInterval.value}>
-                          {timeInterval.label}
-                        </option>)
-                    )
-                  }
-                  <option value="0">Custom...</option>
-                </select>
-                <Modal
-                  isOpen={this.state.choosingCustomTimeInterval}
-                  toggle={this.cancelChooseCustomTimeInterval}>
-                  <ModalHeader toggle={this.cancelChooseCustomTimeInterval}>
-                    Custom Date Range
-                  </ModalHeader>
-                  <ModalBody>
-                    <FormGroup>
-                      <Label for="startDate">
-                        Start Date
-                      </Label>
-                      <Input
-                        type="date"
-                        onChange={this.customStartDateChanged}
-                        id="startDate" />
-                    </FormGroup>
-                    <FormGroup>
-                      <Label for="endDate">
-                        End Date
-                      </Label>
-                      <Input
-                        type="date"
-                        onChange={this.customEndDateChanged}
-                        id="endDate" />
-                    </FormGroup>
-                  </ModalBody>
-                  <ModalFooter>
-                    <Button
-                      color="primary"
-                      disabled={!this.isCustomTimeIntervalValid()}
-                      onClick={this.customTimeIntervalChosen}>Ok</Button>
-                  </ModalFooter>
-                </Modal>
-              </Row>
+        <div className="container center">
+          <Row>
+            <select
+              value={this.state.timeInterval}
+              onChange={this.timeIntervalChanged}>
+              {
+                this.state.validTimeIntervals.map(
+                  timeInterval => (
+                    <option
+                      key={timeInterval.value}
+                      value={timeInterval.value}>
+                      {timeInterval.label}
+                    </option>
+                  )
+                )
+              }
+              <option value="0">Custom...</option>
+            </select>
+            <Modal
+              isOpen={this.state.choosingCustomTimeInterval}
+              toggle={this.cancelChooseCustomTimeInterval}>
+              <ModalHeader toggle={this.cancelChooseCustomTimeInterval}>
+                Custom Date Range
+              </ModalHeader>
+              <ModalBody>
+                <FormGroup>
+                  <Label for="startDate">
+                    Start Date
+                  </Label>
+                  <Input
+                    type="date"
+                    onChange={this.customStartDateChanged}
+                    id="startDate" />
+                </FormGroup>
+                <FormGroup>
+                  <Label for="endDate">
+                    End Date
+                  </Label>
+                  <Input
+                    type="date"
+                    onChange={this.customEndDateChanged}
+                    id="endDate" />
+                </FormGroup>
+              </ModalBody>
+              <ModalFooter>
+                <Button
+                  color="primary"
+                  disabled={!this.isCustomTimeIntervalValid()}
+                  onClick={this.customTimeIntervalChosen}>Ok</Button>
+              </ModalFooter>
+            </Modal>
+          </Row>
+          {
+            this.state.isLoading &&
+            <Row>
+              <Loading />
+            </Row>
+          }
+          {
+            !this.state.isLoading &&
+            <div>
               <Row>
                 <Col>
                   <div
@@ -286,7 +299,8 @@ class DetailViewComponent extends React.Component {
                 </Col>
               </Row>
             </div>
-        }
+          }
+        </div>
       </div>
     );
   }
