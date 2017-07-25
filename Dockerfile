@@ -27,11 +27,7 @@ RUN ./bin/pipstrap.py
 COPY requirements.txt /app/requirements.txt
 RUN pip install --require-hashes --no-cache-dir -r requirements.txt
 
-COPY bin /app/bin
-COPY dist /app/dist
-COPY missioncontrol /app/missioncontrol
-COPY manage.py setup.py tox.ini /app/
-
+COPY . /app
 RUN chown webdev:webdev -R .
 USER webdev
 
