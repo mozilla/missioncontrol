@@ -1,4 +1,6 @@
 search: False
 label_prs: update
+update: insecure
 requirements:
-  - requirements.txt
+  - requirements.txt:
+      update: security
