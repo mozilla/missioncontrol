@@ -16,6 +16,7 @@ help:
 
 build:
 	yarn build SERVICE_DOMAIN=""
+	touch version.json
 	docker-compose build
 
 migrate:
