@@ -12,3 +12,4 @@ celerymonitor.pid
 dist/
 docs/_build
 node_modules/
+version.json

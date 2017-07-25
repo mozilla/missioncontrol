@@ -31,6 +31,7 @@ COPY bin /app/bin
 COPY dist /app/dist
 COPY missioncontrol /app/missioncontrol
 COPY manage.py setup.py tox.ini /app/
+COPY version.json /app/
 
 RUN chown webdev:webdev -R .
 USER webdev
