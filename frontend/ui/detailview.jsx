@@ -98,6 +98,7 @@ class DetailViewComponent extends React.Component {
       channel: props.match.params.channel,
       platform: props.match.params.platform,
       measure: props.match.params.measure,
+      isLoading: true,
       customStartDate: undefined,
       customEndDate: undefined,
       fetchVersionData: this.props.fetchVersionData,
