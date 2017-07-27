@@ -8,7 +8,8 @@ import MeasureGraph from './measuregraph.jsx';
 import SubViewNav from './subviewnav.jsx';
 import { DEFAULT_TIME_INTERVAL, OS_MAPPING, TIME_INTERVALS } from '../schema';
 
-const mapStateToProps = (state) => {
+const mapStateToProps = (state, ownProps) => {
+  const measure = ownProps.match.params.measure;
   if (state.measureDetail.data) {
     const seriesMap = {};
     state.measureDetail.data.forEach((aggregate) => {
@@ -17,6 +18,7 @@ const mapStateToProps = (state) => {
       }
       seriesMap[aggregate.version].push(aggregate);
     });
+
     if (Object.keys(seriesMap).length < 3) {
       return {
         status: 'success',
@@ -26,17 +28,27 @@ const mapStateToProps = (state) => {
         }))
       };
     }
-    const mostRecent = Object.keys(seriesMap).sort().slice(-2);
+
+    // take two most recent versions
+    let mostRecent = Object.keys(seriesMap).sort().slice(-2);
+
+    // if the second most recent has negligible results (<10% of) relative to the most
+    // recent, just concatenate it in with the other results under "other"
+    if (_.sum(seriesMap[mostRecent[0]].map(d => d.usage_hours)) /
+        _.sum(seriesMap[mostRecent[1]].map(d => d.usage_hours)) < 0.10) {
+      mostRecent = [mostRecent[1]];
+    }
+
     const aggregated = _.reduce(
       _.filter(seriesMap, (series, version) => _.indexOf(mostRecent, version) === (-1)),
       (result, series) => {
         const newResult = _.clone(result);
         series.forEach((datum) => {
           if (!result[datum.time]) {
-            newResult[datum.time] = datum;
+            newResult[datum.time] = _.clone(datum);
           } else {
             Object.keys(result[datum.time]).forEach((k) => {
-              if (k !== 'date') {
+              if (k === measure || k === 'usage_hours') {
                 newResult[datum.time][k] += datum[k];
               }
             });
@@ -45,11 +57,10 @@ const mapStateToProps = (state) => {
         return newResult;
       }, {});
 
-    const seriesList = [
-      { name: mostRecent[1], data: seriesMap[mostRecent[1]] },
-      { name: mostRecent[0], data: seriesMap[mostRecent[0]] },
-      { name: 'Older', data: _.values(aggregated) }
-    ];
+    const seriesList = _.concat(mostRecent.map(version => ({
+      name: version,
+      data: seriesMap[version]
+    })), [{ name: 'Older', data: _.values(aggregated) }]);
 
     return {
       status: 'success',
@@ -61,6 +72,15 @@ const mapStateToProps = (state) => {
     seriesList: []
   };
 };
+
+const normalizeSeries = (seriesList, measure) =>
+ seriesList.map(series => ({
+   ...series,
+   data: series.data.map(d => ({
+     ...d,
+     [measure]: d[measure] / (d.usage_hours / 1000.0)
+   }))
+ }));
 
 const getOptionalParameters = (props) => {
   const urlParams = new URLSearchParams(props.location.search);
@@ -85,9 +105,16 @@ const getOptionalParameters = (props) => {
     }
   }
 
+  // coerce normalized into a boolean, true if not specified
+  let normalized = true;
+  if (urlParams.get('normalized')) {
+    normalized = (parseInt(urlParams.get('normalized'), 10));
+  }
+
   return {
     timeInterval,
-    validTimeIntervals
+    validTimeIntervals,
+    normalized
   };
 };
 
@@ -112,6 +139,7 @@ class DetailViewComponent extends React.Component {
     this.customStartDateChanged = this.customStartDateChanged.bind(this);
     this.customEndDateChanged = this.customEndDateChanged.bind(this);
     this.isCustomTimeIntervalValid = this.isCustomTimeIntervalValid.bind(this);
+    this.normalizeCheckboxChanged = this.normalizeCheckboxChanged.bind(this);
   }
 
   componentDidMount() {
@@ -133,15 +161,30 @@ class DetailViewComponent extends React.Component {
 
   componentWillUpdate(nextProps) {
     const params = getOptionalParameters(nextProps);
-    if (!_.isEqual(params.timeInterval, this.state.timeInterval)) {
+    if (!_.every(['timeInterval', 'normalized'].map(
+      param => _.isEqual(params[param], this.state[param])))) {
       this.setState({
         ...params
       });
+    }
+    // need to reload everything if time interval changes
+    if (!_.isEqual(params.timeInterval, this.state.timeInterval)) {
       this.fetchMeasureDetailData({
         ...this.state,
         ...params
       });
     }
+  }
+
+  navigate(newParams) {
+    const paramStr = ['timeInterval', 'normalized'].map((paramName) => {
+      let value = (!_.isUndefined(newParams[paramName])) ? newParams[paramName] : this.state[paramName];
+      if (typeof (value) === 'boolean') {
+        value = value ? 1 : 0;
+      }
+      return `${paramName}=${value}`;
+    }).join('&');
+    this.props.history.push(`/${this.state.channel}/${this.state.platform}/${this.state.measure}?${paramStr}`);
   }
 
   timeIntervalChanged(ev) {
@@ -154,7 +197,9 @@ class DetailViewComponent extends React.Component {
         customEndDate: undefined
       });
     } else {
-      this.props.history.push(`/${this.state.channel}/${this.state.platform}/${this.state.measure}?timeInterval=${value}`);
+      this.navigate({
+        timeInterval: value
+      });
     }
   }
 
@@ -189,6 +234,12 @@ class DetailViewComponent extends React.Component {
             this.state.customStartDate < this.state.customEndDate);
   }
 
+  normalizeCheckboxChanged(ev) {
+    this.navigate({
+      normalized: ev.target.checked
+    });
+  }
+
   render() {
     return (
       <div>
@@ -208,55 +259,65 @@ class DetailViewComponent extends React.Component {
           ]} />
         <div className="container center">
           <Row>
-            <select
-              value={this.state.timeInterval}
-              onChange={this.timeIntervalChanged}>
-              {
-                this.state.validTimeIntervals.map(
-                  timeInterval => (
-                    <option
-                      key={timeInterval.value}
-                      value={timeInterval.value}>
-                      {timeInterval.label}
-                    </option>
+            <form className="form-inline">
+              <select
+                value={this.state.timeInterval}
+                onChange={this.timeIntervalChanged}
+                className="mb-2 mr-sm-2 mb-sm-0">
+                {
+                  this.state.validTimeIntervals.map(
+                    timeInterval => (
+                      <option
+                        key={timeInterval.value}
+                        value={timeInterval.value}>
+                        {timeInterval.label}
+                      </option>
+                    )
                   )
-                )
-              }
-              <option value="0">Custom...</option>
-            </select>
-            <Modal
-              isOpen={this.state.choosingCustomTimeInterval}
-              toggle={this.cancelChooseCustomTimeInterval}>
-              <ModalHeader toggle={this.cancelChooseCustomTimeInterval}>
-                Custom Date Range
-              </ModalHeader>
-              <ModalBody>
-                <FormGroup>
-                  <Label for="startDate">
-                    Start Date
-                  </Label>
-                  <Input
-                    type="date"
-                    onChange={this.customStartDateChanged}
-                    id="startDate" />
-                </FormGroup>
-                <FormGroup>
-                  <Label for="endDate">
-                    End Date
-                  </Label>
-                  <Input
-                    type="date"
-                    onChange={this.customEndDateChanged}
-                    id="endDate" />
-                </FormGroup>
-              </ModalBody>
-              <ModalFooter>
-                <Button
-                  color="primary"
-                  disabled={!this.isCustomTimeIntervalValid()}
-                  onClick={this.customTimeIntervalChosen}>Ok</Button>
-              </ModalFooter>
-            </Modal>
+                }
+                <option value="0">Custom...</option>
+              </select>
+              <Modal
+                isOpen={this.state.choosingCustomTimeInterval}
+                toggle={this.cancelChooseCustomTimeInterval}>
+                <ModalHeader toggle={this.cancelChooseCustomTimeInterval}>
+                  Custom Date Range
+                </ModalHeader>
+                <ModalBody>
+                  <FormGroup>
+                    <Label for="startDate">
+                      Start Date
+                    </Label>
+                    <Input
+                      type="date"
+                      onChange={this.customStartDateChanged}
+                      id="startDate" />
+                  </FormGroup>
+                  <FormGroup>
+                    <Label for="endDate">
+                      End Date
+                    </Label>
+                    <Input
+                      type="date"
+                      onChange={this.customEndDateChanged}
+                      id="endDate" />
+                  </FormGroup>
+                </ModalBody>
+                <ModalFooter>
+                  <Button
+                    color="primary"
+                    disabled={!this.isCustomTimeIntervalValid()}
+                    onClick={this.customTimeIntervalChosen}>Ok</Button>
+                </ModalFooter>
+              </Modal>
+              <FormGroup check title="Normalize measure by number of usage hours">
+                <Label check>
+                  <Input type="checkbox" checked={this.state.normalized} onChange={this.normalizeCheckboxChanged} />
+                  {' '}
+                  Normalize
+                </Label>
+              </FormGroup>
+            </form>
           </Row>
           {
             this.state.isLoading &&
@@ -273,8 +334,12 @@ class DetailViewComponent extends React.Component {
                     className="large-graph-container center"
                     id="measure-series">
                     <MeasureGraph
-                      title="Crash Rate"
-                      seriesList={this.props.seriesList}
+                      title={`${this.props.match.params.measure} ${(this.state.normalized) ? 'per 1k hours' : ''}`}
+                      seriesList={
+                        (this.state.normalized) ?
+                        normalizeSeries(this.props.seriesList, this.props.match.params.measure) :
+                        this.props.seriesList
+                      }
                       y={`${this.props.match.params.measure}`}
                       linked={true}
                       linked_format="%Y-%m-%d-%H-%M-%S"
