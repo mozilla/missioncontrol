@@ -23,7 +23,7 @@ function versionInfo(state = {}, action) {
 function processAggregates(rawAggregates) {
   return rawAggregates.map(aggregate => ({
     ...aggregate,
-    date: new Date(aggregate.time)
+    date: new Date(`${aggregate.time}Z`) // HACK: append 'Z' to server-provided result to indicate UTC 
   }));
 }
 
