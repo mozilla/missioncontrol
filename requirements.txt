@@ -225,9 +225,9 @@ coverage==4.4.1 \
 django-cors-headers==2.1.0 \
     --hash=sha256:4e02be61ffaaab5917f1fd7cc3c305c4fb7ccd0156a649c96f49bc0a09c5f572 \
     --hash=sha256:451bc37a514792c2b46c52362368f7985985933ecdbf1a85f82652579a5cbe01
-requests==2.18.2 \
-    --hash=sha256:414459f05392835d4d653b57b8e58f98aea9c6ff2782e37de0a1ee92891ce900 \
-    --hash=sha256:5b26fcc5e72757a867e4d562333f841eddcef93548908a1bb1a9207260618da9
+requests==2.18.3 \
+    --hash=sha256:b62be4ec5999c24d10c98d248a136e7db20ca6616a2b65060cd9399417331e8a \
+    --hash=sha256:fb68a7baef4965c12d9cd67c0f5a46e6e28be3d8c7b6910c758fbcc99880b518
 
 # required by requests
 certifi==2017.7.27.1 \
