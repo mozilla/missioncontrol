@@ -9,5 +9,8 @@ export DEVELOPMENT=1
     echo "Getting Codecov environment variables" && \
     export CI_ENV=`bash <(curl -s https://codecov.io/env)`
 
+# Create environment
+cp .env-dist .env
+
 # run docker compose with the given environment variables
 docker-compose run -e DEVELOPMENT $CI_ENV web test
