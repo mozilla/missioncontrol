@@ -239,12 +239,16 @@ CELERY_BEAT_MAX_LOOP_INTERVAL = 5  #: redbeat likes fast loops
 #: Unless refreshed the lock will expire after this time
 CELERY_REDBEAT_LOCK_TIMEOUT = CELERY_BEAT_MAX_LOOP_INTERVAL * 5
 #: The default/initial schedule to use.
-CELERY_BEAT_SCHEDULE = {
-    'fetch_measure_data': {
-        'schedule': crontab(minute='*/5'),  # every 5 minutes
-        'task': 'missioncontrol.etl.tasks.update_measures'
-    }
-}
+CELERY_BEAT_SCHEDULE = {}
+
+FETCH_MEASURE_DATA = config('FETCH_MEASURE_DATA', default=True, cast=bool)
+if FETCH_MEASURE_DATA:
+    CELERY_BEAT_SCHEDULE.update({
+        'fetch_measure_data': {
+            'schedule': crontab(minute='*/5'),  # every 5 minutes
+            'task': 'missioncontrol.etl.tasks.update_measures'
+        }
+    })
 
 LOGGING_USE_JSON = config('LOGGING_USE_JSON', default=True, cast=bool)
 
