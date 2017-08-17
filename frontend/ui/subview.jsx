@@ -40,23 +40,26 @@ export class SubViewComponent extends React.Component {
 
   render() {
     return (
-      <div>
+      <div className="body-container">
         <Helmet>
           <title>
             { `${this.state.platform} ${this.state.channel}` }
           </title>
         </Helmet>
         <SubViewNav
+          className="header-element"
           breadcrumbs={[
             { name: 'Home', link: '/' },
             { name: `${this.state.platform} ${this.state.channel}`,
               link: `/${this.state.channel}/${this.state.platform}` }
           ]} />
-        {
-          this.state.isLoading && <Loading />
-        }
-        {
-          !this.state.isLoading &&
+        <div className="body-element">
+          {
+            this.state.isLoading &&
+            <Loading />
+          }
+          {
+            !this.state.isLoading &&
             <div className="container center">
               <table className="table">
                 <thead>
@@ -67,17 +70,20 @@ export class SubViewComponent extends React.Component {
 
                 {
                   this.props.measures.map(measureName =>
-                    (<tr key={measureName}>
-                      <td>
-                        <a href={`#/${this.state.channel}/${this.state.platform}/${measureName}`}>
-                          {measureName}
-                        </a>
-                      </td>
-                    </tr>))
-                }
+                    (
+                      <tr key={measureName}>
+                        <td>
+                          <a href={`#/${this.state.channel}/${this.state.platform}/${measureName}`}>
+                            {measureName}
+                          </a>
+                        </td>
+                      </tr>
+                    ))
+                  }
               </table>
             </div>
-        }
+            }
+        </div>
       </div>
     );
   }
