@@ -1,88 +1,59 @@
 import _ from 'lodash';
-import { FIREFOX_VERSION_URL, AGGREGATE_DATA_URL } from './schema';
+import { CHANNEL_PLATFORM_SUMMARY_URL, MEASURE_URL } from './schema';
 
 
-export const REQUEST_VERSION_DATA = 'REQUEST_VERSION_DATA';
-function requestVersionData() {
+export const REQUEST_CHANNEL_PLATFORM_SUMMARY_DATA = 'REQUEST_CHANNEL_PLATFORM_SUMMARY_DATA';
+function requestChannelPlatformSummaryData() {
   return {
-    type: REQUEST_VERSION_DATA
+    type: REQUEST_CHANNEL_PLATFORM_SUMMARY_DATA
   };
 }
 
-export const RECEIVE_VERSION_DATA = 'RECEIVE_VERSION_DATA';
-function receiveVersionData(data) {
+export const RECEIVE_CHANNEL_PLATFORM_SUMMARY_DATA = 'RECEIVE_CHANNEL_PLATFORM_SUMMARY_DATA';
+function receiveChannelPlatformSummaryData(data) {
   return {
-    type: RECEIVE_VERSION_DATA,
-    versionData: data,
+    type: RECEIVE_CHANNEL_PLATFORM_SUMMARY_DATA,
+    summaries: data.summaries,
     receivedAt: Date.now()
   };
 }
 
-export function fetchVersionData() {
-  return (dispatch) => {
-    dispatch(requestVersionData());
-
-    return fetch(FIREFOX_VERSION_URL)
-      .then(response => response.json())
-      .then(json => dispatch(receiveVersionData(json)));
-  };
-}
-
-export const REQUEST_CHANNEL_SUMMARY_DATA = 'REQUEST_CHANNEL_SUMMARY_DATA';
-function requestChannelSummaryData() {
-  return {
-    type: REQUEST_CHANNEL_SUMMARY_DATA
-  };
-}
-
-export const RECEIVE_CHANNEL_SUMMARY_DATA = 'RECEIVE_CHANNEL_SUMMARY_DATA';
-function receiveChannelSummaryData(data) {
-  return {
-    type: RECEIVE_CHANNEL_SUMMARY_DATA,
-    data,
-    receivedAt: Date.now()
-  };
-}
-
-export const REQUEST_MEASURE_DETAIL_DATA = 'REQUEST_MEASURE_DETAIL_DATA';
-function requestMeasureDetailData() {
-  return {
-    type: REQUEST_MEASURE_DETAIL_DATA
-  };
-}
-
-export const RECEIVE_MEASURE_DETAIL_DATA = 'RECEIVE_MEASURE_DETAIL_DATA';
-function receiveMeasureDetailData(data) {
-  return {
-    type: RECEIVE_MEASURE_DETAIL_DATA,
-    data,
-    receivedAt: Date.now()
-  };
-}
-
-function getAggregateData(params, dispatch, receiver) {
+export function fetchChannelPlatformSummaryData(params) {
   const searchParamString = _.map(params, (values, paramName) =>
     values.map(value => `${paramName}=${value}`).join('&')).join('&');
 
-  return fetch(`${AGGREGATE_DATA_URL}?${searchParamString}`)
-    .then(response => response.json())
-    .then(json => dispatch(
-      receiver(
-        json.rows.map(
-          row => _.zipObject(json.columns, row)
-        ))));
-}
-
-export function fetchChannelSummaryData(params) {
   return (dispatch) => {
-    dispatch(requestChannelSummaryData());
-    return getAggregateData(params, dispatch, receiveChannelSummaryData);
+    dispatch(requestChannelPlatformSummaryData());
+    return fetch(`${CHANNEL_PLATFORM_SUMMARY_URL}?${searchParamString}`)
+      .then(response => response.json())
+      .then(json => dispatch(receiveChannelPlatformSummaryData(json)));
   };
 }
 
-export function fetchMeasureDetailData(params) {
+export const REQUEST_MEASURE_DATA = 'REQUEST_MEASURE_DATA';
+function requestMeasureData() {
+  return {
+    type: REQUEST_MEASURE_DATA
+  };
+}
+
+export const RECEIVE_MEASURE_DATA = 'RECEIVE_MEASURE_DATA';
+function receiveMeasureData(params, data) {
+  return {
+    type: RECEIVE_MEASURE_DATA,
+    channel: params.channel,
+    platform: params.platform,
+    measure: params.measure,
+    data: data.measure_data,
+    receivedAt: Date.now()
+  };
+}
+
+export function fetchMeasureData(params) {
   return (dispatch) => {
-    dispatch(requestMeasureDetailData());
-    return getAggregateData(params, dispatch, receiveMeasureDetailData);
+    dispatch(requestMeasureData());
+    return fetch(`${MEASURE_URL}?platform=${params.platform}&channel=${params.channel}&measure=${params.measure}&interval=${params.timeInterval}`)
+      .then(response => response.json())
+      .then(json => dispatch(receiveMeasureData(params, json)));
   };
 }

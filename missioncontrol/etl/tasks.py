@@ -1,14 +1,20 @@
-import requests
-from django.core.cache import cache
+import logging
 
 from missioncontrol.celery import celery
-from missioncontrol.settings import FIREFOX_VERSION_URL
+from .measure import update_measure
+from .schema import (CHANNELS, PLATFORMS)
+
+logger = logging.getLogger(__name__)
 
 
 @celery.task
-def fetch_versions():
+def update_measures():
     """
-    Fetches a copy of version info for local serving / use
+    Updates channel/platform data
     """
-    r = requests.get(FIREFOX_VERSION_URL)
-    cache.set('FIREFOX_VERSIONS', r.json())
+    logger.info('Scheduling data updates...')
+    for channel_name in CHANNELS.keys():
+        for (platform_name, platform) in PLATFORMS.items():
+            for measure_name in platform['measures']:
+                update_measure.apply_async(
+                    args=[platform_name, channel_name, measure_name])
