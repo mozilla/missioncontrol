@@ -240,9 +240,9 @@ CELERY_BEAT_MAX_LOOP_INTERVAL = 5  #: redbeat likes fast loops
 CELERY_REDBEAT_LOCK_TIMEOUT = CELERY_BEAT_MAX_LOOP_INTERVAL * 5
 #: The default/initial schedule to use.
 CELERY_BEAT_SCHEDULE = {
-    'fetch_versions': {
-        'schedule': crontab(minute='*'),
-        'task': 'missioncontrol.etl.tasks.fetch_versions'
+    'fetch_measure_data': {
+        'schedule': crontab(minute='*/5'),  # every 5 minutes
+        'task': 'missioncontrol.etl.tasks.update_measures'
     }
 }
 
@@ -305,3 +305,5 @@ LOGGING = {
 }
 
 FIREFOX_VERSION_URL = 'https://product-details.mozilla.org/1.0/firefox_versions.json'
+
+DATA_EXPIRY_INTERVAL = timedelta(days=30)

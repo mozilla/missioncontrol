@@ -1,11 +1,11 @@
 import React from 'react';
 import { Provider } from 'react-redux';
-import { HashRouter as Router, Route } from 'react-router-dom';
+import { HashRouter as Router } from 'react-router-dom';
 import MainView from './mainview.jsx';
 import SubView from './subview.jsx';
 import DetailView from './detailview.jsx';
 import PropsRoute from './PropsRoute.jsx';
-import { fetchMeasureDetailData, fetchChannelSummaryData, fetchVersionData } from '../actions';
+import { fetchChannelPlatformSummaryData, fetchMeasureData } from '../actions';
 
 export default class Dashboard extends React.Component {
   constructor(props) {
@@ -38,21 +38,26 @@ export default class Dashboard extends React.Component {
         <Provider store={this.state.store}>
           <Router>
             <div>
-              <Route exact path="/" component={MainView} />
+              <PropsRoute
+                exact
+                path="/"
+                component={MainView}
+                fetchChannelPlatformSummaryData={params => this.state.store.dispatch(
+                  fetchChannelPlatformSummaryData(params))} />
               <PropsRoute
                 exact
                 path="/:channel/:platform"
                 component={SubView}
-                fetchChannelSummaryData={params => this.state.store.dispatch(
-                  fetchChannelSummaryData(params))} />
+                fetchChannelPlatformSummaryData={params => this.state.store.dispatch(
+                  fetchChannelPlatformSummaryData(params))} />
               <PropsRoute
                 exact
                 name="measureDetail"
                 path="/:channel/:platform/:measure"
                 component={DetailView}
-                fetchVersionData={() => this.state.store.dispatch(fetchVersionData())}
-                fetchMeasureDetailData={params => this.state.store.dispatch(
-                  fetchMeasureDetailData(params))} />
+                fetchMeasureData={params =>
+                  this.state.store.dispatch(fetchMeasureData(params))
+                } />
             </div>
           </Router>
         </Provider>

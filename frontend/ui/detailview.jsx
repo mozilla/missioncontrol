@@ -6,17 +6,31 @@ import { connect } from 'react-redux';
 import Loading from './loading.jsx';
 import MeasureGraph from './measuregraph.jsx';
 import SubViewNav from './subviewnav.jsx';
-import { DEFAULT_TIME_INTERVAL, OS_MAPPING, TIME_INTERVALS } from '../schema';
+import { DEFAULT_TIME_INTERVAL, TIME_INTERVALS } from '../schema';
 
 const mapStateToProps = (state, ownProps) => {
   const measure = ownProps.match.params.measure;
-  if (state.measureDetail.data) {
+  const cacheKey = `${ownProps.match.params.platform}-${ownProps.match.params.channel}-${measure}`;
+  const measureData = state.measures[cacheKey];
+  if (measureData) {
     const seriesMap = {};
-    state.measureDetail.data.forEach((aggregate) => {
-      if (!seriesMap[aggregate.version]) {
-        seriesMap[aggregate.version] = [];
+    Object.values(measureData).forEach((build) => {
+      if (!seriesMap[build.version]) {
+        seriesMap[build.version] = {};
       }
-      seriesMap[aggregate.version].push(aggregate);
+      build.data.forEach((datum) => {
+        const date = datum[0];
+        if (!seriesMap[build.version][date]) {
+          seriesMap[build.version][date] = {
+            [measure]: 0,
+            usage_hours: 0,
+            date: new Date(date)
+          };
+        }
+
+        seriesMap[build.version][date][measure] += datum[1];
+        seriesMap[build.version][date].usage_hours += datum[2];
+      });
     });
 
     if (Object.keys(seriesMap).length < 3) {
@@ -24,7 +38,7 @@ const mapStateToProps = (state, ownProps) => {
         status: 'success',
         seriesList: _.map(seriesMap, (data, version) => ({
           name: version,
-          data
+          data: _.values(data)
         }))
       };
     }
@@ -34,8 +48,8 @@ const mapStateToProps = (state, ownProps) => {
 
     // if the second most recent has negligible results (<10% of) relative to the most
     // recent, just concatenate it in with the other results under "other"
-    if (_.sum(seriesMap[mostRecent[0]].map(d => d.usage_hours)) /
-        _.sum(seriesMap[mostRecent[1]].map(d => d.usage_hours)) < 0.10) {
+    if (_.sum(_.values(seriesMap[mostRecent[0]]).map(d => d.usage_hours)) /
+        _.sum(_.values(seriesMap[mostRecent[1]]).map(d => d.usage_hours)) < 0.10) {
       mostRecent = [mostRecent[1]];
     }
 
@@ -43,13 +57,13 @@ const mapStateToProps = (state, ownProps) => {
       _.filter(seriesMap, (series, version) => _.indexOf(mostRecent, version) === (-1)),
       (result, series) => {
         const newResult = _.clone(result);
-        series.forEach((datum) => {
-          if (!result[datum.time]) {
-            newResult[datum.time] = _.clone(datum);
+        _.values(series).forEach((datum) => {
+          if (!newResult[datum.date]) {
+            newResult[datum.date] = _.clone(datum);
           } else {
-            Object.keys(result[datum.time]).forEach((k) => {
+            _.keys(newResult[datum.date]).forEach((k) => {
               if (k === measure || k === 'usage_hours') {
-                newResult[datum.time][k] += datum[k];
+                newResult[datum.date][k] += datum[k];
               }
             });
           }
@@ -59,7 +73,7 @@ const mapStateToProps = (state, ownProps) => {
 
     const seriesList = _.concat(mostRecent.map(version => ({
       name: version,
-      data: seriesMap[version]
+      data: _.values(seriesMap[version])
     })), [{ name: 'Older', data: _.values(aggregated) }]);
 
     return {
@@ -128,8 +142,7 @@ class DetailViewComponent extends React.Component {
       isLoading: true,
       customStartDate: undefined,
       customEndDate: undefined,
-      fetchVersionData: this.props.fetchVersionData,
-      fetchMeasureDetailData: this.props.fetchMeasureDetailData,
+      fetchMeasureData: this.props.fetchMeasureData,
       ...getOptionalParameters(props)
     };
 
@@ -143,20 +156,13 @@ class DetailViewComponent extends React.Component {
   }
 
   componentDidMount() {
-    this.fetchMeasureDetailData(this.state);
+    this.fetchMeasureData(this.state);
   }
 
-  fetchMeasureDetailData(params) {
+  fetchMeasureData(params) {
     this.setState({ isLoading: true });
-    this.state.fetchMeasureDetailData({
-      dimensions: ['version'],
-      measures: [params.measure, 'usage_hours'],
-      interval: [params.timeInterval],
-      os_names: [_.findKey(OS_MAPPING,
-        mappedValue => mappedValue === params.platform)
-      ],
-      channels: [params.channel]
-    }).then(() => this.setState({ isLoading: false }));
+    this.state.fetchMeasureData(params).then(() =>
+      this.setState({ isLoading: false }));
   }
 
   componentWillUpdate(nextProps) {
@@ -169,7 +175,7 @@ class DetailViewComponent extends React.Component {
     }
     // need to reload everything if time interval changes
     if (!_.isEqual(params.timeInterval, this.state.timeInterval)) {
-      this.fetchMeasureDetailData({
+      this.fetchMeasureData({
         ...this.state,
         ...params
       });

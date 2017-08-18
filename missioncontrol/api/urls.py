@@ -5,6 +5,7 @@ from missioncontrol.api import views
 
 urlpatterns = [
     url(r'^aggregates/$', views.aggregates, name='aggregates'),
-    url(r'^measures_with_interval/$', views.measures_with_interval, name='measures_with_interval'),
-    url(r'^versions/$', views.versions, name='firefox_versions'),
+    url(r'^channel-platform-summary/$', views.channel_platform_summary,
+        name='channel-platform-summary'),
+    url(r'^measure/$', views.measure, name='measure')
 ]

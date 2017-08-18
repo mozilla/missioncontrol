@@ -41,9 +41,9 @@ def get_table():
     return table
 
 
-def raw_query(raw_sql):
+def raw_query(raw_sql, params):
     engine = get_engine()
-    return engine.execute(raw_sql).fetchall()
+    return engine.execute(raw_sql, params).fetchall()
 
 
 class QueryBuilder(object):

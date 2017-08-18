@@ -1,47 +1,22 @@
 import React from 'react';
-import _ from 'lodash';
-import { Card, CardBlock, CardColumns, CardHeader, Row } from 'reactstrap';
 import { Helmet } from 'react-helmet';
 import { connect } from 'react-redux';
 import Loading from './loading.jsx';
-import MeasureGraph from './measuregraph.jsx';
 import SubViewNav from './subviewnav.jsx';
-import { DEFAULT_TIME_INTERVAL, MEASURES, OS_MAPPING } from '../schema';
 
-const mapStateToProps = (state) => {
-  // const channel = ownProps.match.params.channel;
-  // const platform = ownProps.match.params.platform;
-
+const mapStateToProps = (state, ownProps) => {
+  const channel = ownProps.match.params.channel;
+  const platform = ownProps.match.params.platform;
   // if present, summarize crash data across versions per crash type
-  if (state.channelSummary && state.channelSummary.data && state.channelSummary.data.length) {
-    const aggregatedDataMap = {};
-    MEASURES.forEach((measure) => {
-      aggregatedDataMap[measure] = {};
-      state.channelSummary.data.forEach((datum) => {
-        aggregatedDataMap[measure][datum.date] = {
-          date: datum.date,
-          value: 0
-        };
-        if (datum[measure]) {
-          aggregatedDataMap[measure][datum.date].value += datum[measure];
-        }
-      });
-    });
-    return {
-      summary: _.reduce(aggregatedDataMap, (measures, data, measure) => ({
-        ...measures,
-        [measure]: {
-          status: 'success',
-          seriesList: [{
-            name: 'aggregate',
-            data: _.values(data).sort((a, b) => a.date > b.date)
-          }]
-        }
-      }), {})
-    };
+  if (state.channelPlatformSummary && state.channelPlatformSummary.summaries) {
+    const channelPlatformData = state.channelPlatformSummary.summaries.filter(
+      datum => datum.channel === channel.toLowerCase() && datum.platform === platform.toLowerCase());
+    if (channelPlatformData.length) {
+      return { measures: channelPlatformData[0].measures };
+    }
   }
 
-  return { summary: {} };
+  return { measures: [] };
 };
 
 export class SubViewComponent extends React.Component {
@@ -52,27 +27,15 @@ export class SubViewComponent extends React.Component {
       filter: '',
       channel: props.match.params.channel,
       platform: props.match.params.platform,
-      fetchChannelSummaryData: props.fetchChannelSummaryData,
       isLoading: true
     };
-
-    this.cardClicked = this.cardClicked.bind(this);
   }
 
   componentDidMount() {
-    this.state.fetchChannelSummaryData({
-      measures: MEASURES,
-      interval: [DEFAULT_TIME_INTERVAL],
-      os_names: [_.findKey(OS_MAPPING,
-        mappedValue => mappedValue === this.state.platform)
-      ],
-      channels: [this.state.channel]
+    this.props.fetchChannelPlatformSummaryData({
+      channel: [this.state.channel],
+      platform: [this.state.platform]
     }).then(() => this.setState({ isLoading: false }));
-  }
-
-  cardClicked(measure) {
-    const path = [this.state.channel, this.state.platform, measure].join('/');
-    this.props.history.push(`/${path}`);
   }
 
   render() {
@@ -95,30 +58,24 @@ export class SubViewComponent extends React.Component {
         {
           !this.state.isLoading &&
             <div className="container center">
-              <Row>
-                <CardColumns>
-                  {
-                    _.map(this.props.summary, (measure, measureName) => (
-                      <Card
-                        key={`${measureName}`}
-                        onClick={() => this.cardClicked(`${measureName}`)}
-                        className="missioncontrol-card">
-                        <CardHeader className={`alert-${measure.status}`}>
-                          { measureName }
-                        </CardHeader>
-                        <CardBlock>
-                          <MeasureGraph
-                            seriesList={measure.seriesList}
-                            xax_format={'%Hh'}
-                            xax_count={4}
-                            width={280}
-                            height={200} />
-                        </CardBlock>
-                      </Card>
-                    ))
-                  }
-                </CardColumns>
-              </Row>
+              <table className="table">
+                <thead>
+                  <tr>
+                    <th>Measure</th>
+                  </tr>
+                </thead>
+
+                {
+                  this.props.measures.map(measureName =>
+                    (<tr key={measureName}>
+                      <td>
+                        <a href={`#/${this.state.channel}/${this.state.platform}/${measureName}`}>
+                          {measureName}
+                        </a>
+                      </td>
+                    </tr>))
+                }
+              </table>
             </div>
         }
       </div>

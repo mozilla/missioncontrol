@@ -1,33 +1,12 @@
-from distutils.version import LooseVersion
-from functools import reduce
-
-import requests
-from django.http import JsonResponse
+import datetime
+import logging
+from django.http import (HttpResponseBadRequest, HttpResponseNotFound, JsonResponse)
 from django.core.cache import cache
-from django.core.exceptions import ValidationError
-from django.core.validators import validate_slug
 
-from .presto import (QueryBuilder, DIMENSION_LIST, raw_query)
-from missioncontrol.settings import FIREFOX_VERSION_URL
+from missioncontrol.etl.presto import (QueryBuilder, DIMENSION_LIST)
+from missioncontrol.etl.schema import (CHANNELS, PLATFORMS, get_measure_cache_key)
 
-
-def _get_firefox_versions():
-    firefox_versions = cache.get('firefox_versions')
-    if firefox_versions:
-        return firefox_versions
-
-    # map the version api's to telemetry channel names
-    r = requests.get(FIREFOX_VERSION_URL)
-    firefox_versions = r.json()
-    mapped_versions = {
-        'nightly': firefox_versions['FIREFOX_NIGHTLY'],
-        'esr': firefox_versions['FIREFOX_ESR'],
-        'beta': firefox_versions['LATEST_FIREFOX_DEVEL_VERSION'],
-        'release': firefox_versions['LATEST_FIREFOX_VERSION']
-    }
-    cache.set('firefox_versions', mapped_versions)
-
-    return mapped_versions
+logger = logging.getLogger(__name__)
 
 
 def aggregates(request):
@@ -48,77 +27,49 @@ def aggregates(request):
     return JsonResponse(data=dict(results=results))
 
 
-# simple function to validate request input parameters to ensure sanity
-def _validate_list_params(request, param_name, minimum=0):
-    params = request.GET.getlist(param_name)
-    if len(params) < minimum:
-        raise ValidationError('Must supply at least {} {}'.format(minimum,
-                              param_name))
-    for param in params:
-        validate_slug(param)
-    return params
+def channel_platform_summary(request):
+    platform_filter = [platform.lower() for platform in request.GET.getlist('platform')]
+    channel_filter = [channel.lower() for channel in request.GET.getlist('channel')]
+
+    summaries = []
+    for channel_name in filter(lambda c: not channel_filter or c in channel_filter,
+                               CHANNELS.keys()):
+        for (platform_name, platform) in PLATFORMS.items():
+            if not platform_filter or platform_name in platform_filter:
+                summaries.append({
+                    'channel': channel_name,
+                    'platform': platform_name,
+                    'measures': platform['measures']
+                })
+
+    return JsonResponse(data={'summaries': summaries})
 
 
-def measures_with_interval(request):
-    url_path = request.GET.urlencode()
+def measure(request):
+    channel_name = request.GET.get('channel')
+    platform_name = request.GET.get('platform')
+    measure_name = request.GET.get('measure')
+    interval = request.GET.get('interval')
+    if not all([channel_name, platform_name, measure_name]):
+        return HttpResponseBadRequest("All of channel, platform, measure required")
+    data = cache.get(get_measure_cache_key(platform_name, channel_name, measure_name))
+    if not data:
+        return HttpResponseNotFound("Data not available for this measure combination")
+    if interval:
+        try:
+            min_time = datetime.datetime.now() - datetime.timedelta(seconds=int(interval))
+        except ValueError:
+            return HttpResponseBadRequest("Interval must be specified in seconds (as an integer)")
 
-    cached_data = cache.get('measures_with_interval:%s' % url_path)
-    if cached_data is not None:
-        return JsonResponse(data=cached_data)
+        # Return any build data in the interval
+        empty_buildids = set()
+        for (build_id, build_data) in data.items():
+            build_data['data'] = [d for d in build_data['data'] if d[0] > min_time]
+            if not build_data['data']:
+                empty_buildids.add(build_id)
 
-    interval = int(request.GET.get('interval', 86400))
-    dimensions = _validate_list_params(request, 'dimensions')
-    measures = _validate_list_params(request, 'measures', minimum=1)
-    os_names = _validate_list_params(request, 'os_names', minimum=1)
-    channels = _validate_list_params(request, 'channels', minimum=1)
+        # don't bother returning empty indexed data
+        for empty_buildid in empty_buildids:
+            del data[empty_buildid]
 
-    # some business logic to figure out the min/max allowed versions
-    # based on the version
-    versions = _get_firefox_versions()
-    all_channels = ['esr', 'release', 'beta', 'nightly']
-    latest_channel = reduce(lambda val, chan: chan if val is None and chan in channels else val,
-                            reversed(all_channels), None)
-    earliest_channel = reduce(lambda val, chan: chan if val is None and chan in channels else val,
-                              all_channels, None)
-    latest_version = versions[latest_channel]
-    if earliest_channel == 'esr':
-        earliest_version = str(LooseVersion(versions[earliest_channel]).version[0] - 7)
-    else:
-        earliest_version = str(LooseVersion(versions[earliest_channel]).version[0] - 1)
-
-    columns = [('window_start', 'time'),
-               ('channel', 'channel'),
-               ('os_name', 'os_name')] + [(dimension, dimension) for
-                                          dimension in dimensions]
-    raw_sql = '''
-        select {}
-        from error_aggregates where application=\'Firefox\' and
-        (version >= \'{}\' and version <= \'{}\') and
-        ({}) and
-        ({}) and
-        window_start > current_timestamp - (1 * interval \'{}\' second)
-        group by {}
-        '''.format(','.join(['{} as {}'.format(*column_tuple) for column_tuple
-                             in columns] +
-                            ['sum({}) as {}'.format(*([measure] * 2)) for measure
-                             in measures]),
-                   earliest_version, latest_version,
-                   ' or '.join(['os_name=\'{}\''.format(os_name) for os_name
-                                in os_names]),
-                   ' or '.join(['channel=\'{}\''.format(channel) for channel
-                                in channels]),
-                   interval,
-                   ','.join([ct[0] for ct in columns])).replace('\n', '').strip()
-    rows = [list(row) for row in raw_query(raw_sql)]
-    response = {
-        'sql': raw_sql,
-        'columns': [ct[1] for ct in columns] + measures,
-        'rows': rows
-    }
-    cache.set('measures_with_interval:%s' % url_path, response)
-
-    return JsonResponse(data=response)
-
-
-def versions(request):
-    return JsonResponse(data=_get_firefox_versions())
+    return JsonResponse(data={'measure_data': data})
