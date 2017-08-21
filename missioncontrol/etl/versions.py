@@ -1,7 +1,8 @@
 import requests
 from django.core.cache import cache
 
-from missioncontrol.settings import FIREFOX_VERSION_URL
+from missioncontrol.settings import (FIREFOX_VERSION_CACHE_TIMEOUT,
+                                     FIREFOX_VERSION_URL)
 
 
 def get_firefox_versions():
@@ -18,6 +19,6 @@ def get_firefox_versions():
         'beta': firefox_versions['LATEST_FIREFOX_DEVEL_VERSION'],
         'release': firefox_versions['LATEST_FIREFOX_VERSION']
     }
-    cache.set('firefox_versions', mapped_versions)
+    cache.set('firefox_versions', mapped_versions, FIREFOX_VERSION_CACHE_TIMEOUT)
 
     return mapped_versions
