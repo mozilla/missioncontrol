@@ -1102,12 +1102,9 @@ boom@2.x.x:
   dependencies:
     hoek "2.x.x"
 
-bootstrap@4.0.0-alpha.6:
-  version "4.0.0-alpha.6"
-  resolved "https://registry.yarnpkg.com/bootstrap/-/bootstrap-4.0.0-alpha.6.tgz#4f54dd33ac0deac3b28407bc2df7ec608869c9c8"
-  dependencies:
-    jquery ">=1.9.1"
-    tether "^1.4.0"
+bootstrap@4.0.0-beta:
+  version "4.0.0-beta"
+  resolved "https://registry.yarnpkg.com/bootstrap/-/bootstrap-4.0.0-beta.tgz#dc5928175d2e71310bc668cf9e05a907211b72a6"
 
 brace-expansion@^1.1.7:
   version "1.1.8"
@@ -3927,7 +3924,7 @@ jest-validate@^20.0.3:
     leven "^2.1.0"
     pretty-format "^20.0.3"
 
-jquery@>=1.9.1, jquery@^3.1.0:
+jquery@^3.1.0:
   version "3.2.1"
   resolved "https://registry.yarnpkg.com/jquery/-/jquery-3.2.1.tgz#5c4d9de652af6cd0a770154a631bba12b015c787"
 
@@ -4211,10 +4208,6 @@ lodash.memoize@^4.1.2:
 lodash.merge@^4.4.0:
   version "4.6.0"
   resolved "https://registry.yarnpkg.com/lodash.merge/-/lodash.merge-4.6.0.tgz#69884ba144ac33fe699737a6086deffadd0f89c5"
-
-lodash.omit@^4.4.1:
-  version "4.5.0"
-  resolved "https://registry.yarnpkg.com/lodash.omit/-/lodash.omit-4.5.0.tgz#6eb19ae5a1ee1dd9df0b969e66ce0b7fa30b5e60"
 
 lodash.pick@^4.2.1:
   version "4.4.0"
@@ -5737,14 +5730,13 @@ reactstrap-tether@1.3.4:
   version "1.3.4"
   resolved "https://registry.yarnpkg.com/reactstrap-tether/-/reactstrap-tether-1.3.4.tgz#86d94d30216ffa34ceb2c626f4b9912c0d193894"
 
-reactstrap@^4.5.0:
-  version "4.6.2"
-  resolved "https://registry.yarnpkg.com/reactstrap/-/reactstrap-4.6.2.tgz#96e4cddaf1c73923e701e216b33ce5b4740624c1"
+reactstrap@^4.8.0:
+  version "4.8.0"
+  resolved "https://registry.yarnpkg.com/reactstrap/-/reactstrap-4.8.0.tgz#eb350642a6282c79c7e1bd8d6f75c627131a42f6"
   dependencies:
     classnames "^2.2.3"
     lodash.isfunction "^3.0.8"
     lodash.isobject "^3.0.2"
-    lodash.omit "^4.4.1"
     lodash.tonumber "^4.0.3"
     prop-types "^15.5.8"
     reactstrap-tether "1.3.4"
@@ -6540,10 +6532,6 @@ test-exclude@^4.1.1:
     object-assign "^4.1.0"
     read-pkg-up "^1.0.1"
     require-main-filename "^1.0.1"
-
-tether@^1.4.0:
-  version "1.4.0"
-  resolved "https://registry.yarnpkg.com/tether/-/tether-1.4.0.tgz#0f9fa171f75bf58485d8149e94799d7ae74d1c1a"
 
 text-table@~0.2.0:
   version "0.2.0"

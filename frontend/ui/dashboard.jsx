@@ -1,5 +1,6 @@
 import React from 'react';
 import { Provider } from 'react-redux';
+import { Navbar, NavbarBrand } from 'reactstrap';
 import { HashRouter as Router } from 'react-router-dom';
 import MainView from './mainview.jsx';
 import SubView from './subview.jsx';
@@ -32,9 +33,9 @@ export default class Dashboard extends React.Component {
   render() {
     return (
       <div className="body-container">
-        <nav className="navbar navbar-inverse bg-inverse header-element">
-          <a className="navbar-brand" href="#">Mission Control</a>
-        </nav>
+        <Navbar className="navbar-dark bg-dark">
+          <NavbarBrand href="#/">Mission Control</NavbarBrand>
+        </Navbar>
         <Provider store={this.state.store}>
           <Router>
             <div className="body-element">
