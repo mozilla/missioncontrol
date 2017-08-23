@@ -31,13 +31,13 @@ export default class Dashboard extends React.Component {
 
   render() {
     return (
-      <div>
-        <nav className="navbar navbar-inverse bg-inverse">
+      <div className="body-container">
+        <nav className="navbar navbar-inverse bg-inverse header-element">
           <a className="navbar-brand" href="#">Mission Control</a>
         </nav>
         <Provider store={this.state.store}>
           <Router>
-            <div>
+            <div className="body-element">
               <PropsRoute
                 exact
                 path="/"

@@ -248,7 +248,7 @@ class DetailViewComponent extends React.Component {
 
   render() {
     return (
-      <div>
+      <div className="body-container">
         <Helmet>
           <title>
             { `${this.state.platform} ${this.state.channel} ${this.state.measure}` }
@@ -256,6 +256,7 @@ class DetailViewComponent extends React.Component {
         </Helmet>
 
         <SubViewNav
+          className="header-element"
           breadcrumbs={[
             { name: 'Home', link: '/' },
             { name: `${this.state.platform} ${this.state.channel}`,
@@ -263,115 +264,118 @@ class DetailViewComponent extends React.Component {
             { name: this.state.measure,
               link: `/${this.state.channel}/${this.state.platform}/${this.state.measure}` }
           ]} />
-        <div className="container center">
-          <Row>
-            <form className="form-inline">
-              <select
-                value={this.state.timeInterval}
-                onChange={this.timeIntervalChanged}
-                className="mb-2 mr-sm-2 mb-sm-0">
-                {
-                  this.state.validTimeIntervals.map(
-                    timeInterval => (
-                      <option
-                        key={timeInterval.value}
-                        value={timeInterval.value}>
-                        {timeInterval.label}
-                      </option>
-                    )
-                  )
-                }
-                <option value="0">Custom...</option>
-              </select>
-              <Modal
-                isOpen={this.state.choosingCustomTimeInterval}
-                toggle={this.cancelChooseCustomTimeInterval}>
-                <ModalHeader toggle={this.cancelChooseCustomTimeInterval}>
-                  Custom Date Range
-                </ModalHeader>
-                <ModalBody>
-                  <FormGroup>
-                    <Label for="startDate">
-                      Start Date
-                    </Label>
-                    <Input
-                      type="date"
-                      onChange={this.customStartDateChanged}
-                      id="startDate" />
-                  </FormGroup>
-                  <FormGroup>
-                    <Label for="endDate">
-                      End Date
-                    </Label>
-                    <Input
-                      type="date"
-                      onChange={this.customEndDateChanged}
-                      id="endDate" />
-                  </FormGroup>
-                </ModalBody>
-                <ModalFooter>
-                  <Button
-                    color="primary"
-                    disabled={!this.isCustomTimeIntervalValid()}
-                    onClick={this.customTimeIntervalChosen}>Ok</Button>
-                </ModalFooter>
-              </Modal>
-              <FormGroup check title="Normalize measure by number of usage hours">
-                <Label check>
-                  <Input type="checkbox" checked={this.state.normalized} onChange={this.normalizeCheckboxChanged} />
-                  {' '}
-                  Normalize
-                </Label>
-              </FormGroup>
-            </form>
-          </Row>
-          {
-            this.state.isLoading &&
+        <div className="body-element">
+          <div className="container center">
             <Row>
-              <Loading />
+              <form className="form-inline">
+                <select
+                  value={this.state.timeInterval}
+                  onChange={this.timeIntervalChanged}
+                  className="mb-2 mr-sm-2 mb-sm-0">
+                  {
+                    this.state.validTimeIntervals.map(
+                      timeInterval => (
+                        <option
+                          key={timeInterval.value}
+                          value={timeInterval.value}>
+                          {timeInterval.label}
+                        </option>
+                      )
+                    )
+                  }
+                  <option value="0">Custom...</option>
+                </select>
+                <Modal
+                  isOpen={this.state.choosingCustomTimeInterval}
+                  toggle={this.cancelChooseCustomTimeInterval}>
+                  <ModalHeader toggle={this.cancelChooseCustomTimeInterval}>
+                    Custom Date Range
+                  </ModalHeader>
+                  <ModalBody>
+                    <FormGroup>
+                      <Label for="startDate">
+                        Start Date
+                      </Label>
+                      <Input
+                        type="date"
+                        onChange={this.customStartDateChanged}
+                        id="startDate" />
+                    </FormGroup>
+                    <FormGroup>
+                      <Label for="endDate">
+                        End Date
+                      </Label>
+                      <Input
+                        type="date"
+                        onChange={this.customEndDateChanged}
+                        id="endDate" />
+                    </FormGroup>
+                  </ModalBody>
+                  <ModalFooter>
+                    <Button
+                      color="primary"
+                      disabled={!this.isCustomTimeIntervalValid()}
+                      onClick={this.customTimeIntervalChosen}>Ok</Button>
+                  </ModalFooter>
+                </Modal>
+                <FormGroup
+                  check
+                  title="Normalize measure by number of usage hours">
+                  <Label check>
+                    <Input
+                      type="checkbox"
+                      checked={this.state.normalized}
+                      onChange={this.normalizeCheckboxChanged} />
+                    {' '}
+                    Normalize
+                  </Label>
+                </FormGroup>
+              </form>
             </Row>
-          }
-          {
-            !this.state.isLoading &&
-            <div>
+            {
+              this.state.isLoading &&
               <Row>
-                <Col>
-                  <div
-                    className="large-graph-container center"
-                    id="measure-series">
-                    <MeasureGraph
-                      title={`${this.props.match.params.measure} ${(this.state.normalized) ? 'per 1k hours' : ''}`}
-                      seriesList={
-                        (this.state.normalized) ?
-                        normalizeSeries(this.props.seriesList, this.props.match.params.measure) :
-                        this.props.seriesList
-                      }
-                      y={`${this.props.match.params.measure}`}
-                      linked={true}
-                      linked_format="%Y-%m-%d-%H-%M-%S"
-                      width={800}
-                      height={200} />
-                  </div>
-                </Col>
+                <Loading />
               </Row>
-              <Row>
-                <Col>
-                  <div
-                    className="large-graph-container center"
-                    id="time-series">
-                    <MeasureGraph
-                      title="Usage khours"
-                      seriesList={this.props.seriesList}
-                      y={'usage_hours'}
-                      linked={true}
-                      linked_format="%Y-%m-%d-%H-%M-%S"
-                      width={800}
-                      height={200} />
-                  </div>
-                </Col>
-              </Row>
-            </div>
-          }
+            }
+            {
+              !this.state.isLoading &&
+              <div>
+                <Row>
+                  <Col>
+                    <div
+                      className="large-graph-container center"
+                      id="measure-series">
+                      <MeasureGraph
+                        title={`${this.props.match.params.measure} ${(this.state.normalized) ? 'per 1k hours' : ''}`}
+                        seriesList={
+                          (this.state.normalized) ?
+                          normalizeSeries(this.props.seriesList, this.props.match.params.measure) :
+                          this.props.seriesList
+                        }
+                        y={`${this.props.match.params.measure}`}
+                        linked={true}
+                        linked_format="%Y-%m-%d-%H-%M-%S" />
+                    </div>
+                  </Col>
+                </Row>
+                <Row>
+                  <Col>
+                    <div
+                      className="large-graph-container center"
+                      id="time-series">
+                      <MeasureGraph
+                        title="Usage khours"
+                        seriesList={this.props.seriesList}
+                        y={'usage_hours'}
+                        linked={true}
+                        linked_format="%Y-%m-%d-%H-%M-%S" />
+                    </div>
+                  </Col>
+                </Row>
+              </div>
+            }
+          </div>
         </div>
       </div>
     );

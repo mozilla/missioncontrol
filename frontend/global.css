@@ -1,3 +1,23 @@
+.body-container {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+.header-element {
+    flex: none;
+}
+
+.body-element {
+    flex: 1;
+    position: relative;
+    overflow-y: auto;
+}
+
+.header-breadcrumb {
+  margin-bottom: 0;
+}
+
 .filter-group {
     padding: 20px;
 }
@@ -11,8 +31,8 @@
 }
 
 .large-graph-container {
-    width: 800px;
-    height: 200px;
+    width: 100%;
+    height: 240px;
     margin: auto;
 }
 
@@ -21,7 +41,10 @@
     font-size: 20px;
 }
 
-html {
+html, body, #root {
+    overflow: hidden;
+    height: 100%;
+    margin: 0;
     font-size: 14px;
 }
 

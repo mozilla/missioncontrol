@@ -1,9 +1,11 @@
 import React from 'react';
+import Dimensions from 'react-dimensions';
 import { curveLinear } from 'd3';
 import { timeFormat } from 'd3-time-format';
 import MetricsGraphics from 'react-metrics-graphics';
 
-export default class MeasureGraph extends React.Component {
+
+class MeasureGraph extends React.Component {
   render() {
     const numSeries = this.props.seriesList.length;
     return (
@@ -12,8 +14,8 @@ export default class MeasureGraph extends React.Component {
         chart_type={!numSeries ? 'missing-data' : undefined}
         legend={numSeries > 1 ? this.props.seriesList.map(s => s.name) : undefined}
         data={numSeries ? this.props.seriesList.map(s => s.data) : undefined}
-        width={this.props.width}
-        height={this.props.height}
+        width={this.props.containerWidth}
+        height={this.props.height || this.props.containerHeight}
         interpolate={curveLinear}
         missing_text="No data for this measure"
         x_accessor="date"
@@ -25,3 +27,6 @@ export default class MeasureGraph extends React.Component {
         right={40} />);
   }
 }
+
+const dimensions = Dimensions;
+export default dimensions()(MeasureGraph);

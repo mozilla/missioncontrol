@@ -12,7 +12,7 @@ export default class SubViewNav extends React.Component {
 
   render() {
     return (
-      <Breadcrumb>
+      <Breadcrumb className="header-breadcrumb">
         { this.state.breadcrumbs.map(bc => (
           <BreadcrumbItem key={bc.link}>
             <Link to={bc.link}>
