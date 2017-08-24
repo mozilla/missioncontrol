@@ -8,7 +8,9 @@ from missioncontrol.celery import celery
 from missioncontrol.settings import DATA_EXPIRY_INTERVAL
 from .presto import raw_query
 from .schema import (CHANNELS, TELEMETRY_PLATFORM_MAPPING, get_measure_cache_key)
-from .versions import get_firefox_versions
+from .versions import (VersionNotFoundError,
+                       get_firefox_versions,
+                       get_version_string_from_buildid)
 
 logger = logging.getLogger(__name__)
 
@@ -91,6 +93,17 @@ def update_measure(platform_name, channel_name, measure_name):
         if buildstamp < window_start - channel['update_interval']:
             continue
         if not data.get(build_id):
+            # if we are on beta, try to get a more precise version (the version
+            # submitted to telemetry does not incorporate the beta number)
+            if channel_name == 'beta':
+                try:
+                    version = get_version_string_from_buildid(channel_name, build_id)
+                except VersionNotFoundError:
+                    # for now let's just warn if we can't find a version (most
+                    # likely cause is invalid telemetry data being
+                    # submitted on the beta channel)
+                    logger.warning("Unable to get version info for %s/%s",
+                                   channel_name, build_id)
             data[build_id] = {'version': version, 'data': []}
         data[build_id]['data'].append((window_start, measure_count, usage_hours))
 
