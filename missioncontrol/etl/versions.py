@@ -46,15 +46,14 @@ def get_version_string_from_buildid(channel, buildid):
     the version doesn't specify the beta number)
     '''
     cache_key = _get_version_string_cache_key(channel, buildid)
-    cached_result = cache.get(cache_key)
-    if cached_result:
-        return cached_result
-    r = requests.get(_get_buildhub_url(channel, buildid))
-    data = r.json()
-    if not data.get('data'):
-        raise VersionNotFoundError(
-            'No version for channel {channel} / buildid {buildid}'.format(
-                channel=channel, buildid=buildid))
-    version = data['data'][0]['target']['version']
-    cache.set(cache_key, version)
+    version = cache.get(cache_key)
+    if version is None:
+        r = requests.get(_get_buildhub_url(channel, buildid))
+        data = r.json()
+        if not data.get('data'):
+            raise VersionNotFoundError(
+                'No version for channel {channel} / buildid {buildid}'.format(
+                    channel=channel, buildid=buildid))
+        version = data['data'][0]['target']['version']
+        cache.set(cache_key, version)
     return version
