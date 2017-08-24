@@ -1,5 +1,4 @@
 import pytest
-import responses
 from django.core.cache import cache
 
 from missioncontrol.etl.versions import (VersionNotFoundError,
@@ -8,8 +7,7 @@ from missioncontrol.etl.versions import (VersionNotFoundError,
                                          get_version_string_from_buildid)
 
 
-@responses.activate
-def test_get_buildhub_version_exists():
+def test_get_buildhub_version_exists(responses):
     (channel, buildid, expected_version) = ('beta', '20170629075044', '55.0b6')
     responses.add(responses.GET, _get_buildhub_url(channel, buildid),
                   json={'data': [{'target': {'version': expected_version}}]})
@@ -19,8 +17,7 @@ def test_get_buildhub_version_exists():
     assert cache.get(cache_key) == expected_version
 
 
-@responses.activate
-def test_get_buildhub_version_does_not_exist():
+def test_get_buildhub_version_does_not_exist(responses):
     (channel, buildid) = ('beta', '20170629075044')
     responses.add(responses.GET, _get_buildhub_url(channel, buildid),
                   json={'data': []})

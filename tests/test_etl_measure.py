@@ -1,7 +1,6 @@
 import datetime
 
 import pytest
-import responses
 from freezegun import freeze_time
 from django.core.cache import cache
 
@@ -81,8 +80,8 @@ def test_update_measure_with_initial_data(prepopulated_version_cache,
 
 
 @freeze_time('2017-07-01 13:00')
-@responses.activate
-def test_update_measure_on_beta(prepopulated_version_cache, mock_raw_query, mock_raw_query_data):
+def test_update_measure_on_beta(responses, prepopulated_version_cache,
+                                mock_raw_query, mock_raw_query_data):
     from missioncontrol.etl.measure import update_measure
     (channel, buildid, expected_version) = ('beta', '20170629075044', '55.0b6')
     responses.add(responses.GET, _get_buildhub_url(channel, buildid),
