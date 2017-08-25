@@ -13,7 +13,7 @@
     "react-addons-test-utils": "^15.5.1"
   },
   "dependencies": {
-    "bootstrap": "4.0.0-alpha.6",
+    "bootstrap": "4.0.0-beta",
     "d3": "^4.9.1",
     "d3-time-format": "^2.0.5",
     "font-awesome": "^4.7.0",
@@ -31,7 +31,7 @@
     "react-metrics-graphics": "^0.6.1",
     "react-redux": "^5.0.5",
     "react-router-dom": "^4.1.1",
-    "reactstrap": "^4.5.0",
+    "reactstrap": "^4.8.0",
     "redux": "^3.6.0",
     "redux-logger": "^3.0.6",
     "redux-thunk": "^2.2.0"
