@@ -1,6 +1,6 @@
 import React from 'react';
 import _ from 'lodash';
-import { Button, FormGroup, Input, Label, Modal, ModalBody, ModalHeader, ModalFooter, Row, Col } from 'reactstrap';
+import { Button, FormGroup, Input, Label, Modal, ModalBody, ModalHeader, ModalFooter, Row, Col, Container } from 'reactstrap';
 import { Helmet } from 'react-helmet';
 import { connect } from 'react-redux';
 import Loading from './loading.jsx';
@@ -12,79 +12,8 @@ const mapStateToProps = (state, ownProps) => {
   const measure = ownProps.match.params.measure;
   const cacheKey = `${ownProps.match.params.platform}-${ownProps.match.params.channel}-${measure}`;
   const measureData = state.measures[cacheKey];
-  if (measureData) {
-    const seriesMap = {};
-    Object.values(measureData).forEach((build) => {
-      if (!seriesMap[build.version]) {
-        seriesMap[build.version] = {};
-      }
-      build.data.forEach((datum) => {
-        const date = datum[0];
-        if (!seriesMap[build.version][date]) {
-          seriesMap[build.version][date] = {
-            [measure]: 0,
-            usage_hours: 0,
-            date: new Date(date)
-          };
-        }
 
-        seriesMap[build.version][date][measure] += datum[1];
-        seriesMap[build.version][date].usage_hours += datum[2];
-      });
-    });
-
-    if (Object.keys(seriesMap).length < 3) {
-      return {
-        status: 'success',
-        seriesList: _.map(seriesMap, (data, version) => ({
-          name: version,
-          data: _.values(data)
-        }))
-      };
-    }
-
-    // take two most recent versions
-    let mostRecent = Object.keys(seriesMap).sort().slice(-2);
-
-    // if the second most recent has negligible results (<10% of) relative to the most
-    // recent, just concatenate it in with the other results under "other"
-    if (_.sum(_.values(seriesMap[mostRecent[0]]).map(d => d.usage_hours)) /
-        _.sum(_.values(seriesMap[mostRecent[1]]).map(d => d.usage_hours)) < 0.10) {
-      mostRecent = [mostRecent[1]];
-    }
-
-    const aggregated = _.reduce(
-      _.filter(seriesMap, (series, version) => _.indexOf(mostRecent, version) === (-1)),
-      (result, series) => {
-        const newResult = _.clone(result);
-        _.values(series).forEach((datum) => {
-          if (!newResult[datum.date]) {
-            newResult[datum.date] = _.clone(datum);
-          } else {
-            _.keys(newResult[datum.date]).forEach((k) => {
-              if (k === measure || k === 'usage_hours') {
-                newResult[datum.date][k] += datum[k];
-              }
-            });
-          }
-        });
-        return newResult;
-      }, {});
-
-    const seriesList = _.concat(mostRecent.map(version => ({
-      name: version,
-      data: _.values(seriesMap[version])
-    })), [{ name: 'Older', data: _.values(aggregated) }]);
-
-    return {
-      status: 'success',
-      seriesList
-    };
-  }
-  return {
-    status: 'loading',
-    seriesList: []
-  };
+  return { measureData };
 };
 
 const normalizeSeries = (seriesList, measure) =>
@@ -125,10 +54,17 @@ const getOptionalParameters = (props) => {
     normalized = (parseInt(urlParams.get('normalized'), 10));
   }
 
+  // disabledBuildIds is a comma-seperated list
+  let disabledBuildIds = new Set();
+  if (urlParams.get('disabledBuildIds')) {
+    disabledBuildIds = new Set(urlParams.get('disabledBuildIds').split(','));
+  }
+
   return {
     timeInterval,
     validTimeIntervals,
-    normalized
+    normalized,
+    disabledBuildIds
   };
 };
 
@@ -143,6 +79,7 @@ class DetailViewComponent extends React.Component {
       customStartDate: undefined,
       customEndDate: undefined,
       fetchMeasureData: this.props.fetchMeasureData,
+      disabledBuildIds: new Set(),
       ...getOptionalParameters(props)
     };
 
@@ -153,6 +90,7 @@ class DetailViewComponent extends React.Component {
     this.customEndDateChanged = this.customEndDateChanged.bind(this);
     this.isCustomTimeIntervalValid = this.isCustomTimeIntervalValid.bind(this);
     this.normalizeCheckboxChanged = this.normalizeCheckboxChanged.bind(this);
+    this.versionCheckboxChanged = this.versionCheckboxChanged.bind(this);
   }
 
   componentDidMount() {
@@ -165,9 +103,77 @@ class DetailViewComponent extends React.Component {
       this.setState({ isLoading: false }));
   }
 
+  getSeriesList() {
+    const measure = this.props.match.params.measure;
+
+    const seriesMap = {};
+    _.forEach(this.props.measureData, (build, buildId) => {
+      if (this.state.disabledBuildIds.has(buildId)) {
+        return;
+      }
+      if (!seriesMap[build.version]) {
+        seriesMap[build.version] = {};
+      }
+      build.data.forEach((datum) => {
+        const date = datum[0];
+        if (!seriesMap[build.version][date]) {
+          seriesMap[build.version][date] = {
+            [measure]: 0,
+            usage_hours: 0,
+            date: new Date(date)
+          };
+        }
+
+        seriesMap[build.version][date][measure] += datum[1];
+        seriesMap[build.version][date].usage_hours += datum[2];
+      });
+    });
+
+    // if we have less than 3 series, just return all verbatim
+    if (Object.keys(seriesMap).length < 3) {
+      return _.map(seriesMap, (data, version) => ({
+        name: version,
+        data: _.values(data)
+      }));
+    }
+
+    // take two most recent versions
+    let mostRecent = Object.keys(seriesMap).sort().slice(-2);
+
+    // if the second most recent has negligible results (<10% of) relative to the most
+    // recent, just concatenate it in with the other results under "other"
+    if (_.sum(_.values(seriesMap[mostRecent[0]]).map(d => d.usage_hours)) /
+        _.sum(_.values(seriesMap[mostRecent[1]]).map(d => d.usage_hours)) < 0.10) {
+      mostRecent = [mostRecent[1]];
+    }
+
+    const aggregated = _.reduce(
+      _.filter(seriesMap, (series, version) => _.indexOf(mostRecent, version) === (-1)),
+      (result, series) => {
+        const newResult = _.clone(result);
+        _.values(series).forEach((datum) => {
+          if (!newResult[datum.date]) {
+            newResult[datum.date] = _.clone(datum);
+          } else {
+            _.keys(newResult[datum.date]).forEach((k) => {
+              if (k === measure || k === 'usage_hours') {
+                newResult[datum.date][k] += datum[k];
+              }
+            });
+          }
+        });
+        return newResult;
+      }, {});
+
+    return _.concat(mostRecent.map(version => ({
+      name: version,
+      data: _.values(seriesMap[version])
+    })), [{ name: 'Older', data: _.values(aggregated) }]);
+  }
+
   componentWillUpdate(nextProps) {
     const params = getOptionalParameters(nextProps);
-    if (!_.every(['timeInterval', 'normalized'].map(
+    if (!_.every(['timeInterval', 'normalized', 'disabledBuildIds'].map(
       param => _.isEqual(params[param], this.state[param])))) {
       this.setState({
         ...params
@@ -183,10 +189,12 @@ class DetailViewComponent extends React.Component {
   }
 
   navigate(newParams) {
-    const paramStr = ['timeInterval', 'normalized'].map((paramName) => {
+    const paramStr = ['timeInterval', 'normalized', 'disabledBuildIds'].map((paramName) => {
       let value = (!_.isUndefined(newParams[paramName])) ? newParams[paramName] : this.state[paramName];
       if (typeof (value) === 'boolean') {
         value = value ? 1 : 0;
+      } else if (typeof (value) === 'object') {
+        value = Array.from(value);
       }
       return `${paramName}=${value}`;
     }).join('&');
@@ -243,6 +251,22 @@ class DetailViewComponent extends React.Component {
   normalizeCheckboxChanged(ev) {
     this.navigate({
       normalized: ev.target.checked
+    });
+  }
+
+  versionCheckboxChanged(ev) {
+    const buildId = ev.target.name;
+    const disabled = !ev.target.checked;
+    const disabledBuildIds = new Set(this.state.disabledBuildIds);
+
+    if (disabled) {
+      disabledBuildIds.add(buildId);
+    } else {
+      disabledBuildIds.delete(buildId);
+    }
+
+    this.navigate({
+      disabledBuildIds
     });
   }
 
@@ -342,35 +366,64 @@ class DetailViewComponent extends React.Component {
               !this.state.isLoading &&
               <div>
                 <Row>
-                  <Col>
-                    <div
-                      className="large-graph-container center"
-                      id="measure-series">
-                      <MeasureGraph
-                        title={`${this.props.match.params.measure} ${(this.state.normalized) ? 'per 1k hours' : ''}`}
-                        seriesList={
-                          (this.state.normalized) ?
-                          normalizeSeries(this.props.seriesList, this.props.match.params.measure) :
-                          this.props.seriesList
-                        }
-                        y={`${this.props.match.params.measure}`}
-                        linked={true}
-                        linked_format="%Y-%m-%d-%H-%M-%S" />
-                    </div>
+                  <Col xs="10">
+                    <Container>
+                      <Row>
+                        <Col>
+                          <div
+                            className="large-graph-container center"
+                            id="measure-series">
+                            <MeasureGraph
+                              title={`${this.props.match.params.measure} ${(this.state.normalized) ? 'per 1k hours' : ''}`}
+                              seriesList={
+                                (this.state.normalized) ?
+                                normalizeSeries(this.getSeriesList(), this.props.match.params.measure) :
+                                this.getSeriesList()
+                              }
+                              y={`${this.props.match.params.measure}`}
+                              linked={true}
+                              linked_format="%Y-%m-%d-%H-%M-%S" />
+                          </div>
+                        </Col>
+                      </Row>
+                      <Row>
+                        <Col>
+                          <div
+                            className="large-graph-container center"
+                            id="time-series">
+                            <MeasureGraph
+                              title="Usage khours"
+                              seriesList={this.getSeriesList()}
+                              y={'usage_hours'}
+                              linked={true}
+                              linked_format="%Y-%m-%d-%H-%M-%S" />
+                          </div>
+                        </Col>
+                      </Row>
+                    </Container>
                   </Col>
-                </Row>
-                <Row>
-                  <Col>
-                    <div
-                      className="large-graph-container center"
-                      id="time-series">
-                      <MeasureGraph
-                        title="Usage khours"
-                        seriesList={this.props.seriesList}
-                        y={'usage_hours'}
-                        linked={true}
-                        linked_format="%Y-%m-%d-%H-%M-%S" />
-                    </div>
+                  <Col xs="2">
+                    <FormGroup tag="fieldset">
+                      <legend>Versions</legend>
+                      {
+                        this.props.measureData &&
+                        _.map(this.props.measureData, (data, buildId) => ({
+                          buildId,
+                          version: data.version
+                        })).sort((a, b) => a.buildId < b.buildId).map(version => (
+                          <Label key={version.buildId} check>
+                            <Input
+                              name={version.buildId}
+                              type="checkbox"
+                              checked={!this.state.disabledBuildIds.has(version.buildId)}
+                              onChange={this.versionCheckboxChanged} />
+                            {' '}
+                            {version.version}
+                            <br />
+                            <small>{version.buildId}</small>
+                          </Label>))
+                      }
+                    </FormGroup>
                   </Col>
                 </Row>
               </div>
