@@ -28,8 +28,8 @@ def test_get_measure(client):
     # data returned should have datetimes formatted correctly
     assert resp.json()['measure_data'] == {
         '20170627075044': {
-            'data': [['2017-07-01T01:00:00', 321, 10],
-                     ['2017-06-29T13:00:00', 3213, 20]],
+            'data': [['2017-07-01T01:00:00Z', 321, 10],
+                     ['2017-06-29T13:00:00Z', 3213, 20]],
             'version': '55.0a1'
         }
     }
@@ -42,5 +42,5 @@ def test_get_measure(client):
         'interval': 86400
     })
     assert resp.json()['measure_data']['20170627075044']['data'] == [
-        ['2017-07-01T01:00:00', 321, 10]
+        ['2017-07-01T01:00:00Z', 321, 10]
     ]

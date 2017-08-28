@@ -1,5 +1,7 @@
 import datetime
 import logging
+
+from dateutil.tz import tzutc
 from django.http import (HttpResponseBadRequest, HttpResponseNotFound, JsonResponse)
 from django.core.cache import cache
 
@@ -61,15 +63,24 @@ def measure(request):
         except ValueError:
             return HttpResponseBadRequest("Interval must be specified in seconds (as an integer)")
 
-        # Return any build data in the interval
-        empty_buildids = set()
-        for (build_id, build_data) in data.items():
-            build_data['data'] = [d for d in build_data['data'] if d[0] > min_time]
-            if not build_data['data']:
-                empty_buildids.add(build_id)
+    empty_buildids = set()
+    for (build_id, build_data) in data.items():
+        datums = build_data['data']
+        # filter out elements that don't match our date range
+        if interval:
+            datums = filter(lambda d: d[0] > min_time, datums)
+        # add utc timezone info to each date, so django will serialize a
+        # 'Z' to the end of the string (and so javascript's date constructor
+        # will know it's utc)
+        datums = list(map(lambda d: [datetime.datetime.fromtimestamp(d[0].timestamp(),
+                                                                     tz=tzutc())] +
+                          list(d[1:]), datums))
+        if not datums:
+            empty_buildids.add(build_id)
+        build_data['data'] = datums
 
-        # don't bother returning empty indexed data
-        for empty_buildid in empty_buildids:
-            del data[empty_buildid]
+    # don't bother returning empty indexed data
+    for empty_buildid in empty_buildids:
+        del data[empty_buildid]
 
     return JsonResponse(data={'measure_data': data})
