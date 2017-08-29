@@ -171,24 +171,8 @@ class DetailViewComponent extends React.Component {
     })), [{ name: 'Older', data: _.values(aggregated) }]);
   }
 
-  componentWillUpdate(nextProps) {
-    const params = getOptionalParameters(nextProps);
-    if (!_.every(['timeInterval', 'normalized', 'disabledBuildIds'].map(
-      param => _.isEqual(params[param], this.state[param])))) {
-      this.setState({
-        ...params
-      });
-    }
-    // need to reload everything if time interval changes
-    if (!_.isEqual(params.timeInterval, this.state.timeInterval)) {
-      this.fetchMeasureData({
-        ...this.state,
-        ...params
-      });
-    }
-  }
-
   navigate(newParams) {
+    this.setState(newParams);
     const paramStr = ['timeInterval', 'normalized', 'disabledBuildIds'].map((paramName) => {
       let value = (!_.isUndefined(newParams[paramName])) ? newParams[paramName] : this.state[paramName];
       if (typeof (value) === 'boolean') {
@@ -211,8 +195,13 @@ class DetailViewComponent extends React.Component {
         customEndDate: undefined
       });
     } else {
-      this.navigate({
+      const newParams = {
         timeInterval: value
+      };
+      this.navigate(newParams);
+      this.fetchMeasureData({
+        ...this.state,
+        ...newParams
       });
     }
   }
