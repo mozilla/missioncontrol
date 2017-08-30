@@ -133,8 +133,8 @@ class DetailViewComponent extends React.Component {
       });
     });
 
-    // if we have less than 3 series, just return all verbatim
-    if (Object.keys(seriesMap).length < 3) {
+    // if we have <= 3 series, just return all verbatim
+    if (Object.keys(seriesMap).length <= 3) {
       return _.map(seriesMap, (data, version) => ({
         name: version,
         data: _.values(data)
