@@ -80,6 +80,7 @@ class DetailViewComponent extends React.Component {
       customEndDate: undefined,
       fetchMeasureData: this.props.fetchMeasureData,
       disabledBuildIds: new Set(),
+      seriesList: [],
       ...getOptionalParameters(props)
     };
 
@@ -100,7 +101,10 @@ class DetailViewComponent extends React.Component {
   fetchMeasureData(params) {
     this.setState({ isLoading: true });
     this.state.fetchMeasureData(params).then(() =>
-      this.setState({ isLoading: false }));
+      this.setState({
+        seriesList: this.getSeriesList(),
+        isLoading: false
+      }));
   }
 
   getSeriesList() {
@@ -171,8 +175,15 @@ class DetailViewComponent extends React.Component {
     })), [{ name: 'Older', data: _.values(aggregated) }]);
   }
 
-  navigate(newParams) {
-    this.setState(newParams);
+  navigate(newParams, updateSeriesList = true) {
+    this.setState(newParams, () => {
+      if (updateSeriesList) {
+        this.setState({
+          seriesList: this.getSeriesList()
+        });
+      }
+    });
+
     const paramStr = ['timeInterval', 'normalized', 'disabledBuildIds'].map((paramName) => {
       let value = (!_.isUndefined(newParams[paramName])) ? newParams[paramName] : this.state[paramName];
       if (typeof (value) === 'boolean') {
@@ -198,7 +209,7 @@ class DetailViewComponent extends React.Component {
       const newParams = {
         timeInterval: value
       };
-      this.navigate(newParams);
+      this.navigate(newParams, false);
       this.fetchMeasureData({
         ...this.state,
         ...newParams
@@ -366,8 +377,8 @@ class DetailViewComponent extends React.Component {
                               title={`${this.props.match.params.measure} ${(this.state.normalized) ? 'per 1k hours' : ''}`}
                               seriesList={
                                 (this.state.normalized) ?
-                                normalizeSeries(this.getSeriesList(), this.props.match.params.measure) :
-                                this.getSeriesList()
+                                normalizeSeries(this.state.seriesList, this.props.match.params.measure) :
+                                this.state.seriesList
                               }
                               y={`${this.props.match.params.measure}`}
                               linked={true}
@@ -382,7 +393,7 @@ class DetailViewComponent extends React.Component {
                             id="time-series">
                             <MeasureGraph
                               title="Usage khours"
-                              seriesList={this.getSeriesList()}
+                              seriesList={this.state.seriesList}
                               y={'usage_hours'}
                               linked={true}
                               linked_format="%Y-%m-%d-%H-%M-%S" />
