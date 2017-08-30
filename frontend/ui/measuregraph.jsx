@@ -24,6 +24,7 @@ class MeasureGraph extends React.Component {
         xax_count={this.props.xax_count}
         linked={this.props.linked}
         linked_format={this.props.linked_format}
+        aggregate_rollover={true}
         right={40} />);
   }
 }
