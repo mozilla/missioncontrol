@@ -33,8 +33,9 @@ export default class Dashboard extends React.Component {
   render() {
     return (
       <div className="body-container">
-        <Navbar className="navbar-dark bg-dark">
+        <Navbar className="navbar-dark bg-dark missioncontrol-navbar">
           <NavbarBrand href="#/">Mission Control</NavbarBrand>
+          <span className="navbar-text">Realtime Telemetry</span>
         </Navbar>
         <Provider store={this.state.store}>
           <Router>

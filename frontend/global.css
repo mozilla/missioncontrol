@@ -48,6 +48,10 @@ html, body, #root {
     font-size: 14px;
 }
 
+.missioncontrol-navbar {
+  justify-content: left;
+}
+
 .missioncontrol-card {
     cursor: pointer;
 }
