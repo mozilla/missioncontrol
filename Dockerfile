@@ -1,4 +1,4 @@
-FROM debian:jessie
+FROM python:3.4-slim
 ENV PYTHONDONTWRITEBYTECODE 1
 
 EXPOSE 8000
@@ -6,11 +6,9 @@ EXPOSE 8000
 RUN useradd --uid 1000 --no-create-home --home-dir /app webdev
 
 RUN apt-get update && \
-    apt-get install -y --no-install-recommends build-essential python3 python3-dev python3-pip \
-                                               libpq-dev postgresql-client gettext curl && \
-    rm -rf /var/lib/apt/lists/*
-RUN update-alternatives --install /usr/bin/pip pip /usr/bin/pip3 10
-RUN update-alternatives --install /usr/bin/python python /usr/bin/python3 10
+    apt-get install -y --no-install-recommends build-essential libpq-dev \
+      mime-support postgresql-client gettext curl && \
+      rm -rf /var/lib/apt/lists/*
 
 
 # Using PIL or Pillow? You probably want to uncomment next line
