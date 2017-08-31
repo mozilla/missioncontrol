@@ -8,8 +8,9 @@ RUN useradd --uid 1000 --no-create-home --home-dir /app webdev
 RUN apt-get update && \
     apt-get install -y --no-install-recommends build-essential libpq-dev \
       mime-support postgresql-client gettext curl && \
-      rm -rf /var/lib/apt/lists/*
-
+      apt-get autoremove -y && \
+      apt-get clean && \
+      rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
 # Using PIL or Pillow? You probably want to uncomment next line
 # RUN apt-get update && apt-get install -y --no-install-recommends libjpeg8-dev
