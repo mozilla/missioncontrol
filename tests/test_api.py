@@ -1,10 +1,24 @@
 import datetime
 
+import pytest
 from django.core.cache import cache
 from django.core.urlresolvers import reverse
 from freezegun import freeze_time
 
 from missioncontrol.etl.schema import get_measure_cache_key
+
+
+@pytest.mark.parametrize('missing_param', ['platform', 'channel', 'measure'])
+def test_get_measure_missing_params(client, missing_param):
+    params = {
+        'platform': 'windows',
+        'channel': 'release',
+        'measure': 'main_crashes',
+        'interval': 86400
+    }
+    del params[missing_param]
+    resp = client.get(reverse('measure'), params)
+    assert resp.status_code == 400
 
 
 @freeze_time('2017-07-01 13:00')
