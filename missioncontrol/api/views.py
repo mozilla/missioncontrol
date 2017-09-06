@@ -52,23 +52,35 @@ def measure(request):
     platform_name = request.GET.get('platform')
     measure_name = request.GET.get('measure')
     interval = request.GET.get('interval')
-    if not all([channel_name, platform_name, measure_name]):
-        return HttpResponseBadRequest("All of channel, platform, measure required")
+    start = request.GET.get('start')
+
+    if not all([channel_name, platform_name, measure_name, interval]):
+        return HttpResponseBadRequest("All of channel, platform, measure, interval required")
     data = cache.get(get_measure_cache_key(platform_name, channel_name, measure_name))
     if not data:
         return HttpResponseNotFound("Data not available for this measure combination")
-    if interval:
-        try:
-            min_time = datetime.datetime.now() - datetime.timedelta(seconds=int(interval))
-        except ValueError:
-            return HttpResponseBadRequest("Interval must be specified in seconds (as an integer)")
+
+    # process min/max time based on parameters
+    try:
+        if start is not None:
+            min_time = datetime.datetime.fromtimestamp(int(start))
+            max_time = min_time + datetime.timedelta(seconds=int(interval))
+        else:
+            (min_time, max_time) = (datetime.datetime.now() -
+                                    datetime.timedelta(seconds=int(interval)),
+                                    None)
+    except ValueError:
+        raise HttpResponseBadRequest(
+            "Interval / start time must be specified in seconds (as an integer)")
 
     empty_buildids = set()
     for (build_id, build_data) in data.items():
         datums = build_data['data']
         # filter out elements that don't match our date range
-        if interval:
-            datums = filter(lambda d: d[0] > min_time, datums)
+        if min_time:
+            datums = filter(lambda d: d[0] >= min_time, datums)
+        if max_time:
+            datums = filter(lambda d: d[0] <= max_time, datums)
         # add utc timezone info to each date, so django will serialize a
         # 'Z' to the end of the string (and so javascript's date constructor
         # will know it's utc)

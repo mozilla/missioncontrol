@@ -52,7 +52,9 @@ function receiveMeasureData(params, data) {
 export function fetchMeasureData(params) {
   return (dispatch) => {
     dispatch(requestMeasureData());
-    return fetch(`${MEASURE_URL}?platform=${params.platform}&channel=${params.channel}&measure=${params.measure}&interval=${params.timeInterval}`)
+    const searchParamString = _.map(params, (value, paramName) =>
+      `${paramName}=${value}`).join('&');
+    return fetch(`${MEASURE_URL}?${searchParamString}`)
       .then(response => response.json())
       .then(json => dispatch(receiveMeasureData(params, json)));
   };
