@@ -25,27 +25,43 @@ const normalizeSeries = (seriesList, measure) =>
    }))
  }));
 
+const getDateString = (date) => {
+  // input could be either a javascript date object or undefined
+  if (!date) return '';
+  return date.toISOString().slice(0, 10);
+};
+
+const getValidTimeIntervals = (params) => {
+  const timeIntervals = _.clone(TIME_INTERVALS);
+  if (params.startTime) {
+    const startTimeMs = parseInt(params.startTime * 1000.0, 10);
+    const dateFmt = new Intl.DateTimeFormat();
+    const startDateStr = dateFmt.format(new Date(startTimeMs));
+    const endDateStr = dateFmt.format(new Date(startTimeMs + (params.timeInterval * 1000)));
+    timeIntervals.unshift({
+      label: `${startDateStr} → ${endDateStr}`,
+      startTime: params.startTime,
+      interval: params.timeInterval
+    });
+  }
+
+  return timeIntervals;
+};
+
 const getOptionalParameters = (props) => {
   const urlParams = new URLSearchParams(props.location.search);
-  const dateParamRe = /^(\d+-\d+-\d+)-(\d+-\d+-\d+)$/;
 
   // time interval can either be specified as an interval (starting from the present) or a set of dates
-  const validTimeIntervals = _.clone(TIME_INTERVALS);
   let timeInterval = urlParams.get('timeInterval') ? urlParams.get('timeInterval') : DEFAULT_TIME_INTERVAL;
-  if (_.isString(timeInterval)) {
-    if (timeInterval.match(dateParamRe)) {
-      const args = timeInterval.match(dateParamRe);
-      timeInterval = {
-        startDate: new Date(args[1]),
-        endDate: new Date(args[2])
-      };
-      validTimeIntervals.unshift({
-        label: `${args[1]} → ${args[2]}`,
-        value: timeInterval
-      });
-    } else {
-      timeInterval = parseInt(timeInterval, 10);
-    }
+  timeInterval = parseInt(timeInterval, 10);
+
+  let startTime = urlParams.get('startTime');
+  let customStartDate;
+  let customEndDate;
+  if (startTime) {
+    startTime = parseInt(startTime, 10);
+    customStartDate = new Date(startTime * 1000);
+    customEndDate = new Date((startTime + timeInterval) * 1000);
   }
 
   // coerce normalized into a boolean, true if not specified
@@ -61,10 +77,16 @@ const getOptionalParameters = (props) => {
   }
 
   return {
+    startTime,
+    customStartDate,
+    customEndDate,
     timeInterval,
-    validTimeIntervals,
     normalized,
-    disabledBuildIds
+    disabledBuildIds,
+    validTimeIntervals: getValidTimeIntervals({
+      startTime,
+      timeInterval
+    })
   };
 };
 
@@ -76,8 +98,6 @@ class DetailViewComponent extends React.Component {
       platform: props.match.params.platform,
       measure: props.match.params.measure,
       isLoading: true,
-      customStartDate: undefined,
-      customEndDate: undefined,
       fetchMeasureData: this.props.fetchMeasureData,
       disabledBuildIds: new Set(),
       seriesList: [],
@@ -98,9 +118,15 @@ class DetailViewComponent extends React.Component {
     this.fetchMeasureData(this.state);
   }
 
-  fetchMeasureData(params) {
+  fetchMeasureData() {
     this.setState({ isLoading: true });
-    this.state.fetchMeasureData(params).then(() =>
+    this.state.fetchMeasureData(_.pickBy({
+      measure: this.state.measure,
+      channel: this.state.channel,
+      platform: this.state.platform,
+      interval: this.state.timeInterval,
+      start: this.state.startTime
+    })).then(() =>
       this.setState({
         seriesList: this.getSeriesList(),
         isLoading: false
@@ -175,16 +201,16 @@ class DetailViewComponent extends React.Component {
     })), [{ name: 'Older', data: _.values(aggregated) }]);
   }
 
-  navigate(newParams, updateSeriesList = true) {
-    this.setState(newParams, () => {
-      if (updateSeriesList) {
-        this.setState({
-          seriesList: this.getSeriesList()
-        });
-      }
-    });
+  navigate(newParams, cb) {
+    this.setState(newParams, cb);
 
-    const paramStr = ['timeInterval', 'normalized', 'disabledBuildIds'].map((paramName) => {
+    // generate a new url string, so we can link to this particular view
+    const params = ['timeInterval', 'normalized', 'disabledBuildIds'];
+    if (newParams.startTime) {
+      // only want to put startTime in url string if it's defined
+      params.push('startTime');
+    }
+    const paramStr = params.map((paramName) => {
       let value = (!_.isUndefined(newParams[paramName])) ? newParams[paramName] : this.state[paramName];
       if (typeof (value) === 'boolean') {
         value = value ? 1 : 0;
@@ -197,35 +223,34 @@ class DetailViewComponent extends React.Component {
   }
 
   timeIntervalChanged(ev) {
-    const value = parseInt(ev.target.value, 10);
-    if (!value) {
-      // value = 0 => let user select a custom time interval
+    const index = parseInt(ev.target.value, 10);
+    if (index === -1) {
+      // => let user select a custom time interval
       this.setState({
-        choosingCustomTimeInterval: true,
-        customStartDate: undefined,
-        customEndDate: undefined
+        choosingCustomTimeInterval: true
       });
     } else {
-      const newParams = {
-        timeInterval: value
-      };
-      this.navigate(newParams, false);
-      this.fetchMeasureData({
-        ...this.state,
-        ...newParams
+      const timeInterval = this.state.validTimeIntervals[index];
+      this.navigate({
+        customStartDate: undefined,
+        customEndDate: undefined,
+        startTime: timeInterval.startTime,
+        timeInterval: timeInterval.interval
+      }, () => {
+        this.fetchMeasureData();
       });
     }
   }
 
   customStartDateChanged(ev) {
     this.setState({
-      customStartDate: ev.target.value
+      customStartDate: new Date(ev.target.value)
     });
   }
 
   customEndDateChanged(ev) {
     this.setState({
-      customEndDate: ev.target.value
+      customEndDate: new Date(ev.target.value)
     });
   }
 
@@ -238,9 +263,20 @@ class DetailViewComponent extends React.Component {
   customTimeIntervalChosen() {
     this.setState({
       choosingCustomTimeInterval: false
+    }, () => {
+      const startTime = new Date(`${getDateString(this.state.customStartDate)} 00:00`);
+      const endTime = new Date(`${getDateString(this.state.customEndDate)} 23:59`);
+      const timeParams = {
+        startTime: parseInt(startTime.getTime() / 1000.0, 10),
+        timeInterval: parseInt((endTime - startTime) / 1000.0, 10)
+      };
+      this.navigate({
+        ...timeParams,
+        validTimeIntervals: getValidTimeIntervals(timeParams)
+      }, () => {
+        this.fetchMeasureData();
+      });
     });
-    const timeIntervalStr = `${this.state.customStartDate}-${this.state.customEndDate}`;
-    this.props.history.push(`/${this.state.channel}/${this.state.platform}/${this.state.measure}?timeInterval=${timeIntervalStr}`);
   }
 
   isCustomTimeIntervalValid() {
@@ -251,6 +287,10 @@ class DetailViewComponent extends React.Component {
   normalizeCheckboxChanged(ev) {
     this.navigate({
       normalized: ev.target.checked
+    }, () => {
+      this.setState({
+        seriesList: this.getSeriesList()
+      });
     });
   }
 
@@ -267,6 +307,10 @@ class DetailViewComponent extends React.Component {
 
     this.navigate({
       disabledBuildIds
+    }, () => {
+      this.setState({
+        seriesList: this.getSeriesList()
+      });
     });
   }
 
@@ -293,21 +337,27 @@ class DetailViewComponent extends React.Component {
             <Row>
               <form className="form-inline">
                 <select
-                  value={this.state.timeInterval}
+                  value={
+                    this.state.validTimeIntervals.findIndex(timeInterval =>
+                      timeInterval.interval === this.state.timeInterval &&
+                      ((this.state.startTime &&
+                        (timeInterval.startTime === this.state.startTime)) ||
+                       (!this.state.startTime && !timeInterval.startTime)))
+                  }
                   onChange={this.timeIntervalChanged}
                   className="mb-2 mr-sm-2 mb-sm-0">
                   {
                     this.state.validTimeIntervals.map(
-                      timeInterval => (
+                      (timeInterval, index) => (
                         <option
-                          key={timeInterval.value}
-                          value={timeInterval.value}>
+                          key={`${timeInterval.startTime || ''}-${timeInterval.interval}`}
+                          value={index} >
                           {timeInterval.label}
                         </option>
                       )
                     )
                   }
-                  <option value="0">Custom...</option>
+                  <option value="-1">Custom...</option>
                 </select>
                 <Modal
                   isOpen={this.state.choosingCustomTimeInterval}
@@ -323,7 +373,8 @@ class DetailViewComponent extends React.Component {
                       <Input
                         type="date"
                         onChange={this.customStartDateChanged}
-                        id="startDate" />
+                        id="startDate"
+                        defaultValue={getDateString(this.state.customStartDate)} />
                     </FormGroup>
                     <FormGroup>
                       <Label for="endDate">
@@ -332,7 +383,8 @@ class DetailViewComponent extends React.Component {
                       <Input
                         type="date"
                         onChange={this.customEndDateChanged}
-                        id="endDate" />
+                        id="endDate"
+                        defaultValue={getDateString(this.state.customEndDate)} />
                     </FormGroup>
                   </ModalBody>
                   <ModalFooter>
