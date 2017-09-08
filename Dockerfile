@@ -1,4 +1,4 @@
-FROM python:3.4-slim
+FROM python:3.6-slim
 ENV PYTHONDONTWRITEBYTECODE 1
 
 EXPOSE 8000
@@ -16,10 +16,6 @@ RUN apt-get update && \
 # RUN apt-get update && apt-get install -y --no-install-recommends libjpeg8-dev
 
 WORKDIR /app
-
-# Get pip8
-COPY bin/pipstrap.py bin/pipstrap.py
-RUN ./bin/pipstrap.py
 
 # First copy requirements.txt and peep so we can take advantage of
 # docker caching.
