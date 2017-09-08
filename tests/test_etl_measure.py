@@ -79,18 +79,41 @@ def test_update_measure_with_initial_data(prepopulated_version_cache,
     }
 
 
+@pytest.mark.parametrize('missing_initial', [False, True])
 @freeze_time('2017-07-01 13:00')
 def test_update_measure_on_beta(responses, prepopulated_version_cache,
-                                mock_raw_query, mock_raw_query_data):
+                                mock_raw_query, mock_raw_query_data,
+                                missing_initial):
     from missioncontrol.etl.measure import update_measure
-    (channel, buildid, expected_version) = ('beta', '20170629075044', '55.0b6')
+    (channel, buildid, expected_initial_version, expected_version) = (
+        'beta', '20170629075044', '55.0a1', '55.0b6')
+
+    def check_cache(expected_version):
+        cached_data = cache.get(get_measure_cache_key('windows', 'beta', 'main_crashes'))
+        assert cached_data['20170629075044']['version'] == expected_version
+
+    # we must set up all responses before the fake endpoint is hit
+    if missing_initial:
+        # initial response where data not present
+        responses.add(responses.GET, _get_buildhub_url(channel, buildid),
+                      json={'data': []})
     responses.add(responses.GET, _get_buildhub_url(channel, buildid),
                   json={'data': [{'target': {'version': expected_version}}]})
 
+    if missing_initial:
+        update_measure('windows', 'beta', 'main_crashes')
+        check_cache(expected_initial_version)
+        # HACK: manually modify data to contain a subset of what is present
+        # (would probably be a more realistic test to reset/change the data
+        # returned by the mock, but this should do from the point of view of
+        # checking that a pre-existing set of data is updated)
+        cache.set(get_measure_cache_key('windows', 'beta', 'main_crashes'), {
+            '20170629075044': {
+                'version': expected_initial_version,
+                'data': [sorted([(d[0], d[3], d[4]) for d in mock_raw_query_data],
+                                key=lambda d: d[0])[0]]
+            }
+        })
+
     update_measure('windows', 'beta', 'main_crashes')
-    assert cache.get(get_measure_cache_key('windows', 'beta', 'main_crashes')) == {
-        '20170629075044': {
-            'version': expected_version,
-            'data': sorted([(d[0], d[3], d[4]) for d in mock_raw_query_data], key=lambda d: d[0])
-        }
-    }
+    check_cache(expected_version)
