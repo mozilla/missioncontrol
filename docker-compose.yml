@@ -1,11 +1,11 @@
 version: "2"
 services:
   db:
-    image: postgres:9.5
+    image: postgres:9.5-alpine
     logging:
       driver: "none"
   redis:
-    image: redis:3.2
+    image: redis:3.2-alpine
 
   app:
       build: .
@@ -28,7 +28,7 @@ services:
         "web-dev"
 
   hive-db:
-    image: postgres:9.5
+    image: postgres:9.5-alpine
     logging:
       driver: "none"
     ports:
