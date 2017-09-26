@@ -1,4 +1,4 @@
-CREATE TABLE hive.default.error_aggregates (
+CREATE TABLE hive.default.error_aggregates_v1 (
   channel varchar,
   version varchar,
   build_id varchar,
