@@ -14,6 +14,9 @@ machine:
     version: 6.11.0
   services:
     - docker
+  environment:
+    DEVELOPMENT: 1
+    CI_ENV: bash <(curl -s https://codecov.io/env)
 
 dependencies:
   pre:
@@ -28,7 +31,8 @@ test:
   override:
     # run tests using an upgraded version of docker-compose
     - pip install --upgrade docker-compose
-    - ./bin/test
+    - cp .env-dist .env
+    - docker-compose run -e DEVELOPMENT `$CI_ENV` web test
 
 deployment:
   latest:
