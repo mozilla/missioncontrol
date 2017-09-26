@@ -98,7 +98,7 @@ CACHES = {'default': django_cache_url.config()}
 
 PRESTO_URL = config('PRESTO_URL')
 MISSION_CONTROL_TABLE = config('MISSION_CONTROL_TABLE',
-                               default='telemetry.error_aggregates')
+                               default='telemetry.error_aggregates_v1')
 
 # Internationalization
 # https://docs.djangoproject.com/en/1.9/topics/i18n/
