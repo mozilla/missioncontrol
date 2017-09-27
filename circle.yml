@@ -32,6 +32,10 @@ test:
     # run tests using an upgraded version of docker-compose
     - pip install --upgrade docker-compose
     - cp .env-dist .env
+    # pull any missing images before running, so we can use
+    # --parallel (may not be needed once https://github.com/docker/compose/issues/4556
+    # fixed?)
+    - docker-compose pull --parallel
     - docker-compose run -e DEVELOPMENT `$CI_ENV` web test
 
 deployment:
