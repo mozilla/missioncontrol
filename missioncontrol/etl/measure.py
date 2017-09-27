@@ -5,7 +5,7 @@ from distutils.version import LooseVersion
 from django.core.cache import cache
 
 from missioncontrol.celery import celery
-from missioncontrol.settings import DATA_EXPIRY_INTERVAL
+from missioncontrol.settings import (DATA_EXPIRY_INTERVAL, MISSION_CONTROL_TABLE)
 from .presto import raw_query
 from .schema import (CHANNELS, TELEMETRY_PLATFORM_MAPPING, get_measure_cache_key)
 from .versions import (VersionNotFoundError,
@@ -61,7 +61,7 @@ def update_measure(platform_name, channel_name, measure_name):
 
     query_template = '''
         select window_start, build_id, version, sum({}), sum(usage_hours)
-        from error_aggregates where
+        from %(table)s where
         application=\'Firefox\' and
         version >= %(min_version)s and version <= %(current_version)s and
         build_id > %(min_build_id)s and
@@ -70,6 +70,7 @@ def update_measure(platform_name, channel_name, measure_name):
         window_start > timestamp %(min_timestamp)s
         group by (window_start, build_id, version)'''.format(measure_name).replace('\n', '').strip()
     params = {
+        'table': MISSION_CONTROL_TABLE,
         'min_version': min_version,
         'current_version': current_version,
         'min_build_id': min_buildid_timestamp.strftime('%Y%m%d'),
