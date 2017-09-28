@@ -59,18 +59,17 @@ def update_measure(platform_name, channel_name, measure_name):
     else:
         min_version = str(LooseVersion(versions[channel_name]).version[0] - 1)
 
-    query_template = '''
-        select window_start, build_id, version, sum({}), sum(usage_hours)
-        from %(table)s where
+    query_template = f'''
+        select window_start, build_id, version, sum({measure_name}), sum(usage_hours)
+        from {MISSION_CONTROL_TABLE} where
         application=\'Firefox\' and
         version >= %(min_version)s and version <= %(current_version)s and
         build_id > %(min_build_id)s and
         os_name=%(os_name)s and
         channel=%(channel_name)s and
         window_start > timestamp %(min_timestamp)s
-        group by (window_start, build_id, version)'''.format(measure_name).replace('\n', '').strip()
+        group by (window_start, build_id, version)'''.replace('\n', '').strip()
     params = {
-        'table': MISSION_CONTROL_TABLE,
         'min_version': min_version,
         'current_version': current_version,
         'min_build_id': min_buildid_timestamp.strftime('%Y%m%d'),
