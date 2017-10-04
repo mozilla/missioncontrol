@@ -53,3 +53,7 @@ PLATFORMS = {
 
 def get_measure_cache_key(platform_name, channel_name, measure_name):
     return ':'.join(map(lambda s: s.lower(), [platform_name, channel_name, measure_name]))
+
+
+def get_measure_summary_cache_key(platform_name, channel_name, measure_name):
+    return get_measure_cache_key(platform_name, channel_name, measure_name) + ':summary'

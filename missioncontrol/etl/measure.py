@@ -6,10 +6,14 @@ from django.core.cache import cache
 
 from missioncontrol.celery import celery
 from missioncontrol.settings import (DATA_EXPIRY_INTERVAL, MISSION_CONTROL_TABLE)
+from .measuresummary import get_measure_summary
 from .presto import raw_query
-from .schema import (CHANNELS, TELEMETRY_PLATFORM_MAPPING, get_measure_cache_key)
+from .schema import (CHANNELS,
+                     TELEMETRY_PLATFORM_MAPPING,
+                     get_measure_cache_key,
+                     get_measure_summary_cache_key)
 from .versions import (VersionNotFoundError,
-                       get_firefox_versions,
+                       get_current_firefox_version,
                        get_version_string_from_buildid)
 
 logger = logging.getLogger(__name__)
@@ -52,12 +56,11 @@ def update_measure(platform_name, channel_name, measure_name):
 
     # also place a restriction on version (to avoid fetching data
     # for bogus versions)
-    versions = get_firefox_versions()
-    current_version = versions[channel_name]
+    current_version = get_current_firefox_version(channel_name)
     if channel == 'esr':
-        min_version = str(LooseVersion(versions[channel_name]).version[0] - 7)
+        min_version = str(LooseVersion(current_version).version[0] - 7)
     else:
-        min_version = str(LooseVersion(versions[channel_name]).version[0] - 1)
+        min_version = str(LooseVersion(current_version).version[0] - 1)
 
     query_template = f'''
         select window_start, build_id, version, sum({measure_name}), sum(usage_hours)
@@ -114,3 +117,6 @@ def update_measure(platform_name, channel_name, measure_name):
         build_data['data'].sort(key=lambda d: d[0])
 
     cache.set(cache_key, data, None)
+    cache.set(get_measure_summary_cache_key(platform_name, channel_name, measure_name),
+              get_measure_summary(platform_name, channel_name, measure_name, data),
+              None)
