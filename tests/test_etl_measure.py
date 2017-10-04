@@ -4,30 +4,16 @@ import pytest
 from freezegun import freeze_time
 from django.core.cache import cache
 
-from missioncontrol.etl.schema import get_measure_cache_key
+from missioncontrol.etl.schema import (get_measure_cache_key,
+                                       get_measure_summary_cache_key)
 from missioncontrol.etl.versions import _get_buildhub_url
-
-
-@pytest.fixture
-def prepopulated_version_cache():
-    cache.set('firefox_versions', {
-        'nightly': '56.0a1',
-        'esr': '52.3.0esr',
-        'beta': '55.0b1',
-        'release': '54.0.1'
-    })
-
-
-@pytest.fixture
-def base_datapoint_time():
-    return datetime.datetime.strptime('2017-07-01 12:00:00', '%Y-%m-%d %H:%M:%S')
 
 
 @pytest.fixture
 def mock_raw_query_data(monkeypatch, base_datapoint_time):
     return [
-        [base_datapoint_time, '20170629075044', '55.0a1', 123, 10],
-        [base_datapoint_time - datetime.timedelta(minutes=10), '20170629075044', '55.0a1', 123, 20]
+        [base_datapoint_time, '20170629075044', '55.0a1', 120, 10],
+        [base_datapoint_time - datetime.timedelta(minutes=10), '20170629075044', '55.0a1', 120, 20]
     ]
 
 
@@ -81,7 +67,8 @@ def test_update_measure_with_initial_data(prepopulated_version_cache,
 
 @freeze_time('2017-07-01 13:00')
 def test_update_measure_on_beta(responses, prepopulated_version_cache,
-                                mock_raw_query, mock_raw_query_data):
+                                mock_raw_query, mock_raw_query_data,
+                                base_datapoint_time):
     from missioncontrol.etl.measure import update_measure
     (channel, buildid, expected_version) = ('beta', '20170629075044', '55.0b6')
     responses.add(responses.GET, _get_buildhub_url(channel, buildid),
@@ -92,5 +79,36 @@ def test_update_measure_on_beta(responses, prepopulated_version_cache,
         '20170629075044': {
             'version': expected_version,
             'data': sorted([(d[0], d[3], d[4]) for d in mock_raw_query_data], key=lambda d: d[0])
+        }
+    }
+    assert cache.get(get_measure_summary_cache_key('windows', 'beta', 'main_crashes')) == {
+        'lastUpdated': base_datapoint_time,
+        'latest': {
+            'median': 9000.0,
+            'usageHours': 30,
+            'version': '55.0b6'
+        },
+        'previous': {
+            'median': None,
+            'usageHours': 0,
+            'version': None
+        }
+    }
+
+
+@freeze_time('2017-07-01 13:00')
+def test_get_measure_summary(prepopulated_version_cache, base_datapoint_time, fake_measure_data):
+    from missioncontrol.etl.measuresummary import get_measure_summary
+    assert get_measure_summary('windows', 'beta', 'main_crashes', fake_measure_data) == {
+        'lastUpdated': datetime.datetime(2017, 7, 1, 12, 0),
+        'latest': {
+            'median': 625.0,
+            'usageHours': 56,
+            'version': '55.0b6'
+        },
+        'previous': {
+            'median': 500.0,
+            'usageHours': 56,
+            'version': None
         }
     }

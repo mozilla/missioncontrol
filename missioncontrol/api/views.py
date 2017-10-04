@@ -6,7 +6,10 @@ from django.http import (HttpResponseBadRequest, HttpResponseNotFound, JsonRespo
 from django.core.cache import cache
 
 from missioncontrol.etl.presto import (QueryBuilder, DIMENSION_LIST)
-from missioncontrol.etl.schema import (CHANNELS, PLATFORMS, get_measure_cache_key)
+from missioncontrol.etl.schema import (CHANNELS,
+                                       PLATFORMS,
+                                       get_measure_cache_key,
+                                       get_measure_summary_cache_key)
 
 logger = logging.getLogger(__name__)
 
@@ -29,6 +32,16 @@ def aggregates(request):
     return JsonResponse(data=dict(results=results))
 
 
+def _dt_to_utc(dt):
+    '''
+    adds utc timezone info to each date, so django will serialize a
+    'Z' to the end of the string (and so javascript's date constructor
+    will know it's utc)
+    '''
+    return datetime.datetime.fromtimestamp(dt.timestamp(),
+                                           tz=tzutc())
+
+
 def channel_platform_summary(request):
     platform_filter = [platform.lower() for platform in request.GET.getlist('platform')]
     channel_filter = [channel.lower() for channel in request.GET.getlist('channel')]
@@ -38,10 +51,24 @@ def channel_platform_summary(request):
                                CHANNELS.keys()):
         for (platform_name, platform) in PLATFORMS.items():
             if not platform_filter or platform_name in platform_filter:
+                measures = []
+                measure_name_map = {
+                    get_measure_summary_cache_key(platform_name, channel_name,
+                                                  measure_name): measure_name
+                    for measure_name in platform['measures']
+                }
+                measure_summaries = cache.get_many(measure_name_map.keys())
+                for (measure_summary_cache_key, measure_summary) in measure_summaries.items():
+                    measures.append({
+                        **{'name': measure_name_map[measure_summary_cache_key]},
+                        **measure_summary,
+                        **{'lastUpdated': _dt_to_utc(measure_summary['lastUpdated'])
+                           if measure_summary.get('lastUpdated') else None}
+                    })
                 summaries.append({
                     'channel': channel_name,
                     'platform': platform_name,
-                    'measures': platform['measures']
+                    'measures': measures
                 })
 
     return JsonResponse(data={'summaries': summaries})
@@ -81,11 +108,7 @@ def measure(request):
             datums = filter(lambda d: d[0] >= min_time, datums)
         if max_time:
             datums = filter(lambda d: d[0] <= max_time, datums)
-        # add utc timezone info to each date, so django will serialize a
-        # 'Z' to the end of the string (and so javascript's date constructor
-        # will know it's utc)
-        datums = list(map(lambda d: [datetime.datetime.fromtimestamp(d[0].timestamp(),
-                                                                     tz=tzutc())] +
+        datums = list(map(lambda d: [_dt_to_utc(d[0])] +
                           list(d[1:]), datums))
         if not datums:
             empty_buildids.add(build_id)

@@ -29,6 +29,10 @@ def get_firefox_versions():
     return mapped_versions
 
 
+def get_current_firefox_version(channel_name):
+    return get_firefox_versions()[channel_name]
+
+
 def _get_buildhub_url(channel, buildid):
     return '{base_url}?_limit=1&build.id=%22{buildid}%22&' \
         'target.channel={channel}&source.product=firefox'.format(
