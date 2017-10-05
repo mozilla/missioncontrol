@@ -1,5 +1,6 @@
 import datetime
 import logging
+import re
 from distutils.version import LooseVersion
 
 from django.core.cache import cache
@@ -82,6 +83,7 @@ def update_measure(platform_name, channel_name, measure_name):
     }
     logger.info('Querying: %s', query_template % params)
 
+    beta_versions_processed = set()
     for (window_start, build_id, version, measure_count, usage_hours) in raw_query(query_template,
                                                                                    params):
         # skip datapoints with no measures / usage hours
@@ -96,18 +98,26 @@ def update_measure(platform_name, channel_name, measure_name):
         if buildstamp < window_start - channel['update_interval']:
             continue
         if not data.get(build_id):
-            # if we are on beta, try to get a more precise version (the version
-            # submitted to telemetry does not incorporate the beta number)
-            if channel_name == 'beta':
+            data[build_id] = {'version': version, 'data': []}
+        # if we are on beta, try to get a more precise version if we don't have
+        # it already (the version submitted to telemetry does not incorporate
+        # the beta number)
+        if channel_name == 'beta':
+            if (version not in beta_versions_processed and
+               not re.search('b[0-9]+$', version) and
+               data[build_id]['version'] == version):
                 try:
                     version = get_version_string_from_buildid(channel_name, build_id)
+                    data[build_id]['version'] = version
                 except VersionNotFoundError:
                     # for now let's just warn if we can't find a version (most
                     # likely cause is invalid telemetry data being
-                    # submitted on the beta channel)
+                    # submitted on the beta channel and/or buildhub not being up to
+                    # date)
                     logger.warning("Unable to get version info for %s/%s",
                                    channel_name, build_id)
-            data[build_id] = {'version': version, 'data': []}
+            beta_versions_processed.add(version)
+
         data[build_id]['data'].append((window_start, measure_count, usage_hours))
 
     # (re)sort all data, so we can safely get the "most recent timestamp" from
