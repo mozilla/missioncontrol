@@ -6,11 +6,15 @@ from distutils.version import LooseVersion
 from django.core.cache import cache
 
 from missioncontrol.celery import celery
-from missioncontrol.settings import DATA_EXPIRY_INTERVAL
+from missioncontrol.settings import (DATA_EXPIRY_INTERVAL, MISSION_CONTROL_TABLE)
+from .measuresummary import get_measure_summary
 from .presto import raw_query
-from .schema import (CHANNELS, TELEMETRY_PLATFORM_MAPPING, get_measure_cache_key)
+from .schema import (CHANNELS,
+                     TELEMETRY_PLATFORM_MAPPING,
+                     get_measure_cache_key,
+                     get_measure_summary_cache_key)
 from .versions import (VersionNotFoundError,
-                       get_firefox_versions,
+                       get_current_firefox_version,
                        get_version_string_from_buildid)
 
 logger = logging.getLogger(__name__)
@@ -53,23 +57,22 @@ def update_measure(platform_name, channel_name, measure_name):
 
     # also place a restriction on version (to avoid fetching data
     # for bogus versions)
-    versions = get_firefox_versions()
-    current_version = versions[channel_name]
+    current_version = get_current_firefox_version(channel_name)
     if channel == 'esr':
-        min_version = str(LooseVersion(versions[channel_name]).version[0] - 7)
+        min_version = str(LooseVersion(current_version).version[0] - 7)
     else:
-        min_version = str(LooseVersion(versions[channel_name]).version[0] - 1)
+        min_version = str(LooseVersion(current_version).version[0] - 1)
 
-    query_template = '''
-        select window_start, build_id, version, sum({}), sum(usage_hours)
-        from error_aggregates where
+    query_template = f'''
+        select window_start, build_id, version, sum({measure_name}), sum(usage_hours)
+        from {MISSION_CONTROL_TABLE} where
         application=\'Firefox\' and
         version >= %(min_version)s and version <= %(current_version)s and
         build_id > %(min_build_id)s and
         os_name=%(os_name)s and
         channel=%(channel_name)s and
         window_start > timestamp %(min_timestamp)s
-        group by (window_start, build_id, version)'''.format(measure_name).replace('\n', '').strip()
+        group by (window_start, build_id, version)'''.replace('\n', '').strip()
     params = {
         'min_version': min_version,
         'current_version': current_version,
@@ -124,3 +127,6 @@ def update_measure(platform_name, channel_name, measure_name):
         build_data['data'].sort(key=lambda d: d[0])
 
     cache.set(cache_key, data, None)
+    cache.set(get_measure_summary_cache_key(platform_name, channel_name, measure_name),
+              get_measure_summary(platform_name, channel_name, measure_name, data),
+              None)

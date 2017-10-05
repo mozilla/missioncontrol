@@ -1,3 +1,5 @@
+import moment from 'moment';
+import numeral from 'numeral';
 import React from 'react';
 import { Helmet } from 'react-helmet';
 import { connect } from 'react-redux';
@@ -17,6 +19,13 @@ const mapStateToProps = (state, ownProps) => {
   }
 
   return { measures: [] };
+};
+
+const getFormattedNumber = (num) => {
+  if (num === null || num === undefined) {
+    return 'N/A';
+  }
+  return numeral(num).format('0.00a');
 };
 
 export class SubViewComponent extends React.Component {
@@ -65,18 +74,28 @@ export class SubViewComponent extends React.Component {
                 <thead>
                   <tr>
                     <th>Measure</th>
+                    <th>Latest version</th>
+                    <th>Previous versions (average)</th>
+                    <th>Last updated</th>
                   </tr>
                 </thead>
 
                 {
-                  this.props.measures.map(measureName =>
+                  this.props.measures.map(measure =>
                     (
-                      <tr key={measureName}>
+                      <tr key={measure.name}>
                         <td>
-                          <a href={`#/${this.state.channel}/${this.state.platform}/${measureName}`}>
-                            {measureName}
+                          <a href={`#/${this.state.channel}/${this.state.platform}/${measure.name}`}>
+                            {measure.name}
                           </a>
                         </td>
+                        <td>
+                          <span title={`Version ${measure.latest.version}`}>
+                            {getFormattedNumber(measure.latest.median)}
+                          </span>
+                        </td>
+                        <td>{getFormattedNumber(measure.previous.median)}</td>
+                        <td>{measure.lastUpdated ? moment(measure.lastUpdated).format('ddd MMM D HH:MM') : 'N/A'}</td>
                       </tr>
                     ))
                   }

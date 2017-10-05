@@ -14,22 +14,29 @@ machine:
     version: 6.11.0
   services:
     - docker
+  environment:
+    DEVELOPMENT: 1
+    CI_ENV: bash <(curl -s https://codecov.io/env)
 
 dependencies:
   pre:
     - docker info
     - sudo apt-get update
     - sudo apt-get install python-dev
-    # run tests using an upgraded version of docker-compose
-    - pip install --upgrade docker-compose
   override:
     # build Docker image first to make sure it'll build correctly
     - ./bin/build
 
 test:
   override:
-    # run the tests using our test script
-    - ./bin/test
+    # run tests using an upgraded version of docker-compose
+    - pip install --upgrade docker-compose
+    - cp .env-dist .env
+    # pull any missing images before running, so we can use
+    # --parallel (may not be needed once https://github.com/docker/compose/issues/4556
+    # fixed?)
+    - docker-compose pull --parallel
+    - docker-compose run -e DEVELOPMENT `$CI_ENV` web test
 
 deployment:
   latest:

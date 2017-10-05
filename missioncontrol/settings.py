@@ -98,7 +98,7 @@ CACHES = {'default': django_cache_url.config()}
 
 PRESTO_URL = config('PRESTO_URL')
 MISSION_CONTROL_TABLE = config('MISSION_CONTROL_TABLE',
-                               default='telemetry.error_aggregates')
+                               default='telemetry.error_aggregates_v1')
 
 # Internationalization
 # https://docs.djangoproject.com/en/1.9/topics/i18n/
@@ -314,3 +314,4 @@ FIREFOX_VERSION_CACHE_TIMEOUT = 300
 BUILD_HUB_URL = 'https://kinto-ota.dev.mozaws.net/v1/buckets/build-hub/collections/releases/records'
 
 DATA_EXPIRY_INTERVAL = timedelta(days=30)
+MEASURE_SUMMARY_SAMPLING_INTERVAL = timedelta(days=1)

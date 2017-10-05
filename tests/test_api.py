@@ -6,7 +6,80 @@ from django.core.cache import cache
 from django.core.urlresolvers import reverse
 from freezegun import freeze_time
 
-from missioncontrol.etl.schema import get_measure_cache_key
+from missioncontrol.etl.schema import (get_measure_cache_key,
+                                       get_measure_summary_cache_key)
+
+
+@freeze_time('2017-07-01 13:00')
+def test_get_channel_platform_summary(client, monkeypatch, prepopulated_version_cache,
+                                      fake_measure_data):
+    from missioncontrol.etl.measuresummary import get_measure_summary
+    import missioncontrol.etl.schema
+    monkeypatch.setattr(missioncontrol.etl.schema, 'CHANNELS', {
+        'beta': {},
+        'esr': {}
+    })
+    monkeypatch.setattr(missioncontrol.etl.schema, 'PLATFORMS', {
+        'windows': {'measures': ['main_crashes', 'content_crashes']},
+        'linux': {'measures': []}
+    })
+
+    resp = client.get(reverse('channel-platform-summary'))
+    assert resp.status_code == 200
+    assert resp.json() == {
+        'summaries': [{'channel': channel, 'measures': [], 'platform': platform}
+                      for channel in missioncontrol.etl.schema.CHANNELS
+                      for platform in missioncontrol.etl.schema.PLATFORMS]
+    }
+
+    # add a cached measure summary, verify that something shows up
+    for measure_name in ['main_crashes', 'content_crashes']:
+        cache.set(get_measure_summary_cache_key('windows', 'beta', measure_name),
+                  get_measure_summary('windows', 'beta', measure_name, fake_measure_data),
+                  None)
+    resp = client.get(reverse('channel-platform-summary'))
+    assert resp.status_code == 200
+    assert resp.json() == {
+        'summaries': [
+            {
+                'channel': 'beta',
+                'measures': [
+                    {
+                        'name': 'main_crashes',
+                        'lastUpdated': '2017-07-01T12:00:00Z',
+                        'latest': {
+                            'median': 625.0,
+                            'usageHours': 56,
+                            'version': '55.0b6'
+                        },
+                        'previous': {
+                            'median': 500.0,
+                            'usageHours': 56,
+                            'version': None
+                        },
+                    },
+                    {
+                        'name': 'content_crashes',
+                        'lastUpdated': '2017-07-01T12:00:00Z',
+                        'latest': {
+                            'median': 625.0,
+                            'usageHours': 56,
+                            'version': '55.0b6'
+                        },
+                        'previous': {
+                            'median': 500.0,
+                            'usageHours': 56,
+                            'version': None
+                        }
+                    }
+                ],
+                'platform': 'windows'
+            },
+            {'channel': 'beta', 'measures': [], 'platform': 'linux'},
+            {'channel': 'esr', 'measures': [], 'platform': 'windows'},
+            {'channel': 'esr', 'measures': [], 'platform': 'linux'}
+        ]
+    }
 
 
 @pytest.mark.parametrize('missing_param', ['platform', 'channel', 'measure'])

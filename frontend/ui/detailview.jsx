@@ -1,5 +1,6 @@
 import React from 'react';
 import _ from 'lodash';
+import moment from 'moment';
 import { Button, FormGroup, Input, Label, Modal, ModalBody, ModalHeader, ModalFooter, Row, Col, Container } from 'reactstrap';
 import { Helmet } from 'react-helmet';
 import { connect } from 'react-redux';
@@ -35,9 +36,8 @@ const getValidTimeIntervals = (params) => {
   const timeIntervals = _.clone(TIME_INTERVALS);
   if (params.startTime) {
     const startTimeMs = parseInt(params.startTime * 1000.0, 10);
-    const dateFmt = new Intl.DateTimeFormat();
-    const startDateStr = dateFmt.format(new Date(startTimeMs));
-    const endDateStr = dateFmt.format(new Date(startTimeMs + (params.timeInterval * 1000)));
+    const [startDateStr, endDateStr] = [startTimeMs, startTimeMs + (params.timeInterval * 1000)].map(
+      time => moment(time).format('ddd MMM D'));
     timeIntervals.unshift({
       label: `${startDateStr} → ${endDateStr}`,
       startTime: params.startTime,
