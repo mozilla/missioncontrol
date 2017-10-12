@@ -51,6 +51,10 @@ acorn@^4.0.3, acorn@^4.0.4:
   version "4.0.13"
   resolved "https://registry.yarnpkg.com/acorn/-/acorn-4.0.13.tgz#105495ae5361d697bd195c825192e1ad7f253787"
 
+aggregatejs@^0.0.5:
+  version "0.0.5"
+  resolved "https://registry.yarnpkg.com/aggregatejs/-/aggregatejs-0.0.5.tgz#88d665601ec9c8262d6c39fb65b7a9dbe5b55d3e"
+
 ajv-keywords@^1.0.0, ajv-keywords@^1.1.1:
   version "1.5.1"
   resolved "https://registry.yarnpkg.com/ajv-keywords/-/ajv-keywords-1.5.1.tgz#314dd0a4b3368fad3dfcdc54ede6171b886daf3c"
