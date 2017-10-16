@@ -8,4 +8,13 @@ export const TIME_INTERVALS = [
   { label: 'Last 14 days', interval: 1209600 }
 ];
 
+export const PERCENTILES = [
+  { label: 'All values', value: 100 },
+  { label: '99th percentile', value: 99 },
+  { label: '95th percentile', value: 95 },
+  { label: '75th percentile', value: 75 },
+  { label: '50th percentile', value: 50 }
+];
+
 export const DEFAULT_TIME_INTERVAL = 172800;
+export const DEFAULT_PERCENTILE = 99;

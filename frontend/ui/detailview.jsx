@@ -1,3 +1,4 @@
+import percentile from 'aggregatejs/percentile';
 import React from 'react';
 import _ from 'lodash';
 import moment from 'moment';
@@ -7,7 +8,7 @@ import { connect } from 'react-redux';
 import Loading from './loading.jsx';
 import MeasureGraph from './measuregraph.jsx';
 import SubViewNav from './subviewnav.jsx';
-import { DEFAULT_TIME_INTERVAL, TIME_INTERVALS } from '../schema';
+import { DEFAULT_TIME_INTERVAL, TIME_INTERVALS, DEFAULT_PERCENTILE, PERCENTILES } from '../schema';
 
 const mapStateToProps = (state, ownProps) => {
   const measure = ownProps.match.params.measure;
@@ -17,14 +18,31 @@ const mapStateToProps = (state, ownProps) => {
   return { measureData };
 };
 
-const normalizeSeries = (seriesList, measure) =>
- seriesList.map(series => ({
-   ...series,
-   data: series.data.map(d => ({
-     ...d,
-     [measure]: d[measure] / (d.usage_hours / 1000.0)
-   }))
- }));
+const getTransformedSeriesList = (seriesList, measure, normalized, percentileThreshold) => {
+  let newSeriesList = seriesList;
+
+  if (normalized) {
+    newSeriesList = newSeriesList.map(series => ({
+      ...series,
+      data: series.data.map(d => ({
+        ...d,
+        [measure]: d[measure] / (d.usage_hours / 1000.0)
+      }))
+    }));
+  }
+  if (percentileThreshold < 100) {
+    newSeriesList = newSeriesList.map((series) => {
+      const threshold = percentile(series.data.map(d => d[measure]),
+                                   percentileThreshold / 100.0);
+      return {
+        ...series,
+        data: series.data.filter(d => d[measure] < threshold)
+      };
+    });
+  }
+
+  return newSeriesList;
+};
 
 const getDateString = (date) => {
   // input could be either a javascript date object or undefined
@@ -52,8 +70,8 @@ const getOptionalParameters = (props) => {
   const urlParams = new URLSearchParams(props.location.search);
 
   // time interval can either be specified as an interval (starting from the present) or a set of dates
-  let timeInterval = urlParams.get('timeInterval') ? urlParams.get('timeInterval') : DEFAULT_TIME_INTERVAL;
-  timeInterval = parseInt(timeInterval, 10);
+  const timeInterval = parseInt(
+    urlParams.get('timeInterval') ? urlParams.get('timeInterval') : DEFAULT_TIME_INTERVAL, 10);
 
   let startTime = urlParams.get('startTime');
   let customStartDate;
@@ -63,6 +81,10 @@ const getOptionalParameters = (props) => {
     customStartDate = new Date(startTime * 1000);
     customEndDate = new Date((startTime + timeInterval) * 1000);
   }
+
+  // percentile filter of data
+  const percentileThreshold = parseInt(
+    urlParams.get('percentile') ? urlParams.get('percentile') : DEFAULT_PERCENTILE, 10);
 
   // coerce normalized into a boolean, true if not specified
   let normalized = true;
@@ -83,6 +105,7 @@ const getOptionalParameters = (props) => {
     timeInterval,
     normalized,
     disabledBuildIds,
+    percentile: percentileThreshold,
     validTimeIntervals: getValidTimeIntervals({
       startTime,
       timeInterval
@@ -110,6 +133,7 @@ class DetailViewComponent extends React.Component {
     this.customStartDateChanged = this.customStartDateChanged.bind(this);
     this.customEndDateChanged = this.customEndDateChanged.bind(this);
     this.isCustomTimeIntervalValid = this.isCustomTimeIntervalValid.bind(this);
+    this.percentileChanged = this.percentileChanged.bind(this);
     this.normalizeCheckboxChanged = this.normalizeCheckboxChanged.bind(this);
     this.versionCheckboxChanged = this.versionCheckboxChanged.bind(this);
   }
@@ -205,7 +229,7 @@ class DetailViewComponent extends React.Component {
     this.setState(newParams, cb);
 
     // generate a new url string, so we can link to this particular view
-    const params = ['timeInterval', 'normalized', 'disabledBuildIds'];
+    const params = ['timeInterval', 'percentile', 'normalized', 'disabledBuildIds'];
     if (newParams.startTime) {
       // only want to put startTime in url string if it's defined
       params.push('startTime');
@@ -282,6 +306,18 @@ class DetailViewComponent extends React.Component {
   isCustomTimeIntervalValid() {
     return (this.state.customStartDate && this.state.customEndDate &&
             this.state.customStartDate < this.state.customEndDate);
+  }
+
+  percentileChanged(ev) {
+    const index = parseInt(ev.target.value, 10);
+    const chosenPercentile = PERCENTILES[index];
+    this.navigate({
+      percentile: chosenPercentile.value
+    }, () => {
+      this.setState({
+        seriesList: this.getSeriesList()
+      });
+    });
   }
 
   normalizeCheckboxChanged(ev) {
@@ -394,6 +430,24 @@ class DetailViewComponent extends React.Component {
                       onClick={this.customTimeIntervalChosen}>Ok</Button>
                   </ModalFooter>
                 </Modal>
+                <select
+                  value={
+                    PERCENTILES.findIndex(p => p.value === this.state.percentile)
+                  }
+                  onChange={this.percentileChanged}
+                  className="mb-2 mr-sm-2 mb-sm-0">
+                  {
+                    PERCENTILES.map(
+                      (p, index) => (
+                        <option
+                          key={`PERCENTILE-${p.value}`}
+                          value={index} >
+                          {p.label}
+                        </option>
+                      )
+                    )
+                  }
+                </select>
                 <FormGroup
                   check
                   title="Normalize measure by number of usage hours">
@@ -428,9 +482,10 @@ class DetailViewComponent extends React.Component {
                             <MeasureGraph
                               title={`${this.props.match.params.measure} ${(this.state.normalized) ? 'per 1k hours' : ''}`}
                               seriesList={
-                                (this.state.normalized) ?
-                                normalizeSeries(this.state.seriesList, this.props.match.params.measure) :
-                                this.state.seriesList
+                                getTransformedSeriesList(this.state.seriesList,
+                                                         this.props.match.params.measure,
+                                                         this.state.normalized,
+                                                         this.state.percentile)
                               }
                               y={`${this.props.match.params.measure}`}
                               linked={true}
