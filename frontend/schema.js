@@ -18,3 +18,4 @@ export const PERCENTILES = [
 
 export const DEFAULT_TIME_INTERVAL = 172800;
 export const DEFAULT_PERCENTILE = 99;
+export const DEFAULT_VERSION_GROUPING_TYPE = 'version';

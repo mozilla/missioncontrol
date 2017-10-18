@@ -8,7 +8,7 @@ import { connect } from 'react-redux';
 import Loading from './loading.jsx';
 import MeasureGraph from './measuregraph.jsx';
 import SubViewNav from './subviewnav.jsx';
-import { DEFAULT_TIME_INTERVAL, TIME_INTERVALS, DEFAULT_PERCENTILE, PERCENTILES } from '../schema';
+import { DEFAULT_TIME_INTERVAL, TIME_INTERVALS, DEFAULT_PERCENTILE, PERCENTILES, DEFAULT_VERSION_GROUPING_TYPE } from '../schema';
 
 const mapStateToProps = (state, ownProps) => {
   const measure = ownProps.match.params.measure;
@@ -82,6 +82,9 @@ const getOptionalParameters = (props) => {
     customEndDate = new Date((startTime + timeInterval) * 1000);
   }
 
+  // grouping can be either by build id or by version
+  const versionGrouping = urlParams.get('versionGrouping') ? urlParams.get('versionGrouping') : DEFAULT_VERSION_GROUPING_TYPE;
+
   // percentile filter of data
   const percentileThreshold = parseInt(
     urlParams.get('percentile') ? urlParams.get('percentile') : DEFAULT_PERCENTILE, 10);
@@ -92,10 +95,10 @@ const getOptionalParameters = (props) => {
     normalized = (parseInt(urlParams.get('normalized'), 10));
   }
 
-  // disabledBuildIds is a comma-seperated list
-  let disabledBuildIds = new Set();
-  if (urlParams.get('disabledBuildIds')) {
-    disabledBuildIds = new Set(urlParams.get('disabledBuildIds').split(','));
+  // disabledVersions is a comma-seperated list
+  let disabledVersions = new Set();
+  if (urlParams.get('disabledVersions')) {
+    disabledVersions = new Set(urlParams.get('disabledVersions').split(','));
   }
 
   return {
@@ -104,7 +107,8 @@ const getOptionalParameters = (props) => {
     customEndDate,
     timeInterval,
     normalized,
-    disabledBuildIds,
+    disabledVersions,
+    versionGrouping,
     percentile: percentileThreshold,
     validTimeIntervals: getValidTimeIntervals({
       startTime,
@@ -122,7 +126,7 @@ class DetailViewComponent extends React.Component {
       measure: props.match.params.measure,
       isLoading: true,
       fetchMeasureData: this.props.fetchMeasureData,
-      disabledBuildIds: new Set(),
+      disabledVersions: new Set(),
       seriesList: [],
       ...getOptionalParameters(props)
     };
@@ -136,6 +140,7 @@ class DetailViewComponent extends React.Component {
     this.percentileChanged = this.percentileChanged.bind(this);
     this.normalizeCheckboxChanged = this.normalizeCheckboxChanged.bind(this);
     this.versionCheckboxChanged = this.versionCheckboxChanged.bind(this);
+    this.toggleVersionGrouping = this.toggleVersionGrouping.bind(this);
   }
 
   componentDidMount() {
@@ -161,32 +166,50 @@ class DetailViewComponent extends React.Component {
     const measure = this.props.match.params.measure;
 
     const seriesMap = {};
-    _.forEach(this.props.measureData, (build, buildId) => {
-      if (this.state.disabledBuildIds.has(buildId)) {
-        return;
-      }
-      if (!seriesMap[build.version]) {
-        seriesMap[build.version] = {};
-      }
-      build.data.forEach((datum) => {
-        const date = datum[0];
-        if (!seriesMap[build.version][date]) {
-          seriesMap[build.version][date] = {
-            [measure]: 0,
-            usage_hours: 0,
+    if (this.state.versionGrouping === 'version') {
+      _.forEach(this.props.measureData, (build) => {
+        if (this.state.disabledVersions.has(build.version)) {
+          return;
+        }
+        if (!seriesMap[build.version]) {
+          seriesMap[build.version] = {};
+        }
+        build.data.forEach((datum) => {
+          const date = datum[0];
+          if (!seriesMap[build.version][date]) {
+            seriesMap[build.version][date] = {
+              [measure]: 0,
+              usage_hours: 0,
+              date: new Date(date)
+            };
+          }
+
+          seriesMap[build.version][date][measure] += datum[1];
+          seriesMap[build.version][date].usage_hours += datum[2];
+        });
+      });
+    } else {
+      // group by build id
+      _.forEach(this.props.measureData, (build, buildId) => {
+        if (this.state.disabledVersions.has(buildId)) {
+          return;
+        }
+        seriesMap[buildId] = {};
+        build.data.forEach((datum) => {
+          const date = datum[0];
+          seriesMap[buildId][date] = {
+            [measure]: datum[1],
+            usage_hours: datum[2],
             date: new Date(date)
           };
-        }
-
-        seriesMap[build.version][date][measure] += datum[1];
-        seriesMap[build.version][date].usage_hours += datum[2];
+        });
       });
-    });
+    }
 
     // if we have <= 3 series, just return all verbatim
     if (Object.keys(seriesMap).length <= 3) {
-      return _.map(seriesMap, (data, version) => ({
-        name: version,
+      return _.map(seriesMap, (data, name) => ({
+        name,
         data: _.values(data)
       }));
     }
@@ -202,7 +225,7 @@ class DetailViewComponent extends React.Component {
     }
 
     const aggregated = _.reduce(
-      _.filter(seriesMap, (series, version) => _.indexOf(mostRecent, version) === (-1)),
+      _.filter(seriesMap, (series, name) => _.indexOf(mostRecent, name) === (-1)),
       (result, series) => {
         const newResult = _.clone(result);
         _.values(series).forEach((datum) => {
@@ -229,11 +252,12 @@ class DetailViewComponent extends React.Component {
     this.setState(newParams, cb);
 
     // generate a new url string, so we can link to this particular view
-    const params = ['timeInterval', 'percentile', 'normalized', 'disabledBuildIds'];
+    const params = ['timeInterval', 'percentile', 'normalized', 'disabledVersions', 'versionGrouping'];
     if (newParams.startTime) {
       // only want to put startTime in url string if it's defined
       params.push('startTime');
     }
+
     const paramStr = params.map((paramName) => {
       let value = (!_.isUndefined(newParams[paramName])) ? newParams[paramName] : this.state[paramName];
       if (typeof (value) === 'boolean') {
@@ -333,21 +357,54 @@ class DetailViewComponent extends React.Component {
   versionCheckboxChanged(ev) {
     const buildId = ev.target.name;
     const disabled = !ev.target.checked;
-    const disabledBuildIds = new Set(this.state.disabledBuildIds);
+    const disabledVersions = new Set(this.state.disabledVersions);
 
     if (disabled) {
-      disabledBuildIds.add(buildId);
+      disabledVersions.add(buildId);
     } else {
-      disabledBuildIds.delete(buildId);
+      disabledVersions.delete(buildId);
     }
 
     this.navigate({
-      disabledBuildIds
+      disabledVersions
     }, () => {
       this.setState({
         seriesList: this.getSeriesList()
       });
     });
+  }
+
+  toggleVersionGrouping() {
+    this.navigate({
+      versionGrouping: (this.state.versionGrouping === 'version') ? 'buildid' : 'version',
+      disabledVersions: new Set()
+    }, () => {
+      this.setState({
+        seriesList: this.getSeriesList()
+      });
+    });
+  }
+
+  getLegend() {
+    if (this.state.versionGrouping === 'buildid') {
+      return _.map(this.props.measureData, (data, buildId) => ({
+        title: buildId,
+        subtitles: [data.version]
+      }));
+    }
+
+    // otherwise, group all buildids with same version together
+    const versionMap = {};
+    _.forEach(this.props.measureData, (build, buildId) => {
+      if (!versionMap[build.version]) {
+        versionMap[build.version] = [];
+      }
+      versionMap[build.version].push(buildId);
+    });
+    return Object.keys(versionMap).map(version => ({
+      title: version,
+      subtitles: versionMap[version]
+    }));
   }
 
   render() {
@@ -511,26 +568,40 @@ class DetailViewComponent extends React.Component {
                   </Col>
                   <Col xs="2">
                     <FormGroup tag="fieldset">
-                      <legend>Versions</legend>
+                      <legend>
+                        {
+                          this.state.versionGrouping === 'version' ? 'Version' : 'buildid'
+                        }
+                      </legend>
                       {
                         this.props.measureData &&
-                        _.map(this.props.measureData, (data, buildId) => ({
-                          buildId,
-                          version: data.version
-                        })).sort((a, b) => a.buildId < b.buildId).map(version => (
-                          <Label key={version.buildId} check>
-                            <Input
-                              name={version.buildId}
-                              type="checkbox"
-                              checked={!this.state.disabledBuildIds.has(version.buildId)}
-                              onChange={this.versionCheckboxChanged} />
-                            {' '}
-                            {version.version}
-                            <br />
-                            <small>{version.buildId}</small>
-                          </Label>))
+                        this.getLegend().sort((a, b) => a.title < b.title).map(
+                          item => (
+                            <Label key={item.title} check>
+                              <Input
+                                name={item.title}
+                                type="checkbox"
+                                checked={!this.state.disabledVersions.has(item.title)}
+                                onChange={this.versionCheckboxChanged} />
+                              {' '}
+                              {item.title}
+                              <small>
+                                <ul className="list-unstyled">
+                                  {
+                                    item.subtitles.map(subtitle => (
+                                      <dd key={`buildid-${subtitle}`}>
+                                        {subtitle}
+                                      </dd>
+                                    ))
+                                  }
+                                </ul>
+                              </small>
+                            </Label>))
                       }
                     </FormGroup>
+                    <Button color="link" size="sm" onClick={this.toggleVersionGrouping}>
+                      {`Group by ${this.state.versionGrouping === 'version' ? 'buildid' : 'version'} instead`}
+                    </Button>
                   </Col>
                 </Row>
               </div>
