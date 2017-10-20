@@ -9,7 +9,7 @@ Backend service powering the Mission Control dashboard
 Instructions for development (UI only)
 --------------------------------------
 
-If you only want to hack on the UI, you can bring up a version of the UI which
+If you only want to hack on the UI, you can set up a local-only of missioncontrol which
 pulls data from the current production server. You only need to have
 [yarn](https://yarnpkg.com/) installed.
 
