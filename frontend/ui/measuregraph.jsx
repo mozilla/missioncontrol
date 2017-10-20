@@ -1,3 +1,4 @@
+import _ from 'lodash';
 import React from 'react';
 import Dimensions from 'react-dimensions';
 import { curveLinear } from 'd3';
@@ -25,7 +26,8 @@ class MeasureGraph extends React.Component {
         linked={this.props.linked}
         linked_format={this.props.linked_format}
         aggregate_rollover={true}
-        right={120} />);
+        right={Math.min(120, 40 + (5 * this.props.seriesList.length ?
+                                   _.max(this.props.seriesList.map(s => s.name.length)) : 0))} />);
   }
 }
 
