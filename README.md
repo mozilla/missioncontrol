@@ -6,9 +6,24 @@ missioncontrol api services
 
 Backend service powering the Mission Control dashboard
 
+Instructions for development (UI only)
+--------------------------------------
 
-Instructions for development
-----------------------------
+If you only want to hack on the UI, you can bring up a version of the UI which
+pulls data from the current production server. You only need to have
+[yarn](https://yarnpkg.com/) installed.
+
+Run:
+
+```bash
+yarn install
+yarn start
+```
+
+This should start up a webserver at http://localhost:5000 which you can connect to.
+
+Instructions for development (full stack)
+-----------------------------------------
 
 Make sure you have [docker](https://docker.io), [docker-compose](https://github.com/docker/compose), and [yarn](https://yarnpkg.com/) installed.
 
