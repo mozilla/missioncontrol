@@ -90,7 +90,7 @@ def update_measure(platform_name, channel_name, measure_name):
 
         try:
             buildstamp = datetime.datetime.strptime(build_id, '%Y%m%d%H%M%S')
-        except:
+        except ValueError:
             logger.error('build id %s not valid', build_id)
             continue
         if buildstamp < window_start - channel['update_interval']:
