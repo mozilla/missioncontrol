@@ -567,7 +567,7 @@ class DetailViewComponent extends React.Component {
                       <Row>
                         <Col>
                           <div className="text-center">
-                            {`All times relative to: ${(new Intl.DateTimeFormat()).resolvedOptions().timeZone}`}
+                            {`Using timezone: ${(new Intl.DateTimeFormat()).resolvedOptions().timeZone}`}
                           </div>
                         </Col>
                       </Row>
