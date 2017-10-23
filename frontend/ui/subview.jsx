@@ -95,7 +95,7 @@ export class SubViewComponent extends React.Component {
                           </span>
                         </td>
                         <td>{getFormattedNumber(measure.previous.median)}</td>
-                        <td>{measure.lastUpdated ? moment(measure.lastUpdated).format('ddd MMM D HH:MM') : 'N/A'}</td>
+                        <td>{measure.lastUpdated ? moment(measure.lastUpdated).fromNow() : 'N/A'}</td>
                       </tr>
                     ))
                   }
