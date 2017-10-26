@@ -60,3 +60,19 @@ html, body, #root {
     box-shadow: 0 1px 4px 0 rgba(0,0,0,0.37);
     transition: box-shadow 0.28s cubic-bezier(0.4,0,0.2,1);
 }
+
+.buildid-list {
+  padding-left: 18px;
+}
+
+.buildid-list dd {
+  margin-bottom: 0px;
+}
+
+.buildid-link {
+  cursor: pointer;
+}
+
+.buildid-link:hover {
+  color: #0056b3;
+}
