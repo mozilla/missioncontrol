@@ -407,6 +407,15 @@ class DetailViewComponent extends React.Component {
     }));
   }
 
+  buildIdClicked(buildId) {
+    const baseTime = moment.utc(buildId, 'YYYYMMDDHHmmss');
+    this.setState({
+      choosingCustomTimeInterval: true,
+      customStartDate: baseTime,
+      customEndDate: moment(baseTime).add(2, 'days')
+    });
+  }
+
   render() {
     return (
       <div className="body-container">
@@ -584,26 +593,40 @@ class DetailViewComponent extends React.Component {
                         this.props.measureData &&
                         this.getLegend().sort((a, b) => a.title < b.title).map(
                           item => (
-                            <Label key={item.title} check>
-                              <Input
-                                name={item.title}
-                                type="checkbox"
-                                checked={!this.state.disabledVersions.has(item.title)}
-                                onChange={this.versionCheckboxChanged} />
-                              {' '}
-                              {item.title}
+                            <div key={item.title}>
+                              <Label check>
+                                <Input
+                                  name={item.title}
+                                  type="checkbox"
+                                  checked={!this.state.disabledVersions.has(item.title)}
+                                  onChange={this.versionCheckboxChanged} />
+                                {' '}
+                                {item.title}
+                              </Label>
                               <small>
-                                <ul className="list-unstyled">
-                                  {
-                                    item.subtitles.map(subtitle => (
-                                      <dd key={`buildid-${subtitle}`}>
-                                        {subtitle}
-                                      </dd>
-                                    ))
-                                  }
-                                </ul>
+                                {
+                                  (this.state.versionGrouping === 'version') ? (
+                                    <ul className="buildid-list">
+                                      {
+                                        item.subtitles.sort((a, b) => a < b).map(buildId => (
+                                          <dd
+                                            name={buildId}
+                                            className="buildid-link"
+                                            onClick={() => this.buildIdClicked(buildId)}
+                                            key={`buildid-${buildId}`}>
+                                            {buildId}
+                                          </dd>
+                                        ))
+                                      }
+                                    </ul>
+                                  ) : (
+                                    <p>
+                                      {item.subtitles[0]}
+                                    </p>
+                                  )
+                                }
                               </small>
-                            </Label>))
+                            </div>))
                       }
                     </FormGroup>
                     <Button color="link" size="sm" onClick={this.toggleVersionGrouping}>
