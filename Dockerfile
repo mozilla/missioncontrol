@@ -5,7 +5,17 @@ EXPOSE 8000
 
 RUN useradd --uid 1000 --no-create-home --home-dir /app webdev
 
-RUN apt-get update && \
+
+RUN mkdir -p \
+        /usr/share/man/man1 \
+        /usr/share/man/man2 \
+        /usr/share/man/man3 \
+        /usr/share/man/man4 \
+        /usr/share/man/man5 \
+        /usr/share/man/man6 \
+        /usr/share/man/man7 \
+        /usr/share/man/man8 && \
+    apt-get update && \
     apt-get install -y --no-install-recommends build-essential libpq-dev \
       mime-support postgresql-client gettext curl && \
       apt-get autoremove -y && \
