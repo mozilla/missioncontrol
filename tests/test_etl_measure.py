@@ -12,8 +12,9 @@ from missioncontrol.etl.versions import _get_buildhub_url
 @pytest.fixture
 def mock_raw_query_data(monkeypatch, base_datapoint_time):
     return [
-        [base_datapoint_time, '20170629075044', '55.0a1', 120, 10],
-        [base_datapoint_time - datetime.timedelta(minutes=10), '20170629075044', '55.0a1', 120, 20]
+        [base_datapoint_time, '20170629075044', '55.0a1', 120, 10, 120],
+        [base_datapoint_time - datetime.timedelta(minutes=10), '20170629075044', '55.0a1',
+         120, 20, 120]
     ]
 
 
