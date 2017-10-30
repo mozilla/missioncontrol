@@ -314,4 +314,5 @@ FIREFOX_VERSION_CACHE_TIMEOUT = 300
 BUILD_HUB_URL = 'https://kinto-ota.dev.mozaws.net/v1/buckets/build-hub/collections/releases/records'
 
 DATA_EXPIRY_INTERVAL = timedelta(days=30)
+MIN_CLIENT_COUNT = 100  # minimum number of client submissions for aggregate to be used
 MEASURE_SUMMARY_SAMPLING_INTERVAL = timedelta(days=1)

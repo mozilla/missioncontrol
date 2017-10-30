@@ -5,7 +5,9 @@ from distutils.version import LooseVersion
 from django.core.cache import cache
 
 from missioncontrol.celery import celery
-from missioncontrol.settings import (DATA_EXPIRY_INTERVAL, MISSION_CONTROL_TABLE)
+from missioncontrol.settings import (DATA_EXPIRY_INTERVAL,
+                                     MIN_CLIENT_COUNT,
+                                     MISSION_CONTROL_TABLE)
 from .measuresummary import get_measure_summary
 from .presto import raw_query
 from .schema import (CHANNELS,
@@ -63,7 +65,8 @@ def update_measure(platform_name, channel_name, measure_name):
         min_version = str(LooseVersion(current_version).version[0] - 1)
 
     query_template = f'''
-        select window_start, build_id, version, sum({measure_name}), sum(usage_hours)
+        select window_start, build_id, version, sum({measure_name}),
+        sum(usage_hours), sum(count) as client_count
         from {MISSION_CONTROL_TABLE} where
         application=\'Firefox\' and
         version >= %(min_version)s and version <= %(current_version)s and
@@ -71,19 +74,21 @@ def update_measure(platform_name, channel_name, measure_name):
         os_name=%(os_name)s and
         channel=%(channel_name)s and
         window_start > timestamp %(min_timestamp)s
-        group by (window_start, build_id, version)'''.replace('\n', '').strip()
+        group by (window_start, build_id, version)
+        having sum(count) > %(min_client_count)s'''.replace('\n', '').strip()
     params = {
         'min_version': min_version,
         'current_version': current_version,
         'min_build_id': min_buildid_timestamp.strftime('%Y%m%d'),
         'os_name': TELEMETRY_PLATFORM_MAPPING[platform_name],
         'channel_name': channel_name,
+        'min_client_count': MIN_CLIENT_COUNT,
         'min_timestamp': min_timestamp.strftime("%Y-%m-%d %H:%M:%S")
     }
     logger.info('Querying: %s', query_template % params)
 
-    for (window_start, build_id, version, measure_count, usage_hours) in raw_query(query_template,
-                                                                                   params):
+    for (window_start, build_id, version, measure_count, usage_hours,
+         client_count) in raw_query(query_template, params):
         # skip datapoints with no measures / usage hours
         if not measure_count or not usage_hours:
             continue
