@@ -57,6 +57,21 @@ load_measure_data subcommand. E.g.:
 ./manage.py load_measure_data linux release main_crashes
 ```
 
+To run the tests locally is via the shell environment. After running
+`make shell`, execute:
+
+```bash
+tox
+```
+
+By default all tests and linters are run. Often you just want to run a subset
+of the python tests. You can do this by adding some arguments to your tox
+invocation:
+
+```bash
+tox -e tests -- -k tests/test_api.py  # run only tests in test_api.py
+```
+
 Instructions for deployment
 ---------------------------
 
