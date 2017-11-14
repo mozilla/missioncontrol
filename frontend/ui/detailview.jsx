@@ -11,7 +11,7 @@ import SubViewNav from './subviewnav.jsx';
 import { DEFAULT_TIME_INTERVAL, TIME_INTERVALS, DEFAULT_PERCENTILE, PERCENTILES, DEFAULT_VERSION_GROUPING_TYPE } from '../schema';
 
 const mapStateToProps = (state, ownProps) => {
-  const measure = ownProps.match.params.measure;
+  const { measure } = ownProps.match.params;
   const cacheKey = `${ownProps.match.params.platform}-${ownProps.match.params.channel}-${measure}`;
   const measureData = state.measures[cacheKey];
 
@@ -32,8 +32,10 @@ const getTransformedSeriesList = (seriesList, measure, normalized, percentileThr
   }
   if (percentileThreshold < 100) {
     newSeriesList = newSeriesList.map((series) => {
-      const threshold = percentile(series.data.map(d => d[measure]),
-                                   percentileThreshold / 100.0);
+      const threshold = percentile(
+        series.data.map(d => d[measure]),
+        percentileThreshold / 100.0
+      );
       return {
         ...series,
         data: series.data.filter(d => d[measure] < threshold)
@@ -54,8 +56,8 @@ const getValidTimeIntervals = (params) => {
   const timeIntervals = _.clone(TIME_INTERVALS);
   if (params.startTime) {
     const startTimeMs = parseInt(params.startTime * 1000.0, 10);
-    const [startDateStr, endDateStr] = [startTimeMs, startTimeMs + (params.timeInterval * 1000)].map(
-      time => moment(time).format('ddd MMM D'));
+    const [startDateStr, endDateStr] = [startTimeMs, startTimeMs + (params.timeInterval * 1000)]
+      .map(time => moment(time).format('ddd MMM D'));
     timeIntervals.unshift({
       label: `${startDateStr} → ${endDateStr}`,
       startTime: params.startTime,
@@ -70,8 +72,8 @@ const getOptionalParameters = (props) => {
   const urlParams = new URLSearchParams(props.location.search);
 
   // time interval can either be specified as an interval (starting from the present) or a set of dates
-  const timeInterval = parseInt(
-    urlParams.get('timeInterval') ? urlParams.get('timeInterval') : DEFAULT_TIME_INTERVAL, 10);
+  const timeInterval = parseInt(urlParams.get('timeInterval') ?
+    urlParams.get('timeInterval') : DEFAULT_TIME_INTERVAL, 10);
 
   let startTime = urlParams.get('startTime');
   let customStartDate;
@@ -86,8 +88,8 @@ const getOptionalParameters = (props) => {
   const versionGrouping = urlParams.get('versionGrouping') ? urlParams.get('versionGrouping') : DEFAULT_VERSION_GROUPING_TYPE;
 
   // percentile filter of data
-  const percentileThreshold = parseInt(
-    urlParams.get('percentile') ? urlParams.get('percentile') : DEFAULT_PERCENTILE, 10);
+  const percentileThreshold = parseInt(urlParams.get('percentile') ?
+    urlParams.get('percentile') : DEFAULT_PERCENTILE, 10);
 
   // coerce normalized into a boolean, true if not specified
   let normalized = true;
@@ -163,7 +165,7 @@ class DetailViewComponent extends React.Component {
   }
 
   getSeriesList() {
-    const measure = this.props.match.params.measure;
+    const { measure } = this.props.match.params;
 
     const seriesMap = {};
     if (this.state.versionGrouping === 'version') {
@@ -240,7 +242,8 @@ class DetailViewComponent extends React.Component {
           }
         });
         return newResult;
-      }, {});
+      }, {}
+    );
 
     return _.concat(mostRecent.map(version => ({
       name: version,
@@ -427,13 +430,15 @@ class DetailViewComponent extends React.Component {
 
         <SubViewNav
           className="header-element"
-          breadcrumbs={[
-            { name: 'Home', link: '/' },
-            { name: `${this.state.platform} ${this.state.channel}`,
-              link: `/${this.state.channel}/${this.state.platform}` },
-            { name: this.state.measure,
-              link: `/${this.state.channel}/${this.state.platform}/${this.state.measure}` }
-          ]} />
+          breadcrumbs={[{
+            name: 'Home', link: '/'
+          }, {
+            name: `${this.state.platform} ${this.state.channel}`,
+            link: `/${this.state.channel}/${this.state.platform}`
+          }, {
+            name: this.state.measure,
+            link: `/${this.state.channel}/${this.state.platform}/${this.state.measure}`
+          }]} />
         <div className="body-element">
           <div className="container center">
             <Row>
@@ -449,15 +454,14 @@ class DetailViewComponent extends React.Component {
                   onChange={this.timeIntervalChanged}
                   className="mb-2 mr-sm-2 mb-sm-0">
                   {
-                    this.state.validTimeIntervals.map(
-                      (timeInterval, index) => (
+                    this.state.validTimeIntervals
+                      .map((timeInterval, index) => (
                         <option
                           key={`${timeInterval.startTime || ''}-${timeInterval.interval}`}
                           value={index} >
                           {timeInterval.label}
                         </option>
-                      )
-                    )
+                      ))
                   }
                   <option value="-1">Custom...</option>
                 </select>
@@ -503,15 +507,14 @@ class DetailViewComponent extends React.Component {
                   onChange={this.percentileChanged}
                   className="mb-2 mr-sm-2 mb-sm-0">
                   {
-                    PERCENTILES.map(
-                      (p, index) => (
-                        <option
-                          key={`PERCENTILE-${p.value}`}
-                          value={index} >
-                          {p.label}
-                        </option>
-                      )
-                    )
+                    PERCENTILES
+                    .map((p, index) => (
+                      <option
+                        key={`PERCENTILE-${p.value}`}
+                        value={index} >
+                        {p.label}
+                      </option>
+                    ))
                   }
                 </select>
                 <FormGroup
@@ -547,12 +550,12 @@ class DetailViewComponent extends React.Component {
                             id="measure-series">
                             <MeasureGraph
                               title={`${this.props.match.params.measure} ${(this.state.normalized) ? 'per 1k hours' : ''}`}
-                              seriesList={
-                                getTransformedSeriesList(this.state.seriesList,
-                                                         this.props.match.params.measure,
-                                                         this.state.normalized,
-                                                         this.state.percentile)
-                              }
+                              seriesList={getTransformedSeriesList(
+                                  this.state.seriesList,
+                                  this.props.match.params.measure,
+                                  this.state.normalized,
+                                  this.state.percentile
+                                )}
                               y={`${this.props.match.params.measure}`}
                               linked={true}
                               linked_format="%Y-%m-%d-%H-%M-%S" />
@@ -591,8 +594,8 @@ class DetailViewComponent extends React.Component {
                       </legend>
                       {
                         this.props.measureData &&
-                        this.getLegend().sort((a, b) => a.title < b.title).map(
-                          item => (
+                        this.getLegend().sort((a, b) => a.title < b.title)
+                          .map(item => (
                             <div key={item.title}>
                               <Label check>
                                 <Input
