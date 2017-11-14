@@ -58,7 +58,7 @@ export class SubViewComponent extends React.Component {
           breadcrumbs={[
             { name: 'Home', link: '/' },
             {
- name: `${this.state.platform} ${this.state.channel}`,
+              name: `${this.state.platform} ${this.state.channel}`,
               link: `/${this.state.channel}/${this.state.platform}`
 }
           ]} />
