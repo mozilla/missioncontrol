@@ -19,3 +19,24 @@ export const PERCENTILES = [
 export const DEFAULT_TIME_INTERVAL = 172800;
 export const DEFAULT_PERCENTILE = 99;
 export const DEFAULT_VERSION_GROUPING_TYPE = 'version';
+
+export const CRASH_STATS_MAPPING = {
+  content_crashes: {
+    processType: 'content'
+  },
+  gmplugin_crashes: {
+    processType: 'plugin'
+  },
+  main_crashes: {
+    processType: 'browser'
+  },
+  plugin_crashes: {
+    processType: 'plugin'
+  },
+  content_shutdown_crashes: {
+    processType: 'content',
+    extraParams: {
+      ipc_channel_error: 'ShutDownKill'
+    }
+  }
+};
