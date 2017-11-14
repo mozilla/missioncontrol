@@ -44,14 +44,14 @@ export default class Dashboard extends React.Component {
                 exact
                 path="/"
                 component={MainView}
-                fetchChannelPlatformSummaryData={params => this.state.store.dispatch(
-                  fetchChannelPlatformSummaryData(params))} />
+                fetchChannelPlatformSummaryData={params =>
+                  this.state.store.dispatch(fetchChannelPlatformSummaryData(params))} />
               <PropsRoute
                 exact
                 path="/:channel/:platform"
                 component={SubView}
-                fetchChannelPlatformSummaryData={params => this.state.store.dispatch(
-                  fetchChannelPlatformSummaryData(params))} />
+                fetchChannelPlatformSummaryData={params =>
+                  this.state.store.dispatch(fetchChannelPlatformSummaryData(params))} />
               <PropsRoute
                 exact
                 name="measureDetail"

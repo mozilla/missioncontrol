@@ -12,7 +12,9 @@ import './global.css';
 
 const loggerMiddleware = createLogger();
 
-const store = createStore(rootReducer,
-                          applyMiddleware(thunkMiddleware, loggerMiddleware));
+const store = createStore(
+  rootReducer,
+  applyMiddleware(thunkMiddleware, loggerMiddleware)
+);
 
 render(<Dashboard store={store} />, document.getElementById('root'));

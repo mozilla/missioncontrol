@@ -7,12 +7,11 @@ import Loading from './loading.jsx';
 import SubViewNav from './subviewnav.jsx';
 
 const mapStateToProps = (state, ownProps) => {
-  const channel = ownProps.match.params.channel;
-  const platform = ownProps.match.params.platform;
+  const { channel, platform } = ownProps.match.params;
   // if present, summarize crash data across versions per crash type
   if (state.channelPlatformSummary && state.channelPlatformSummary.summaries) {
-    const channelPlatformData = state.channelPlatformSummary.summaries.filter(
-      datum => datum.channel === channel.toLowerCase() && datum.platform === platform.toLowerCase());
+    const channelPlatformData = state.channelPlatformSummary.summaries.filter(datum =>
+      datum.channel === channel.toLowerCase() && datum.platform === platform.toLowerCase());
     if (channelPlatformData.length) {
       return { measures: channelPlatformData[0].measures };
     }
@@ -29,7 +28,6 @@ const getFormattedNumber = (num) => {
 };
 
 export class SubViewComponent extends React.Component {
-
   constructor(props) {
     super(props);
     this.state = {
@@ -59,8 +57,10 @@ export class SubViewComponent extends React.Component {
           className="header-element"
           breadcrumbs={[
             { name: 'Home', link: '/' },
-            { name: `${this.state.platform} ${this.state.channel}`,
-              link: `/${this.state.channel}/${this.state.platform}` }
+            {
+ name: `${this.state.platform} ${this.state.channel}`,
+              link: `/${this.state.channel}/${this.state.platform}`
+}
           ]} />
         <div className="body-element">
           {

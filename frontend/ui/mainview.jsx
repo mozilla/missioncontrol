@@ -8,16 +8,12 @@ import Loading from './loading.jsx';
 
 // eventually this will load a summary for each channel/os combination, so
 // leaving this in for now even though were not using it
-const mapStateToProps = state => ({
-  channelPlatformSummary: state.channelPlatformSummary });
+const mapStateToProps = state => ({ channelPlatformSummary: state.channelPlatformSummary });
 
 const stringMatchesFilter = (strs, filterStr) =>
-  _.every(filterStr.split(' ').map(
-    filterSubStr => _.some(strs.map(
-      str => str.toLowerCase().indexOf(filterSubStr.toLowerCase()) >= 0))));
+  _.every(filterStr.split(' ').map(filterSubStr => _.some(strs.map(str => str.toLowerCase().indexOf(filterSubStr.toLowerCase()) >= 0))));
 
 class MainViewComponent extends React.Component {
-
   constructor(props) {
     super(props);
     this.state = {
@@ -70,17 +66,16 @@ class MainViewComponent extends React.Component {
             !this.state.isLoading && <CardColumns>
               {
                 this.props.channelPlatformSummary && this.props.channelPlatformSummary.summaries.map(summary =>
-                  stringMatchesFilter(
-                    [summary.platform, summary.channel], this.state.filter) && (
-                      <Card
-                        key={`${summary.platform}-${summary.channel}`}
-                        onClick={() => this.cardClicked(summary.channel, summary.platform)}
-                        className="missioncontrol-card">
-                        <CardHeader className={`alert-${summary.status}`}>
-                          { summary.platform } { summary.channel }
-                        </CardHeader>
-                        <CardBlock>
-                          {
+                  stringMatchesFilter([summary.platform, summary.channel], this.state.filter) && (
+                  <Card
+                    key={`${summary.platform}-${summary.channel}`}
+                    onClick={() => this.cardClicked(summary.channel, summary.platform)}
+                    className="missioncontrol-card">
+                    <CardHeader className={`alert-${summary.status}`}>
+                      { summary.platform } { summary.channel }
+                    </CardHeader>
+                    <CardBlock>
+                      {
                             summary.passingMeasures && (
                               <CardText>
                                 { summary.passingMeasures } measure(s)
@@ -88,7 +83,7 @@ class MainViewComponent extends React.Component {
                               </CardText>
                             )
                           }
-                          {
+                      {
                             (summary.errors && summary.errors.length) && (
                               <div>
                                 <CardText>
@@ -103,7 +98,7 @@ class MainViewComponent extends React.Component {
                               </div>
                             )
                           }
-                          {
+                      {
                             (summary.insufficientData && summary.insufficientData.length) && (
                               <div>
                                 <CardText>
@@ -118,10 +113,9 @@ class MainViewComponent extends React.Component {
                               </div>
                             )
                           }
-                        </CardBlock>
-                      </Card>
-                    )
-                )
+                    </CardBlock>
+                  </Card>
+                    ))
               }
               </CardColumns>
             }

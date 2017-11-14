@@ -5,7 +5,6 @@ export const ERROR_TYPE_INSUFFICIENT_DATA = 'INSUFFICIENT_DATA';
 export const ERROR_TYPE_OUTSIDE_RANGE = 'OUTSIDE_RANGE';
 
 export class ErrorTable extends React.Component {
-
   constructor(props) {
     super(props);
     this.state = {
