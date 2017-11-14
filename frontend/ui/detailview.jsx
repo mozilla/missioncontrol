@@ -5,10 +5,18 @@ import moment from 'moment';
 import { Button, FormGroup, Input, Label, Modal, ModalBody, ModalHeader, ModalFooter, Row, Col, Container } from 'reactstrap';
 import { Helmet } from 'react-helmet';
 import { connect } from 'react-redux';
+import { stringify } from 'query-string';
+
 import Loading from './loading.jsx';
 import MeasureGraph from './measuregraph.jsx';
 import SubViewNav from './subviewnav.jsx';
-import { DEFAULT_TIME_INTERVAL, TIME_INTERVALS, DEFAULT_PERCENTILE, PERCENTILES, DEFAULT_VERSION_GROUPING_TYPE } from '../schema';
+import {
+  DEFAULT_PERCENTILE,
+  DEFAULT_TIME_INTERVAL,
+  DEFAULT_VERSION_GROUPING_TYPE,
+  CRASH_STATS_MAPPING,
+  PERCENTILES,
+  TIME_INTERVALS } from '../schema';
 
 const mapStateToProps = (state, ownProps) => {
   const { measure } = ownProps.match.params;
@@ -420,6 +428,32 @@ class DetailViewComponent extends React.Component {
   }
 
   render() {
+    let crashStatsLink;
+    if (this.state.measure in CRASH_STATS_MAPPING) {
+      const { processType, extraParams } = CRASH_STATS_MAPPING[this.state.measure];
+      const queryParams = stringify({
+        ...(extraParams ?
+          Object.keys(extraParams).reduce((dict, key) => ({ ...dict, [key]: extraParams[key] }), {}) : {}),
+        product: 'Firefox',
+        version: _.uniq(_
+          .reduce(this.props.measureData, (memo, data) => {
+            if (!this.state.disabledVersions.has(data.version)) {
+              return memo.concat(data.version);
+            }
+            return memo;
+          }, [])),
+        platform: this.state.platform,
+        process_type: processType,
+        date: [
+          `>=${moment(Date.now() - (this.state.timeInterval * 1000)).format()}`,
+          `<${moment().format()}}`
+        ],
+        sort: '-date',
+        _facets: 'signature',
+        _columns: ['date', 'signature', 'product', 'version', 'build_id', 'platform']
+      });
+      crashStatsLink = `https://crash-stats.mozilla.com/search/?${queryParams}#facet-signature`;
+    }
     return (
       <div className="body-container">
         <Helmet>
@@ -581,6 +615,11 @@ class DetailViewComponent extends React.Component {
                           <div className="text-center">
                             {`Using timezone: ${(new Intl.DateTimeFormat()).resolvedOptions().timeZone}`}
                           </div>
+                          {(crashStatsLink) &&
+                            <div className="text-center crash-stats-link">
+                              <a href={crashStatsLink}>Crash stats detailed view</a>
+                            </div>
+                          }
                         </Col>
                       </Row>
                     </Container>
