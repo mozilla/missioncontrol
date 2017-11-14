@@ -25,6 +25,7 @@
     "neutrino-preset-mozilla-rpweb": "^5.0.1",
     "numeral": "^2.0.6",
     "prop-types": "^15.5.10",
+    "query-string": "^5.0.1",
     "react": "^15.5.4",
     "react-addons-css-transition-group": "^15.5.2",
     "react-addons-transition-group": "^15.5.2",
