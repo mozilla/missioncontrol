@@ -34,6 +34,7 @@ wait_for() {
 case $1 in
   web)
     newrelic-admin run-python manage.py migrate --noinput
+    newrelic-admin run-python manage.py load_initial_data
     exec newrelic-admin run-program gunicorn missioncontrol.wsgi:application -b 0.0.0.0:${PORT} --workers 4 --access-logfile -
     ;;
   web-dev)

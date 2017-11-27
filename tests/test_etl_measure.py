@@ -2,17 +2,20 @@ import datetime
 
 import pytest
 from freezegun import freeze_time
-from django.core.cache import cache
+from dateutil.tz import tzutc
 
-from missioncontrol.etl.schema import get_measure_cache_key
+from missioncontrol.base.models import Datum
+from missioncontrol.etl.date import datetime_to_utc
 
 
 @pytest.fixture
 def mock_raw_query_data(monkeypatch, base_datapoint_time):
+    base_datapoint_time_without_utc = datetime.datetime.fromtimestamp(
+        base_datapoint_time.timestamp(), tz=None)
     return [
-        [base_datapoint_time, '20170629075044', '55.0a1', 120, 10, 120],
-        [base_datapoint_time - datetime.timedelta(minutes=10), '20170629075044', '55.0a1',
-         120, 20, 120]
+        [base_datapoint_time_without_utc, '20170629075044', '55.0.2', 120, 10, 120],
+        [base_datapoint_time_without_utc -
+         datetime.timedelta(minutes=10), '20170629075044', '55.0.2', 120, 20, 120]
     ]
 
 
@@ -27,56 +30,59 @@ def mock_raw_query(monkeypatch, mock_raw_query_data):
 
 
 @freeze_time('2017-07-01 13:00')
-def test_update_measure_no_initial_data(prepopulated_version_cache, mock_raw_query,
-                                        mock_raw_query_data):
+def test_update_measure_new_series(initial_data, prepopulated_version_cache,
+                                   mock_raw_query, mock_raw_query_data):
     from missioncontrol.etl.measure import update_measure
-    update_measure('windows', 'release', 'main_crashes')
-    assert cache.get(get_measure_cache_key('windows', 'release', 'main_crashes')) == {
-        '20170629075044': {
-            'version': '55.0a1',
-            'data': sorted([(d[0], d[3], d[4]) for d in mock_raw_query_data], key=lambda d: d[0])
-        }
-    }
+    update_measure('linux', 'release', 'main_crashes')
+    assert list(Datum.objects.filter(
+        series__measure__name='main_crashes',
+        series__build__build_id='20170629075044',
+        series__build__version='55.0.2',
+        series__build__channel__name='release',
+        series__build__platform__name='linux').values_list(
+            'timestamp', 'value', 'usage_hours').order_by(
+                'timestamp')) == sorted(
+                    [(datetime_to_utc(d[0]), d[3], d[4]) for d in mock_raw_query_data],
+                    key=lambda d: d[0])
 
 
 @freeze_time('2017-07-01 13:00')
-def test_update_measure_with_initial_data(prepopulated_version_cache,
-                                          mock_raw_query,
-                                          mock_raw_query_data,
-                                          base_datapoint_time):
+def test_update_measure_existing_series(fake_measure_data,
+                                        prepopulated_version_cache,
+                                        mock_raw_query,
+                                        mock_raw_query_data,
+                                        base_datapoint_time):
     from missioncontrol.etl.measure import update_measure
-    existing_data = {
-        '20170629075044': {
-            'version': '55.0a1',
-            'data': [(base_datapoint_time - datetime.timedelta(days=1), 321, 10)]
-        }
-    }
-    cache_key = get_measure_cache_key('windows', 'release', 'main_crashes')
-    cache.set(cache_key, existing_data)
-    update_measure('windows', 'release', 'main_crashes')
+    update_measure('linux', 'release', 'main_crashes')
+    # assert that new data gets inserted as expected
+    assert list(Datum.objects.filter(
+        series__measure__name='main_crashes',
+        series__build__build_id='20170629075044',
+        series__build__version='55.0.2',
+        series__build__channel__name='release',
+        series__build__platform__name='linux').values_list(
+            'timestamp', 'value', 'usage_hours').order_by(
+                'timestamp')) == sorted(
+                    [(datetime_to_utc(d[0]), d[3], d[4]) for d in mock_raw_query_data],
+                    key=lambda d: d[0])
 
-    assert cache.get(cache_key) == {
-        '20170629075044': {
-            'version': '55.0a1',
-            'data': existing_data['20170629075044']['data'] +
-            sorted([(d[0], d[3], d[4]) for d in mock_raw_query_data], key=lambda d: d[0])
-        }
-    }
+    # assert that we have the expected number of total datums
+    assert Datum.objects.count() == 6 + len(mock_raw_query_data)
 
 
 @freeze_time('2017-07-01 13:00')
-def test_get_measure_summary(prepopulated_version_cache, base_datapoint_time, fake_measure_data):
+def test_get_measure_summary(fake_measure_data, prepopulated_version_cache):
     from missioncontrol.etl.measuresummary import get_measure_summary
-    assert get_measure_summary('windows', 'beta', 'main_crashes', fake_measure_data) == {
-        'lastUpdated': datetime.datetime(2017, 7, 1, 12, 0),
+    assert get_measure_summary('linux', 'release', 'main_crashes') == {
+        'lastUpdated': datetime.datetime(2017, 7, 1, 12, 0, tzinfo=tzutc()),
         'latest': {
             'median': 625.0,
-            'usageHours': 56,
-            'version': '55.0b6'
+            'usageHours': 56.0,
+            'version': '55.0.1'
         },
         'previous': {
-            'median': 500.0,
-            'usageHours': 56,
+            'median': 625.0,
+            'usageHours': 56.0,
             'version': None
         }
     }

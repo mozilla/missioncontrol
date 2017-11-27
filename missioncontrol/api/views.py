@@ -1,15 +1,18 @@
 import datetime
 import logging
+import pytz
 
-from dateutil.tz import tzutc
 from django.http import (HttpResponseBadRequest, HttpResponseNotFound, JsonResponse)
 from django.core.cache import cache
+from django.utils import timezone
 
+from missioncontrol.base.models import (Channel,
+                                        Datum,
+                                        Measure,
+                                        Platform)
+from missioncontrol.etl.date import datetime_to_utc
 from missioncontrol.etl.presto import (QueryBuilder, DIMENSION_LIST)
-from missioncontrol.etl.schema import (CHANNELS,
-                                       PLATFORMS,
-                                       get_measure_cache_key,
-                                       get_measure_summary_cache_key)
+from missioncontrol.etl.schema import get_measure_summary_cache_key
 
 logger = logging.getLogger(__name__)
 
@@ -32,45 +35,41 @@ def aggregates(request):
     return JsonResponse(data=dict(results=results))
 
 
-def _dt_to_utc(dt):
-    '''
-    adds utc timezone info to each date, so django will serialize a
-    'Z' to the end of the string (and so javascript's date constructor
-    will know it's utc)
-    '''
-    return datetime.datetime.fromtimestamp(dt.timestamp(),
-                                           tz=tzutc())
-
-
 def channel_platform_summary(request):
     platform_filter = [platform.lower() for platform in request.GET.getlist('platform')]
     channel_filter = [channel.lower() for channel in request.GET.getlist('channel')]
 
-    summaries = []
-    for channel_name in filter(lambda c: not channel_filter or c in channel_filter,
-                               CHANNELS.keys()):
-        for (platform_name, platform) in PLATFORMS.items():
-            if not platform_filter or platform_name in platform_filter:
-                measures = []
-                measure_name_map = {
-                    get_measure_summary_cache_key(platform_name, channel_name,
-                                                  measure_name): measure_name
-                    for measure_name in platform['measures']
-                }
-                measure_summaries = cache.get_many(measure_name_map.keys())
-                for (measure_summary_cache_key, measure_summary) in measure_summaries.items():
-                    measures.append({
-                        **{'name': measure_name_map[measure_summary_cache_key]},
-                        **measure_summary,
-                        **{'lastUpdated': _dt_to_utc(measure_summary['lastUpdated'])
-                           if measure_summary.get('lastUpdated') else None}
-                    })
-                summaries.append({
-                    'channel': channel_name,
-                    'platform': platform_name,
-                    'measures': measures
-                })
+    platforms = Platform.objects.all()
+    if platform_filter:
+        platforms = platforms.filter(name__in=platform_filter)
 
+    channels = Channel.objects.all()
+    if channel_filter:
+        channels = channels.filter(name__in=channel_filter)
+
+    summaries = []
+    for channel in channels:
+        for platform in platforms:
+            measures = []
+            measure_name_map = {
+                get_measure_summary_cache_key(platform.name, channel.name,
+                                              measure_name): measure_name
+                for measure_name in Measure.objects.filter(
+                        platform=platform).values_list('name', flat=True)
+            }
+            measure_summaries = cache.get_many(measure_name_map.keys())
+            for (measure_summary_cache_key, measure_summary) in measure_summaries.items():
+                measures.append({
+                    'name': measure_name_map[measure_summary_cache_key],
+                    **measure_summary,
+                    'lastUpdated': (datetime_to_utc(measure_summary['lastUpdated'])
+                                    if measure_summary.get('lastUpdated') else None)
+                })
+            summaries.append({
+                'channel': channel.name,
+                'platform': platform.name,
+                'measures': measures
+            })
     return JsonResponse(data={'summaries': summaries})
 
 
@@ -83,39 +82,41 @@ def measure(request):
 
     if not all([channel_name, platform_name, measure_name, interval]):
         return HttpResponseBadRequest("All of channel, platform, measure, interval required")
-    data = cache.get(get_measure_cache_key(platform_name, channel_name, measure_name))
-    if not data:
+
+    datums = Datum.objects.filter(
+        series__build__channel__name=channel_name,
+        series__build__platform__name=platform_name,
+        series__measure__name=measure_name)
+
+    if not datums.exists():
         return HttpResponseNotFound("Data not available for this measure combination")
 
     # process min/max time based on parameters
     try:
         if start is not None:
-            min_time = datetime.datetime.fromtimestamp(int(start))
-            max_time = min_time + datetime.timedelta(seconds=int(interval))
+            min_time = datetime.datetime.fromtimestamp(int(start), tz=pytz.UTC)
+            datums = datums.filter(
+                timestamp__range=(min_time,
+                                  min_time + datetime.timedelta(seconds=int(interval))))
         else:
-            (min_time, max_time) = (datetime.datetime.now() -
-                                    datetime.timedelta(seconds=int(interval)),
-                                    None)
+            datums = datums.filter(
+                timestamp__gte=(timezone.now() -
+                                datetime.timedelta(seconds=int(interval))))
     except ValueError:
         raise HttpResponseBadRequest(
             "Interval / start time must be specified in seconds (as an integer)")
 
-    empty_buildids = set()
-    for (build_id, build_data) in data.items():
-        datums = build_data['data']
-        # filter out elements that don't match our date range
-        if min_time:
-            datums = filter(lambda d: d[0] >= min_time, datums)
-        if max_time:
-            datums = filter(lambda d: d[0] <= max_time, datums)
-        datums = list(map(lambda d: [_dt_to_utc(d[0])] +
-                          list(d[1:]), datums))
-        if not datums:
-            empty_buildids.add(build_id)
-        build_data['data'] = datums
-
-    # don't bother returning empty indexed data
-    for empty_buildid in empty_buildids:
-        del data[empty_buildid]
+    data = {}
+    for (build_id, version) in datums.values_list(
+            'series__build__build_id',
+            'series__build__version').distinct():
+        data[build_id] = {
+            'data': [],
+            'version': version
+        }
+    for (build_id, timestamp, value, usage_hours) in datums.values_list(
+            'series__build__build_id',
+            'timestamp', 'value', 'usage_hours').order_by('timestamp'):
+        data[build_id]['data'].append((timestamp, value, usage_hours))
 
     return JsonResponse(data={'measure_data': data})

@@ -1,0 +1,45 @@
+# operating systems
+- model: base.Platform
+  pk: 1
+  fields:
+    name: windows
+    telemetry_name: Windows_NT
+- model: base.Platform
+  pk: 2
+  fields:
+    name: mac
+    telemetry_name: Darwin
+- model: base.Platform
+  pk: 3
+  fields:
+    name: linux
+    telemetry_name: Linux
+
+# channels
+- model: base.Channel
+  pk: 1
+  fields:
+    name: release
+    update_interval: 84 00:00:00 # = 12 weeks
+- model: base.Channel
+  pk: 2
+  fields:
+    name: beta
+    update_interval: 14 00:00:00
+- model: base.Channel
+  pk: 3
+  fields:
+    name: nightly
+    update_interval: 3 00:00:00
+- model: base.Channel
+  pk: 4
+  fields:
+    name: esr
+    update_interval: 84 00:00:00
+
+# measures (some are also in load_initial_data)
+- model: base.Measure
+  fields:
+    name: gpu_crashes
+    min_version: 53
+    platform: 1
