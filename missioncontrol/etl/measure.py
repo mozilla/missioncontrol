@@ -59,6 +59,7 @@ def update_measure(platform_name, channel_name, measure_name):
     min_timestamp = timezone.now() - DATA_EXPIRY_INTERVAL
     min_buildid_timestamp = min_timestamp - channel.update_interval
     min_timestamp_in_data = Datum.objects.filter(
+        series__build__channel=channel,
         series__measure=measure).aggregate(Max('timestamp'))['timestamp__max']
     if min_timestamp_in_data:
         min_timestamp = max([min_timestamp, min_timestamp_in_data])
