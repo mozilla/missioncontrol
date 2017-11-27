@@ -39,6 +39,7 @@
 
 # measures (some are also in load_initial_data)
 - model: base.Measure
+  pk: 1
   fields:
     name: gpu_crashes
     min_version: 53
