@@ -221,7 +221,7 @@ class DetailViewComponent extends React.Component {
       return _.map(seriesMap, (data, name) => ({
         name,
         data: _.values(data)
-      }));
+      })).sort((a, b) => a.name < b.name);
     }
 
     // take two most recent versions
@@ -256,7 +256,7 @@ class DetailViewComponent extends React.Component {
     return _.concat(mostRecent.map(version => ({
       name: version,
       data: _.values(seriesMap[version])
-    })), [{ name: 'Older', data: _.values(aggregated) }]);
+    })).sort((a, b) => a.name < b.name), [{ name: 'Older', data: _.values(aggregated) }]);
   }
 
   navigate(newParams, cb) {
