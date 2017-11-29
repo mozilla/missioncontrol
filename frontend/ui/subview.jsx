@@ -60,7 +60,7 @@ export class SubViewComponent extends React.Component {
             {
               name: `${this.state.platform} ${this.state.channel}`,
               link: `/${this.state.channel}/${this.state.platform}`
-}
+            }
           ]} />
         <div className="body-element">
           {
