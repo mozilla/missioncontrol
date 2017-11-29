@@ -1,12 +1,18 @@
-import _ from 'lodash';
 import React from 'react';
+import _ from 'lodash';
 import Dimensions from 'react-dimensions';
 import { curveLinear } from 'd3';
 import { timeFormat } from 'd3-time-format';
 import MetricsGraphics from 'react-metrics-graphics';
 
 
-class MeasureGraph extends React.Component {
+class DetailGraph extends React.Component {
+  shouldComponentUpdate(nextProps) {
+    return !_.isEqual(this.props.seriesList, nextProps.seriesList) ||
+      this.props.containerWidth !== nextProps.containerWidth ||
+      this.props.containerHeight !== nextProps.containerHeight;
+  }
+
   render() {
     const numSeries = this.props.seriesList.length;
     return (
@@ -20,7 +26,7 @@ class MeasureGraph extends React.Component {
         interpolate={curveLinear}
         missing_text="No data for this measure"
         x_accessor="date"
-        y_accessor={this.props.y || 'value'}
+        y_accessor={this.props.y}
         xax_format={this.props.xax_format ? timeFormat(this.props.xax_format) : undefined}
         xax_count={this.props.xax_count}
         linked={this.props.linked}
@@ -32,4 +38,4 @@ class MeasureGraph extends React.Component {
 }
 
 const dimensions = Dimensions;
-export default dimensions()(MeasureGraph);
+export default dimensions()(DetailGraph);

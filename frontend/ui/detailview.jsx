@@ -1,4 +1,3 @@
-import percentile from 'aggregatejs/percentile';
 import React from 'react';
 import _ from 'lodash';
 import moment from 'moment';
@@ -8,7 +7,8 @@ import { connect } from 'react-redux';
 import { stringify } from 'query-string';
 
 import Loading from './loading.jsx';
-import MeasureGraph from './measuregraph.jsx';
+import DetailGraph from './detailgraph.jsx';
+import MeasureDetailGraph from './measuredetailgraph.jsx';
 import SubViewNav from './subviewnav.jsx';
 import {
   DEFAULT_PERCENTILE,
@@ -24,34 +24,6 @@ const mapStateToProps = (state, ownProps) => {
   const measureData = state.measures[cacheKey];
 
   return { measureData };
-};
-
-const getTransformedSeriesList = (seriesList, measure, normalized, percentileThreshold) => {
-  let newSeriesList = seriesList;
-
-  if (normalized) {
-    newSeriesList = newSeriesList.map(series => ({
-      ...series,
-      data: series.data.map(d => ({
-        ...d,
-        [measure]: d[measure] / (d.usage_hours / 1000.0)
-      }))
-    }));
-  }
-  if (percentileThreshold < 100) {
-    newSeriesList = newSeriesList.map((series) => {
-      const threshold = percentile(
-        series.data.map(d => d[measure]),
-        percentileThreshold / 100.0
-      );
-      return {
-        ...series,
-        data: series.data.filter(d => d[measure] < threshold)
-      };
-    });
-  }
-
-  return newSeriesList;
 };
 
 const getDateString = (date) => {
@@ -582,15 +554,11 @@ class DetailViewComponent extends React.Component {
                           <div
                             className="large-graph-container center"
                             id="measure-series">
-                            <MeasureGraph
-                              title={`${this.props.match.params.measure} ${(this.state.normalized) ? 'per 1k hours' : ''}`}
-                              seriesList={getTransformedSeriesList(
-                                  this.state.seriesList,
-                                  this.props.match.params.measure,
-                                  this.state.normalized,
-                                  this.state.percentile
-                                )}
-                              y={`${this.props.match.params.measure}`}
+                            <MeasureDetailGraph
+                              measure={this.props.match.params.measure}
+                              normalized={this.state.normalized}
+                              percentileThreshold={this.state.percentile}
+                              seriesList={this.state.seriesList}
                               linked={true}
                               linked_format="%Y-%m-%d-%H-%M-%S" />
                           </div>
@@ -601,7 +569,7 @@ class DetailViewComponent extends React.Component {
                           <div
                             className="large-graph-container center"
                             id="time-series">
-                            <MeasureGraph
+                            <DetailGraph
                               title="Usage khours"
                               seriesList={this.state.seriesList}
                               y={'usage_hours'}
