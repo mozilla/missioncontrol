@@ -1,12 +1,13 @@
 import React from 'react';
 import _ from 'lodash';
 import moment from 'moment';
-import { Button, FormGroup, Input, Label, Modal, ModalBody, ModalHeader, ModalFooter, Row, Col, Container } from 'reactstrap';
+import { Button, FormGroup, Input, Label, Row, Col, Container } from 'reactstrap';
 import { Helmet } from 'react-helmet';
 import { connect } from 'react-redux';
 import { stringify } from 'query-string';
 
 import Loading from './loading.jsx';
+import DateSelectorModal from './dateselectormodal.jsx';
 import DetailGraph from './detailgraph.jsx';
 import MeasureDetailGraph from './measuredetailgraph.jsx';
 import SubViewNav from './subviewnav.jsx';
@@ -116,9 +117,6 @@ class DetailViewComponent extends React.Component {
     this.timeIntervalChanged = this.timeIntervalChanged.bind(this);
     this.cancelChooseCustomTimeInterval = this.cancelChooseCustomTimeInterval.bind(this);
     this.customTimeIntervalChosen = this.customTimeIntervalChosen.bind(this);
-    this.customStartDateChanged = this.customStartDateChanged.bind(this);
-    this.customEndDateChanged = this.customEndDateChanged.bind(this);
-    this.isCustomTimeIntervalValid = this.isCustomTimeIntervalValid.bind(this);
     this.percentileChanged = this.percentileChanged.bind(this);
     this.normalizeCheckboxChanged = this.normalizeCheckboxChanged.bind(this);
     this.versionCheckboxChanged = this.versionCheckboxChanged.bind(this);
@@ -273,46 +271,31 @@ class DetailViewComponent extends React.Component {
     }
   }
 
-  customStartDateChanged(ev) {
-    this.setState({
-      customStartDate: new Date(ev.target.value)
-    });
-  }
-
-  customEndDateChanged(ev) {
-    this.setState({
-      customEndDate: new Date(ev.target.value)
-    });
-  }
-
   cancelChooseCustomTimeInterval() {
     this.setState({
       choosingCustomTimeInterval: false
     });
   }
 
-  customTimeIntervalChosen() {
+  customTimeIntervalChosen(customStartDate, customEndDate) {
     this.setState({
       choosingCustomTimeInterval: false
     }, () => {
-      const startTime = new Date(`${getDateString(this.state.customStartDate)} 00:00`);
-      const endTime = new Date(`${getDateString(this.state.customEndDate)} 23:59`);
+      const startTime = new Date(`${getDateString(customStartDate)}T00:00Z`);
+      const endTime = new Date(`${getDateString(customEndDate)}T23:59Z`);
       const timeParams = {
         startTime: parseInt(startTime.getTime() / 1000.0, 10),
         timeInterval: parseInt((endTime - startTime) / 1000.0, 10)
       };
       this.navigate({
         ...timeParams,
+        customStartDate,
+        customEndDate,
         validTimeIntervals: getValidTimeIntervals(timeParams)
       }, () => {
         this.fetchMeasureData();
       });
     });
-  }
-
-  isCustomTimeIntervalValid() {
-    return (this.state.customStartDate && this.state.customEndDate &&
-            this.state.customStartDate < this.state.customEndDate);
   }
 
   percentileChanged(ev) {
@@ -471,41 +454,12 @@ class DetailViewComponent extends React.Component {
                   }
                   <option value="-1">Custom...</option>
                 </select>
-                <Modal
+                <DateSelectorModal
                   isOpen={this.state.choosingCustomTimeInterval}
-                  toggle={this.cancelChooseCustomTimeInterval}>
-                  <ModalHeader toggle={this.cancelChooseCustomTimeInterval}>
-                    Custom Date Range
-                  </ModalHeader>
-                  <ModalBody>
-                    <FormGroup>
-                      <Label for="startDate">
-                        Start Date
-                      </Label>
-                      <Input
-                        type="date"
-                        onChange={this.customStartDateChanged}
-                        id="startDate"
-                        defaultValue={getDateString(this.state.customStartDate)} />
-                    </FormGroup>
-                    <FormGroup>
-                      <Label for="endDate">
-                        End Date
-                      </Label>
-                      <Input
-                        type="date"
-                        onChange={this.customEndDateChanged}
-                        id="endDate"
-                        defaultValue={getDateString(this.state.customEndDate)} />
-                    </FormGroup>
-                  </ModalBody>
-                  <ModalFooter>
-                    <Button
-                      color="primary"
-                      disabled={!this.isCustomTimeIntervalValid()}
-                      onClick={this.customTimeIntervalChosen}>Ok</Button>
-                  </ModalFooter>
-                </Modal>
+                  toggle={this.cancelChooseCustomTimeInterval}
+                  defaultStart={getDateString(this.state.customStartDate)}
+                  defaultEnd={getDateString(this.state.customEndDate)}
+                  timeIntervalChosen={this.customTimeIntervalChosen} />
                 <select
                   value={
                     PERCENTILES.findIndex(p => p.value === this.state.percentile)
