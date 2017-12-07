@@ -1,4 +1,5 @@
 import _ from 'lodash';
+import { stringify } from 'query-string';
 import { CHANNEL_PLATFORM_SUMMARY_URL, MEASURE_URL } from './schema';
 
 
@@ -52,9 +53,7 @@ function receiveMeasureData(params, data) {
 export function fetchMeasureData(params) {
   return (dispatch) => {
     dispatch(requestMeasureData());
-    const searchParamString = _.map(params, (value, paramName) =>
-      `${paramName}=${value}`).join('&');
-    return fetch(`${MEASURE_URL}?${searchParamString}`)
+    return fetch(`${MEASURE_URL}?${stringify(params)}`)
       .then(response => response.json())
       .then(json => dispatch(receiveMeasureData(params, json)));
   };
