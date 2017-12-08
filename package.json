@@ -2,6 +2,7 @@
   "scripts": {
     "start": "neutrino start",
     "build": "neutrino build",
+    "lint": "neutrino lint",
     "test": "neutrino test",
     "coverage": "neutrino test --coverage"
   },
