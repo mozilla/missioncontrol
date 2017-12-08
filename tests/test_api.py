@@ -155,3 +155,36 @@ def test_get_measure(fake_measure_data, client):
             'version': '55.0'
         }
     }
+
+
+@freeze_time('2017-07-01 13:00')
+def test_compare(fake_measure_data_offset, client):
+    (platform, channel, measure) = ('linux', 'release', 'main_crashes')
+
+    resp = client.get(reverse('measure'), {
+        'platform': platform,
+        'channel': channel,
+        'measure': measure,
+        'interval': 86400,
+        'relative': 1
+    })
+    # despite the samples being captured at different times, they should
+    # return the same relative value for compare
+    assert resp.json()['measure_data'] == {
+        '20170620075044': {
+            'data': [
+                [0, 100.0, 20.0],
+                [300, 10.0, 16.0],
+                [600, 10.0, 20.0]
+            ],
+            'version': '55.0.1'
+        },
+        '20170629075044': {
+            'data': [
+                [0, 100.0, 20.0],
+                [300, 10.0, 16.0],
+                [600, 10.0, 20.0]
+            ],
+            'version': '55.0'
+        }
+    }

@@ -2,7 +2,6 @@ import React from 'react';
 import _ from 'lodash';
 import Dimensions from 'react-dimensions';
 import { curveLinear } from 'd3';
-import { timeFormat } from 'd3-time-format';
 import MetricsGraphics from 'react-metrics-graphics';
 
 
@@ -27,10 +26,11 @@ class DetailGraph extends React.Component {
         missing_text="No data for this measure"
         x_accessor="date"
         y_accessor={this.props.y}
-        xax_format={this.props.xax_format ? timeFormat(this.props.xax_format) : undefined}
-        xax_count={this.props.xax_count}
-        linked={this.props.linked}
-        linked_format={this.props.linked_format}
+        x_label={this.props.relative ? 'Hours since release' : undefined}
+        x_mouseover={this.props.relative ? s => `Hour: ${s.key.toFixed(2)}` : undefined}
+        y_mouseover={this.props.relative ? s => s[this.props.y].toFixed(2) : undefined}
+        linked={true}
+        linked_format={this.props.relative ? undefined : '%Y-%m-%d-%H-%M-%S'}
         aggregate_rollover={true}
         right={Math.min(120, 40 + (5 * (this.props.seriesList.length ?
                                         _.max(this.props.seriesList.map(s => s.name.length)) : 0)))} />);

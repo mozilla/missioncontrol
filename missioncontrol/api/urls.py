@@ -7,5 +7,5 @@ urlpatterns = [
     url(r'^aggregates/$', views.aggregates, name='aggregates'),
     url(r'^channel-platform-summary/$', views.channel_platform_summary,
         name='channel-platform-summary'),
-    url(r'^measure/$', views.measure, name='measure')
+    url(r'^measure/$', views.measure, name='measure'),
 ]

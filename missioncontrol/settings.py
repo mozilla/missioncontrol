@@ -311,6 +311,6 @@ LOGGING = {
 FIREFOX_VERSION_URL = 'https://product-details.mozilla.org/1.0/firefox_versions.json'
 FIREFOX_VERSION_CACHE_TIMEOUT = 300
 
-DATA_EXPIRY_INTERVAL = timedelta(days=30)
+DATA_EXPIRY_INTERVAL = timedelta(days=60)
 MIN_CLIENT_COUNT = 100  # minimum number of client submissions for aggregate to be used
 MEASURE_SUMMARY_SAMPLING_INTERVAL = timedelta(days=1)
