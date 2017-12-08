@@ -36,9 +36,8 @@ class MeasureDetailGraph extends React.Component {
       <DetailGraph
         title={`${this.props.measure} ${(this.props.normalized) ? 'per 1k hours' : ''}`}
         seriesList={transformedSeriesList}
-        y={`${this.props.measure}`}
-        linked={this.props.linked}
-        linked_format={this.props.linked_format} />
+        y={this.props.measure}
+        relative={this.props.relative} />
     );
   }
 }

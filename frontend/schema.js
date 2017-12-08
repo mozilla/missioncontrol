@@ -8,6 +8,13 @@ export const TIME_INTERVALS = [
   { label: 'Last 14 days', interval: 1209600 }
 ];
 
+export const TIME_INTERVALS_RELATIVE = [
+  { label: 'Up to 14 days after release', interval: 1209600 },
+  { label: 'Up to 7 days after release', interval: 604800 },
+  { label: 'Up to 48 hours after release', interval: 172800 },
+  { label: 'Up to 24 hours after release', interval: 86400 }
+];
+
 export const PERCENTILES = [
   { label: 'All values', value: 100 },
   { label: '99th percentile', value: 99 },

@@ -17,7 +17,9 @@ import {
   DEFAULT_VERSION_GROUPING_TYPE,
   CRASH_STATS_MAPPING,
   PERCENTILES,
-  TIME_INTERVALS } from '../schema';
+  TIME_INTERVALS,
+  TIME_INTERVALS_RELATIVE
+} from '../schema';
 
 const mapStateToProps = (state, ownProps) => {
   const { measure } = ownProps.match.params;
@@ -72,6 +74,12 @@ const getOptionalParameters = (props) => {
   const percentileThreshold = parseInt(urlParams.get('percentile') ?
     urlParams.get('percentile') : DEFAULT_PERCENTILE, 10);
 
+  // relative to most recent version (true/false)
+  let relative = false;
+  if (urlParams.get('relative')) {
+    relative = !!parseInt(urlParams.get('relative'), 10);
+  }
+
   // coerce normalized into a boolean, true if not specified
   let normalized = true;
   if (urlParams.get('normalized')) {
@@ -89,6 +97,7 @@ const getOptionalParameters = (props) => {
     customStartDate,
     customEndDate,
     timeInterval,
+    relative,
     normalized,
     disabledVersions,
     versionGrouping,
@@ -116,11 +125,12 @@ class DetailViewComponent extends React.Component {
 
     this.timeIntervalChanged = this.timeIntervalChanged.bind(this);
     this.cancelChooseCustomTimeInterval = this.cancelChooseCustomTimeInterval.bind(this);
-    this.customTimeIntervalChosen = this.customTimeIntervalChosen.bind(this);
+    this.relativeChanged = this.relativeChanged.bind(this);
     this.percentileChanged = this.percentileChanged.bind(this);
     this.normalizeCheckboxChanged = this.normalizeCheckboxChanged.bind(this);
     this.versionCheckboxChanged = this.versionCheckboxChanged.bind(this);
     this.toggleVersionGrouping = this.toggleVersionGrouping.bind(this);
+    this.customTimeIntervalChosen = this.customTimeIntervalChosen.bind(this);
   }
 
   componentDidMount() {
@@ -133,6 +143,7 @@ class DetailViewComponent extends React.Component {
       measure: this.state.measure,
       channel: this.state.channel,
       platform: this.state.platform,
+      relative: this.state.relative ? 1 : undefined,
       interval: this.state.timeInterval,
       start: this.state.startTime
     })).then(() =>
@@ -155,12 +166,12 @@ class DetailViewComponent extends React.Component {
           seriesMap[build.version] = {};
         }
         build.data.forEach((datum) => {
-          const date = datum[0];
+          const date = this.state.relative ? datum[0] / 60.0 / 60.0 : new Date(datum[0]);
           if (!seriesMap[build.version][date]) {
             seriesMap[build.version][date] = {
               [measure]: 0,
               usage_hours: 0,
-              date: new Date(date)
+              date
             };
           }
 
@@ -176,7 +187,7 @@ class DetailViewComponent extends React.Component {
         }
         seriesMap[buildId] = {};
         build.data.forEach((datum) => {
-          const date = datum[0];
+          const date = this.state.relative ? datum[0] / 60.0 / 60.0 : new Date(datum[0]);
           seriesMap[buildId][date] = {
             [measure]: datum[1],
             usage_hours: datum[2],
@@ -233,7 +244,7 @@ class DetailViewComponent extends React.Component {
     this.setState(newParams, cb);
 
     // generate a new url string, so we can link to this particular view
-    const params = ['timeInterval', 'percentile', 'normalized', 'disabledVersions', 'versionGrouping'];
+    const params = ['timeInterval', 'relative', 'percentile', 'normalized', 'disabledVersions', 'versionGrouping'];
     if (newParams.startTime) {
       // only want to put startTime in url string if it's defined
       params.push('startTime');
@@ -259,7 +270,8 @@ class DetailViewComponent extends React.Component {
         choosingCustomTimeInterval: true
       });
     } else {
-      const timeInterval = this.state.validTimeIntervals[index];
+      const timeInterval = this.state.relative ?
+        TIME_INTERVALS_RELATIVE[index] : this.state.validTimeIntervals[index];
       this.navigate({
         customStartDate: undefined,
         customEndDate: undefined,
@@ -307,6 +319,15 @@ class DetailViewComponent extends React.Component {
       this.setState({
         seriesList: this.getSeriesList()
       });
+    });
+  }
+
+  relativeChanged(ev) {
+    this.navigate({
+      relative: !!parseInt(ev.target.value, 10)
+    }, () => {
+      // changing this implies redownloading the measure data
+      this.fetchMeasureData();
     });
   }
 
@@ -384,7 +405,7 @@ class DetailViewComponent extends React.Component {
 
   render() {
     let crashStatsLink;
-    if (this.state.measure in CRASH_STATS_MAPPING) {
+    if (this.state.measure in CRASH_STATS_MAPPING && !this.state.relative) {
       const { processType, extraParams } = CRASH_STATS_MAPPING[this.state.measure];
       const queryParams = stringify({
         ...(extraParams ?
@@ -433,33 +454,67 @@ class DetailViewComponent extends React.Component {
             <Row>
               <form className="form-inline">
                 <select
-                  value={
-                    this.state.validTimeIntervals.findIndex(timeInterval =>
-                      timeInterval.interval === this.state.timeInterval &&
-                      ((this.state.startTime &&
-                        (timeInterval.startTime === this.state.startTime)) ||
-                       (!this.state.startTime && !timeInterval.startTime)))
-                  }
-                  onChange={this.timeIntervalChanged}
-                  className="mb-2 mr-sm-2 mb-sm-0">
-                  {
-                    this.state.validTimeIntervals
-                      .map((timeInterval, index) => (
-                        <option
-                          key={`${timeInterval.startTime || ''}-${timeInterval.interval}`}
-                          value={index} >
-                          {timeInterval.label}
-                        </option>
-                      ))
-                  }
-                  <option value="-1">Custom...</option>
+                  onChange={this.relativeChanged}
+                  className="mb-2 mr-sm-2 mb-sm-0"
+                  value={this.state.relative ? 1 : 0}>
+                  <option value={0}>Latest data</option>
+                  <option value={1}>Relative to time of release</option>
                 </select>
-                <DateSelectorModal
-                  isOpen={this.state.choosingCustomTimeInterval}
-                  toggle={this.cancelChooseCustomTimeInterval}
-                  defaultStart={getDateString(this.state.customStartDate)}
-                  defaultEnd={getDateString(this.state.customEndDate)}
-                  timeIntervalChosen={this.customTimeIntervalChosen} />
+                {
+                  !this.state.relative &&
+                    <FormGroup>
+                      <select
+                        value={
+                          this.state.validTimeIntervals.findIndex(timeInterval =>
+                            timeInterval.interval === this.state.timeInterval &&
+                            ((this.state.startTime &&
+                              (timeInterval.startTime === this.state.startTime)) ||
+                             (!this.state.startTime && !timeInterval.startTime)))
+                        }
+                        onChange={this.timeIntervalChanged}
+                        className="mb-2 mr-sm-2 mb-sm-0">
+                        {
+                          this.state.validTimeIntervals
+                            .map((timeInterval, index) => (
+                              <option
+                                key={`${timeInterval.startTime || ''}-${timeInterval.interval}`}
+                                value={index} >
+                                {timeInterval.label}
+                              </option>
+                            ))
+                        }
+                        <option value="-1">Custom...</option>
+                      </select>
+                      <DateSelectorModal
+                        isOpen={this.state.choosingCustomTimeInterval}
+                        toggle={this.cancelChooseCustomTimeInterval}
+                        defaultStart={getDateString(this.state.customStartDate)}
+                        defaultEnd={getDateString(this.state.customEndDate)}
+                        timeIntervalChosen={this.customTimeIntervalChosen} />
+                    </FormGroup>
+                }
+                {
+                  this.state.relative &&
+                  <select
+                    value={
+                      TIME_INTERVALS_RELATIVE.findIndex(timeInterval =>
+                        timeInterval.interval === this.state.timeInterval)
+                      }
+                    onChange={this.timeIntervalChanged}
+                    className="mb-2 mr-sm-2 mb-sm-0">
+                    {
+                      TIME_INTERVALS_RELATIVE
+                        .map((timeInterval, index) => (
+                          <option
+                            key={timeInterval.interval}
+                            value={index} >
+                            {timeInterval.label}
+                          </option>
+                        ))
+                    }
+                  </select>
+
+                }
                 <select
                   value={
                     PERCENTILES.findIndex(p => p.value === this.state.percentile)
@@ -513,8 +568,7 @@ class DetailViewComponent extends React.Component {
                               normalized={this.state.normalized}
                               percentileThreshold={this.state.percentile}
                               seriesList={this.state.seriesList}
-                              linked={true}
-                              linked_format="%Y-%m-%d-%H-%M-%S" />
+                              relative={this.state.relative} />
                           </div>
                         </Col>
                       </Row>
@@ -527,8 +581,7 @@ class DetailViewComponent extends React.Component {
                               title="Usage khours"
                               seriesList={this.state.seriesList}
                               y={'usage_hours'}
-                              linked={true}
-                              linked_format="%Y-%m-%d-%H-%M-%S" />
+                              relative={this.state.relative} />
                           </div>
                         </Col>
                       </Row>

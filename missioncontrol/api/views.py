@@ -2,8 +2,9 @@ import datetime
 import logging
 import pytz
 
-from django.http import (HttpResponseBadRequest, HttpResponseNotFound, JsonResponse)
 from django.core.cache import cache
+from django.db.models import (Max, Min)
+from django.http import (HttpResponseBadRequest, HttpResponseNotFound, JsonResponse)
 from django.utils import timezone
 
 from missioncontrol.base.models import (Channel,
@@ -73,15 +74,35 @@ def channel_platform_summary(request):
     return JsonResponse(data={'summaries': summaries})
 
 
+def _filter_datums_to_time_interval(datums, start, interval,
+                                    offset=datetime.timedelta()):
+    if start is not None:
+        min_time = datetime.datetime.fromtimestamp(int(start), tz=pytz.UTC)
+        return datums.filter(
+            timestamp__range=(
+                min_time + offset,
+                min_time + offset + datetime.timedelta(seconds=int(interval))))
+    else:
+        return datums.filter(
+            timestamp__range=(timezone.now() + offset -
+                              datetime.timedelta(seconds=int(interval)),
+                              timezone.now() + offset)
+        )
+
+
 def measure(request):
     channel_name = request.GET.get('channel')
     platform_name = request.GET.get('platform')
     measure_name = request.GET.get('measure')
     interval = request.GET.get('interval')
     start = request.GET.get('start')
+    relative = request.GET.get('relative')
 
     if not all([channel_name, platform_name, measure_name, interval]):
         return HttpResponseBadRequest("All of channel, platform, measure, interval required")
+    if not all([val is None or val.isdigit() for val in (start, interval)]):
+        raise HttpResponseBadRequest(
+            "Interval / start time must be specified in seconds (as an integer)")
 
     datums = Datum.objects.filter(
         series__build__channel__name=channel_name,
@@ -91,32 +112,57 @@ def measure(request):
     if not datums.exists():
         return HttpResponseNotFound("Data not available for this measure combination")
 
-    # process min/max time based on parameters
-    try:
-        if start is not None:
-            min_time = datetime.datetime.fromtimestamp(int(start), tz=pytz.UTC)
-            datums = datums.filter(
-                timestamp__range=(min_time,
-                                  min_time + datetime.timedelta(seconds=int(interval))))
-        else:
-            datums = datums.filter(
-                timestamp__gte=(timezone.now() -
-                                datetime.timedelta(seconds=int(interval))))
-    except ValueError:
-        raise HttpResponseBadRequest(
-            "Interval / start time must be specified in seconds (as an integer)")
+    ret = {}
 
-    data = {}
-    for (build_id, version) in datums.values_list(
-            'series__build__build_id',
-            'series__build__version').distinct():
-        data[build_id] = {
-            'data': [],
-            'version': version
+    if relative is None or (relative.isdigit() and not int(relative)):
+        # default is to get latest data for all series
+        datums = _filter_datums_to_time_interval(datums, start, interval)
+
+        for (build_id, version) in datums.values_list(
+                'series__build__build_id',
+                'series__build__version').distinct():
+            ret[build_id] = {
+                'data': [],
+                'version': version
+            }
+        for (build_id, timestamp, value, usage_hours) in datums.values_list(
+                'series__build__build_id',
+                'timestamp', 'value', 'usage_hours').order_by('timestamp'):
+            ret[build_id]['data'].append((timestamp, value, usage_hours))
+    else:
+        latest = datums.aggregate(
+            Max('series__build__version'),
+            Max('series__build__build_id'))
+        (latest_version, latest_build_id) = [latest.get(x) for x in [
+            'series__build__version__max', 'series__build__build_id__max']]
+
+        # get data for current + up to three previous versions (handling each
+        # build id for each version, if there are multiple)
+        versions = datums.values_list(
+            'series__build__version').distinct().order_by(
+                '-series__build__version')[0:4]
+        version_timestamps = {
+            (d[0], d[1]): d[2] for d in datums.filter(
+                series__build__version__in=versions).values_list(
+                    'series__build__version', 'series__build__build_id').distinct().annotate(
+                        Min('timestamp'))
         }
-    for (build_id, timestamp, value, usage_hours) in datums.values_list(
-            'series__build__build_id',
-            'timestamp', 'value', 'usage_hours').order_by('timestamp'):
-        data[build_id]['data'].append((timestamp, value, usage_hours))
 
-    return JsonResponse(data={'measure_data': data})
+        # for each version/buildid combo, grab their data relative to the
+        # latest version
+        for (version_tuple, base_timestamp) in version_timestamps.items():
+            (version, build_id) = version_tuple
+            ret[build_id] = {
+                'version': version,
+                'data': []
+            }
+            ret[build_id]['data'] = [
+                [int((timestamp - base_timestamp).total_seconds()), value, usage_hours] for
+                (timestamp, value, usage_hours) in datums.filter(
+                    series__build__version=version,
+                    series__build__build_id=build_id,
+                    timestamp__range=(base_timestamp,
+                                      base_timestamp + datetime.timedelta(seconds=int(interval)))
+                ).order_by('timestamp').values_list('timestamp', 'value', 'usage_hours')]
+
+    return JsonResponse(data={'measure_data': ret})
