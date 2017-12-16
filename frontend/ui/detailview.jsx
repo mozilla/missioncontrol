@@ -68,29 +68,25 @@ const getOptionalParameters = (props) => {
   }
 
   // grouping can be either by build id or by version
-  const versionGrouping = urlParams.get('versionGrouping') ? urlParams.get('versionGrouping') : DEFAULT_VERSION_GROUPING_TYPE;
+  const versionGrouping = urlParams.has('versionGrouping') ? urlParams.get('versionGrouping') : DEFAULT_VERSION_GROUPING_TYPE;
 
   // percentile filter of data
-  const percentileThreshold = parseInt(urlParams.get('percentile') ?
+  const percentileThreshold = parseInt(urlParams.has('percentile') ?
     urlParams.get('percentile') : DEFAULT_PERCENTILE, 10);
 
-  // relative to most recent version (true/false)
-  let relative = false;
-  if (urlParams.get('relative')) {
-    relative = !!parseInt(urlParams.get('relative'), 10);
-  }
+  // relative to most recent version (true/false), false if not
+  // specified
+  const relative = !!parseInt(urlParams.get('relative'), 10);
 
   // coerce normalized into a boolean, true if not specified
   let normalized = true;
-  if (urlParams.get('normalized')) {
+  if (urlParams.has('normalized')) {
     normalized = (parseInt(urlParams.get('normalized'), 10));
   }
 
-  // disabledVersions is a comma-seperated list
-  let disabledVersions = new Set();
-  if (urlParams.get('disabledVersions')) {
-    disabledVersions = new Set(urlParams.get('disabledVersions').split(','));
-  }
+  // disabledVersions is a comma-seperated list when specified
+  const disabledVersions = new Set(urlParams.has('disabledVersions') ?
+    urlParams.get('disabledVersions').split(',') : []);
 
   return {
     startTime,
