@@ -33,18 +33,6 @@ def update_measure(platform_name, channel_name, measure_name):
     Updates (or creates) a local cache entry for a specify platform/channel/measure
     aggregate, which can later be retrieved by the API
 
-    The data is stored in the following format:
-    {
-        'buildid': {
-          'version': 'XXX',
-          'data': [[<timestamp>, value, usage hours], [<timestamp>, value, usage hours], ...]
-        },
-        'buildid2': {
-          ...
-        },
-     ...
-    }
-
     Every channel has a different minimum build_id/timestamp,
     defined in the settings. For any given point later than the
     minimum timestamp we may reject it because it's too old.
@@ -72,6 +60,9 @@ def update_measure(platform_name, channel_name, measure_name):
     else:
         min_version = str(LooseVersion(current_version).version[0] - 1)
 
+    # we prefer to specify parameters in a seperate params dictionary
+    # where possible (to reduce the risk of creating a malformed
+    # query from incorrect parameters
     query_template = f'''
         select window_start, build_id, version, sum({measure_name}),
         sum(usage_hours), sum(count) as client_count

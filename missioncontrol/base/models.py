@@ -39,7 +39,7 @@ class Build(models.Model):
 
 class Measure(models.Model):
     '''
-    Represents a type of measure (e.g. "main_crashes") on a particular channel
+    Represents a type of measure (e.g. "main_crashes")
 
     Some measures occur only on specific types of platform (e.g. "gpu_crashes"
     is Windows-only)
