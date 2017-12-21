@@ -20,7 +20,6 @@ from missioncontrol.settings import (DATA_EXPIRY_INTERVAL,
                                      MIN_CLIENT_COUNT,
                                      MISSION_CONTROL_TABLE)
 from .measuresummary import get_measure_summary
-from .presto import raw_query
 from .versions import get_current_firefox_version
 
 
@@ -37,6 +36,11 @@ def update_measure(platform_name, channel_name, measure_name):
     defined in the settings. For any given point later than the
     minimum timestamp we may reject it because it's too old.
     '''
+    # hack: importing raw_query here to make monkeypatching work
+    # (if we put it on top it is impossible to override if something
+    # else imports this module first)
+    from .presto import raw_query
+
     logger.info('Updating measure: %s %s %s', channel_name, platform_name,
                 measure_name)
     platform = Platform.objects.get(name=platform_name)
