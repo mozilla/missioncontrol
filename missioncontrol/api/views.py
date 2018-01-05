@@ -101,8 +101,8 @@ def measure(request):
     if not all([channel_name, platform_name, measure_name, interval]):
         return HttpResponseBadRequest("All of channel, platform, measure, interval required")
     if not all([val is None or val.isdigit() for val in (start, interval)]):
-        raise HttpResponseBadRequest(
-            "Interval / start time must be specified in seconds (as an integer)")
+        return HttpResponseBadRequest(
+            "Interval / start time must be specified in seconds (as an integer) %s" % interval)
 
     datums = Datum.objects.filter(
         series__build__channel__name=channel_name,
