@@ -9,6 +9,7 @@ export const TIME_INTERVALS = [
 ];
 
 export const TIME_INTERVALS_RELATIVE = [
+  { label: 'Up to last datapoint', interval: 0 },
   { label: 'Up to 14 days after release', interval: 1209600 },
   { label: 'Up to 7 days after release', interval: 604800 },
   { label: 'Up to 48 hours after release', interval: 172800 },
@@ -24,6 +25,7 @@ export const PERCENTILES = [
 ];
 
 export const DEFAULT_TIME_INTERVAL = 172800;
+export const DEFAULT_TIME_INTERVAL_RELATIVE = 0;
 export const DEFAULT_PERCENTILE = 99;
 export const DEFAULT_VERSION_GROUPING_TYPE = 'version';
 
