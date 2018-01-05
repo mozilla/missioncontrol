@@ -14,6 +14,7 @@ import SubViewNav from './subviewnav.jsx';
 import {
   DEFAULT_PERCENTILE,
   DEFAULT_TIME_INTERVAL,
+  DEFAULT_TIME_INTERVAL_RELATIVE,
   DEFAULT_VERSION_GROUPING_TYPE,
   CRASH_STATS_MAPPING,
   PERCENTILES,
@@ -54,9 +55,17 @@ const getValidTimeIntervals = (params) => {
 const getOptionalParameters = (props) => {
   const urlParams = new URLSearchParams(props.location.search);
 
-  // time interval can either be specified as an interval (starting from the present) or a set of dates
-  const timeInterval = parseInt(urlParams.get('timeInterval') ?
-    urlParams.get('timeInterval') : DEFAULT_TIME_INTERVAL, 10);
+  // relative to most recent version (true/false), false if not
+  // specified
+  const relative = !!parseInt(urlParams.get('relative'), 10);
+
+  // time interval can either be an interval (starting from or working back from
+  // the present, depending on whether we are relative to most recent version) or a
+  // parameter when getting the date range (non-relative mode only)
+  let timeInterval = parseInt(urlParams.get('timeInterval') ? urlParams.get('timeInterval') : 0, 10);
+  if (!timeInterval) {
+    timeInterval = relative ? DEFAULT_TIME_INTERVAL_RELATIVE : DEFAULT_TIME_INTERVAL;
+  }
 
   let startTime = urlParams.get('startTime');
   let customStartDate;
@@ -73,10 +82,6 @@ const getOptionalParameters = (props) => {
   // percentile filter of data
   const percentileThreshold = parseInt(urlParams.has('percentile') ?
     urlParams.get('percentile') : DEFAULT_PERCENTILE, 10);
-
-  // relative to most recent version (true/false), false if not
-  // specified
-  const relative = !!parseInt(urlParams.get('relative'), 10);
 
   // coerce normalized into a boolean, true if not specified
   let normalized = true;
@@ -142,7 +147,7 @@ class DetailViewComponent extends React.Component {
       relative: this.state.relative ? 1 : undefined,
       interval: this.state.timeInterval,
       start: this.state.startTime
-    })).then(() =>
+    }, a => !(_.isUndefined(a) || _.isNull(a)))).then(() =>
       this.setState({
         seriesList: this.getSeriesList(),
         isLoading: false
@@ -319,8 +324,10 @@ class DetailViewComponent extends React.Component {
   }
 
   relativeChanged(ev) {
+    const relative = !!parseInt(ev.target.value, 10);
     this.navigate({
-      relative: !!parseInt(ev.target.value, 10)
+      timeInterval: relative ? DEFAULT_TIME_INTERVAL_RELATIVE : DEFAULT_TIME_INTERVAL,
+      relative
     }, () => {
       // changing this implies redownloading the measure data
       this.fetchMeasureData();

@@ -130,12 +130,16 @@ def measure(request):
                 'timestamp', 'value', 'usage_hours').order_by('timestamp'):
             ret[build_id]['data'].append((timestamp, value, usage_hours))
     else:
-        latest = datums.aggregate(
-            Max('series__build__version'),
-            Max('series__build__build_id'))
-        (latest_version, latest_build_id) = [latest.get(x) for x in [
-            'series__build__version__max', 'series__build__build_id__max']]
-
+        latest_build_id = datums.aggregate(
+            Max('series__build__build_id'))['series__build__build_id__max']
+        if int(interval) == 0:
+            # if interval is 0 for relative, just use the interval of the latest
+            # released version
+            timestamps_for_latest = datums.filter(
+                series__build__build_id=latest_build_id).aggregate(
+                    Min('timestamp'), Max('timestamp'))
+            interval = (timestamps_for_latest['timestamp__max'] -
+                        timestamps_for_latest['timestamp__min']).total_seconds()
         # get data for current + up to three previous versions (handling each
         # build id for each version, if there are multiple)
         versions = datums.values_list(
