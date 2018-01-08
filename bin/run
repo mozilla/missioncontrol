@@ -56,13 +56,9 @@ case $1 in
       --pidfile ${MONITOR_PIDFILE}
     ;;
   test)
-    coverage erase
-    tox
-    coverage report -m
+    pytest tests/ missioncontrol/
     if [[ ! -z ${CI+check} ]]; then
       # submit coverage
-      coverage xml
-      env
       bash <(curl -s https://codecov.io/bash) -s /tmp
     fi
     ;;
