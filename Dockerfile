@@ -27,10 +27,9 @@ RUN mkdir -p \
 
 WORKDIR /app
 
-# First copy requirements.txt and peep so we can take advantage of
-# docker caching.
-COPY requirements.txt /app/requirements.txt
-RUN pip install --require-hashes --no-cache-dir -r requirements.txt
+# First copy requirements so we can take advantage of docker caching.
+COPY requirements/*.txt /app/
+RUN pip install --require-hashes --no-cache-dir -r all.txt
 
 COPY . /app
 RUN chown webdev:webdev -R .

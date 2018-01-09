@@ -57,11 +57,11 @@ load_measure_data subcommand. E.g.:
 ./manage.py load_measure_data linux release main_crashes
 ```
 
-To run the tests locally is via the shell environment. After running
-`make shell`, execute:
+The recommended way of running the tests locally is via the shell environment.
+After running `make shell`, execute:
 
 ```bash
-tox
+pytest tests/
 ```
 
 By default all tests and linters are run. Often you just want to run a subset
