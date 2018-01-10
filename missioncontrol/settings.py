@@ -314,3 +314,4 @@ FIREFOX_VERSION_CACHE_TIMEOUT = 300
 DATA_EXPIRY_INTERVAL = timedelta(days=60)
 MIN_CLIENT_COUNT = 100  # minimum number of client submissions for aggregate to be used
 MEASURE_SUMMARY_SAMPLING_INTERVAL = timedelta(days=1)
+MEASURE_SUMMARY_VERSION_INTERVAL = 4  # number of previous versions to consider

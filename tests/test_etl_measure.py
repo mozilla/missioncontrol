@@ -77,11 +77,13 @@ def test_get_measure_summary(fake_measure_data, prepopulated_version_cache):
         'lastUpdated': datetime.datetime(2017, 7, 1, 12, 0, tzinfo=tzutc()),
         'latest': {
             'median': 625.0,
+            'stdev': 2562.754,
             'usageHours': 56.0,
             'version': '55.0.1'
         },
         'previous': {
             'median': 625.0,
+            'stdev': 2562.754,
             'usageHours': 56.0,
             'version': None
         }

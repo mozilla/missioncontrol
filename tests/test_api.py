@@ -48,12 +48,14 @@ def test_measure_summary_incorporated(client, monkeypatch, prepopulated_version_
                         'lastUpdated': '2017-07-01T12:00:00Z',
                         'latest': {
                             'median': 625.0,
+                            'stdev': 2562.754,
                             'usageHours': 56.0,
                             'version': '55.0.1'
                         },
                         'name': 'main_crashes',
                         'previous': {
                             'median': 625.0,
+                            'stdev': 2562.754,
                             'usageHours': 56.0,
                             'version': None
                         }
