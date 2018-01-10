@@ -27,6 +27,14 @@ const getFormattedNumber = (num) => {
   return numeral(num).format('0.00a');
 };
 
+const getDisplayInterval = (num, stdev) => {
+  const medianStr = `${getFormattedNumber(num)}`;
+  if (num && stdev) {
+    return `${medianStr} ± ${getFormattedNumber(stdev)}`;
+  }
+  return medianStr;
+};
+
 export class SubViewComponent extends React.Component {
   constructor(props) {
     super(props);
@@ -91,10 +99,10 @@ export class SubViewComponent extends React.Component {
                         </td>
                         <td>
                           <span title={`Version ${measure.latest.version}`}>
-                            {getFormattedNumber(measure.latest.median)}
+                            {getDisplayInterval(measure.latest.median, measure.latest.stdev)}
                           </span>
                         </td>
-                        <td>{getFormattedNumber(measure.previous.median)}</td>
+                        <td>{getDisplayInterval(measure.previous.median, measure.previous.stdev)}</td>
                         <td>{measure.lastUpdated ? moment(measure.lastUpdated).fromNow() : 'N/A'}</td>
                       </tr>
                     ))
