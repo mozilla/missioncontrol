@@ -1,4 +1,4 @@
-.PHONY: build migrate shell presto-cli up fixtures tests flake8 docs ci
+.PHONY: build migrate shell presto-cli up fixtures tests flake8
 
 help:
 	@echo "Welcome to the Mission Control Api Service\n"
@@ -11,8 +11,6 @@ help:
 	@echo "  fixtures   Generates sample data"
 	@echo "  tests      Run pytest tests using tox"
 	@echo "  flake8     Run flake8 using tox"
-	@echo "  docs       Build the docs using tox"
-	@echo "  ci         Run tests, flake8 and docs"
 
 build:
 	SERVICE_DOMAIN="" yarn build
@@ -41,9 +39,3 @@ tests:
 
 flake8:
 	docker-compose run web tox -eflake8
-
-docs:
-	docker-compose run web tox -edocs
-
-ci:
-	docker-compose run web tox
