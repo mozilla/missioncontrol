@@ -31,3 +31,7 @@ class Command(BaseCommand):
         for platform in Platform.objects.all():
             for measure_name in CRASH_MEASURES + QUALITY_MEASURES:
                 Measure.objects.get_or_create(name=measure_name, platform=platform)
+
+        # create a set of non-platform-specific crash measures for experiments
+        for measure_name in CRASH_MEASURES:
+            Measure.objects.get_or_create(name=measure_name, platform=None)

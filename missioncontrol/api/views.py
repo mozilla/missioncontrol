@@ -170,3 +170,39 @@ def measure(request):
                 ).order_by('timestamp').values_list('timestamp', 'value', 'usage_hours')]
 
     return JsonResponse(data={'measure_data': ret})
+
+
+def experiment(request):
+    measure_name = request.GET.get('measure')
+    interval = request.GET.get('interval')
+    start = request.GET.get('start')
+    experiment_name = request.GET.get('experiment')
+
+    if not all([measure_name, experiment_name]):
+        return HttpResponseBadRequest("Must specify measure, experiment name")
+    if not all([val is None or val.isdigit() for val in (start, interval)]):
+        raise HttpResponseBadRequest(
+            "Interval / start time must be specified in seconds (as an integer)")
+
+    datums = Datum.objects.filter(
+        series__measure__name=measure_name,
+        series__build__channel=None,
+        series__build__platform=None,
+        series__build__build_id=None,
+        series__build__version=None,
+        series__build__experiment_branch__experiment__name=experiment_name)
+
+    if not datums.exists():
+        return HttpResponseNotFound("No data available for this experiment")
+
+    ret = {}
+
+    datums = _filter_datums_to_time_interval(datums, start, interval)
+    for (experiment_branch, timestamp, value, usage_hours) in datums.values_list(
+            'series__build__experiment_branch__name',
+            'timestamp', 'value', 'usage_hours').order_by('timestamp'):
+        if not ret.get(experiment_branch):
+            ret[experiment_branch] = []
+        ret[experiment_branch].append((timestamp, value, usage_hours))
+
+    return JsonResponse(data={'measure_data': ret})
