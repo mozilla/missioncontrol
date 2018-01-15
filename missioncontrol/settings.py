@@ -99,6 +99,9 @@ CACHES = {'default': django_cache_url.config()}
 PRESTO_URL = config('PRESTO_URL')
 MISSION_CONTROL_TABLE = config('MISSION_CONTROL_TABLE',
                                default='telemetry.error_aggregates_v1')
+PRESTO_EXPERIMENTS_ERROR_AGGREGATES_TABLE = config(
+    'PRESTO_EXPERIMENTS_ERROR_AGGREGATES_TABLE',
+    default='telemetry.experiment_error_aggregates_v1')
 
 # Internationalization
 # https://docs.djangoproject.com/en/1.9/topics/i18n/
@@ -247,7 +250,16 @@ if FETCH_MEASURE_DATA:
         'fetch_measure_data': {
             'schedule': crontab(minute='*/5'),  # every 5 minutes
             'task': 'missioncontrol.etl.tasks.update_measures'
+        },
+        'fetch_experiment_data': {
+            'schedule': crontab(minute='*/5'),  # every 5 minutes
+            'task': 'missioncontrol.etl.tasks.update_experiment_data'
+        },
+        'update_active_experiments': {
+            'schedule': crontab(minute='*/5'),  # every 5 minutes
+            'task': 'missioncontrol.etl.tasks.update_experiment_list'
         }
+
     })
 
 LOGGING_USE_JSON = config('LOGGING_USE_JSON', default=True, cast=bool)
@@ -310,6 +322,9 @@ LOGGING = {
 
 FIREFOX_VERSION_URL = 'https://product-details.mozilla.org/1.0/firefox_versions.json'
 FIREFOX_VERSION_CACHE_TIMEOUT = 300
+
+FIREFOX_EXPERIMENTS_URL = ('https://normandy.cdn.mozilla.net/api/v1/recipe/'
+                           'signed/?enabled=true&' 'latest_revision__action=3')
 
 DATA_EXPIRY_INTERVAL = timedelta(days=60)
 MIN_CLIENT_COUNT = 100  # minimum number of client submissions for aggregate to be used
