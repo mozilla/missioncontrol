@@ -10,5 +10,4 @@ MANIFEST
 celerybeat.pid
 celerymonitor.pid
 dist/
-docs/_build
 node_modules/
