@@ -42,7 +42,7 @@ case $1 in
     exec python manage.py runserver 0.0.0.0:${PORT}
     ;;
   worker)
-    exec newrelic-admin run-program celery -A missioncontrol.celery:celery worker -l info -O fair --events
+    exec newrelic-admin run-program celery -A missioncontrol.celery:celery worker -l info -O fair --events --concurrency=8
     ;;
   scheduler)
     python manage.py migrate --noinput
