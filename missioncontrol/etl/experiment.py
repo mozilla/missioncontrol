@@ -11,6 +11,7 @@ from missioncontrol.base.models import (Build,
                                         ExperimentBranch,
                                         Measure,
                                         Series)
+from missioncontrol.celery import celery
 from missioncontrol.settings import (DATA_EXPIRY_INTERVAL,
                                      PRESTO_EXPERIMENTS_ERROR_AGGREGATES_TABLE)
 from .presto import raw_query
@@ -19,6 +20,7 @@ from .presto import raw_query
 logger = logging.getLogger(__name__)
 
 
+@celery.task
 def update_experiment(experiment_name):
     # for now we process all measures which have no platform specified
     measures = Measure.objects.filter(platform=None)
