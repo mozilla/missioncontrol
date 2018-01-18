@@ -12,8 +12,8 @@ from missioncontrol.base.models import (Channel,
                                         Measure,
                                         Platform)
 from missioncontrol.etl.date import datetime_to_utc
+from missioncontrol.etl.measuresummary import get_measure_summary_cache_key
 from missioncontrol.etl.presto import (QueryBuilder, DIMENSION_LIST)
-from missioncontrol.etl.schema import get_measure_summary_cache_key
 
 logger = logging.getLogger(__name__)
 

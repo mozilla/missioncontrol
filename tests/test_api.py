@@ -6,8 +6,8 @@ from django.core.cache import cache
 from django.core.urlresolvers import reverse
 from freezegun import freeze_time
 
-from missioncontrol.etl.measuresummary import get_measure_summary
-from missioncontrol.etl.schema import get_measure_summary_cache_key
+from missioncontrol.etl.measuresummary import (get_measure_summary,
+                                               get_measure_summary_cache_key)
 from missioncontrol.base.models import (Channel,
                                         Platform)
 

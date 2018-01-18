@@ -9,7 +9,6 @@ from django.db.models import Max
 from django.utils import timezone
 
 from missioncontrol.celery import celery
-from missioncontrol.etl.schema import get_measure_summary_cache_key
 from missioncontrol.base.models import (Build,
                                         Channel,
                                         Datum,
@@ -19,7 +18,8 @@ from missioncontrol.base.models import (Build,
 from missioncontrol.settings import (DATA_EXPIRY_INTERVAL,
                                      MIN_CLIENT_COUNT,
                                      MISSION_CONTROL_TABLE)
-from .measuresummary import get_measure_summary
+from .measuresummary import (get_measure_summary_cache_key,
+                             get_measure_summary)
 from .versions import get_current_firefox_version
 
 

@@ -7,6 +7,12 @@ from missioncontrol.settings import (MEASURE_SUMMARY_VERSION_INTERVAL,
                                      MEASURE_SUMMARY_SAMPLING_INTERVAL)
 
 
+def get_measure_summary_cache_key(platform_name, channel_name, measure_name):
+    return ':'.join(
+        [s.lower() for s in [platform_name, channel_name, measure_name,
+                             'summary']])
+
+
 def _get_summary_dict(values, version=None):
     if not values:
         return {
