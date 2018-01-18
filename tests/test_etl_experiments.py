@@ -1,3 +1,5 @@
+from unittest.mock import patch
+
 from missioncontrol.base.models import Experiment
 from missioncontrol.settings import FIREFOX_EXPERIMENTS_URL
 
@@ -30,3 +32,11 @@ def test_update_experiments(transactional_db, responses):
             ('experiment1', False),
             ('experiment2', True)
         ]
+
+
+def test_update_experiment_data(transactional_db, responses):
+    e = Experiment.objects.create(name="cheezburger", enabled=True)
+    from missioncontrol.etl.tasks import update_experiment_data
+    with patch('missioncontrol.etl.experiment.update_experiment.apply_async') as mock_task:
+        update_experiment_data()
+        mock_task.assert_called_once_with(args=[e.name])
