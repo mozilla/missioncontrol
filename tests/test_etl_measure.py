@@ -3,8 +3,11 @@ import datetime
 import pytest
 from freezegun import freeze_time
 from dateutil.tz import tzutc
+from unittest.mock import (call, patch)
 
-from missioncontrol.base.models import Datum
+from missioncontrol.base.models import (Channel,
+                                        Datum,
+                                        Measure)
 from missioncontrol.etl.date import datetime_to_utc
 
 
@@ -88,3 +91,18 @@ def test_get_measure_summary(fake_measure_data, prepopulated_version_cache):
             'version': None
         }
     }
+
+
+def test_all_measure_update_tasks_scheduled(initial_data, *args):
+    # this test is a bit tautological, but at least exercises the function
+    expected_calls = []
+    for channel_name in Channel.objects.values_list('name', flat=True):
+        for (measure_name, platform_name) in Measure.objects.exclude(
+                platform=None).values_list('name', 'platform__name'):
+            expected_calls.append(call(args=[platform_name, channel_name,
+                                             measure_name]))
+
+    from missioncontrol.etl.tasks import update_measures
+    with patch('missioncontrol.etl.measure.update_measure.apply_async') as mock_task:
+        update_measures()
+        mock_task.assert_has_calls(expected_calls, any_order=True)
