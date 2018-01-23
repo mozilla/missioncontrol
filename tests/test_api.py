@@ -66,7 +66,7 @@ def test_measure_summary_incorporated(client, monkeypatch, prepopulated_version_
     }
 
 
-@pytest.mark.parametrize('missing_param', ['platform', 'channel', 'measure'])
+@pytest.mark.parametrize('missing_param', ['platform', 'channel', 'measure', 'interval'])
 def test_get_measure_missing_params(client, missing_param):
     params = {
         'platform': 'windows',
