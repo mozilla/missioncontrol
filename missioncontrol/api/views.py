@@ -178,8 +178,8 @@ def experiment(request):
     start = request.GET.get('start')
     experiment_name = request.GET.get('experiment')
 
-    if not all([measure_name, experiment_name]):
-        return HttpResponseBadRequest("Must specify measure, experiment name")
+    if not all([measure_name, experiment_name, interval]):
+        return HttpResponseBadRequest("Must specify measure, experiment, interval")
     if not all([val is None or val.isdigit() for val in (start, interval)]):
         raise HttpResponseBadRequest(
             "Interval / start time must be specified in seconds (as an integer)")
