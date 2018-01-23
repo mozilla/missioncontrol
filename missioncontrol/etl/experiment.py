@@ -1,6 +1,7 @@
 import datetime
 import logging
 
+import newrelic.agent
 from django.db.models import Max
 from django.utils import timezone
 from dateutil.tz import tzutc
@@ -22,6 +23,9 @@ logger = logging.getLogger(__name__)
 
 @celery.task
 def update_experiment(experiment_name):
+    logger.info('Updating experiment: %s', experiment_name)
+    newrelic.agent.add_custom_parameter("experiment", experiment_name)
+
     # for now we process all measures which have no platform specified
     measures = Measure.objects.filter(platform=None)
     measure_names = measures.values_list('name', flat=True)

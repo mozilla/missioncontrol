@@ -4,6 +4,7 @@ import pytz
 from dateutil.tz import tzutc
 from distutils.version import LooseVersion
 
+import newrelic.agent
 from django.core.cache import cache
 from django.db.models import Max
 from django.utils import timezone
@@ -43,6 +44,11 @@ def update_measure(platform_name, channel_name, measure_name):
 
     logger.info('Updating measure: %s %s %s', channel_name, platform_name,
                 measure_name)
+
+    newrelic.agent.add_custom_parameter("platform", platform_name)
+    newrelic.agent.add_custom_parameter("channel", channel_name)
+    newrelic.agent.add_custom_parameter("measure", measure_name)
+
     platform = Platform.objects.get(name=platform_name)
     channel = Channel.objects.get(name=channel_name)
     measure = Measure.objects.get(name=measure_name,
