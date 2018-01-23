@@ -17,15 +17,17 @@ def _get_summary_dict(values, version=None):
     if not values:
         return {
             "version": version,
-            "mean": None,
-            "usageHours": 0
+            "median": None,
+            "stdev": 0.0,
+            "usageHours": 0.0
         }
 
     normalized_values = [v[0]/(v[1]/1000.0) for v in values]
     return {
         "version": version,
         "median": round(statistics.median(normalized_values), 3),
-        "stdev": round(statistics.stdev(normalized_values), 3),
+        "stdev": (0.0 if len(normalized_values) == 1 else
+                  round(statistics.stdev(normalized_values), 3)),
         "usageHours": sum([v[1] for v in values])
     }
 
