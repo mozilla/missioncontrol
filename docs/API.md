@@ -55,8 +55,8 @@ Gets data specific to a channel/platform/measure combination
 Query parameters:
 
 * `channel` (required): Channel for measure (e.g. `release`)
-* `platform` (required): Platform for measure (e.g. `release`)
-* `measure` (required): Name for measure (e.g. `main_crashes`)
+* `platform` (required): Platform for measure (e.g. `windows`)
+* `measure` (required): Measure identifier (e.g. `main_crashes`)
 * `interval` (required): Interval of data to gather, in seconds
 * `start` (optional): Starting point to gather measure data from. If
   not specified, will return `interval` worth of data, counting back
@@ -127,13 +127,13 @@ Example output (relative=1):
 
 ### `GET /api/experiment/`
 
-Gets data specific to an experiment for a specific measure
+Gets measure data associated with a specific experiment
 
 Query parameters:
 
 * `experiment` (required): Experiment slug to get data for (e.g.
   `pref-flip-activity-stream-58-beta-pocket-personalization-bug-1425490`)
-* `measure` (required): Name for measure (e.g. `main_crashes`)
+* `measure` (required): Measure identifier (e.g. `main_crashes`)
 * `interval` (required): Interval of data to gather, in seconds
 * `start` (optional): Starting point to gather measure data from. If
   not specified, will return `interval` worth of data, counting back
