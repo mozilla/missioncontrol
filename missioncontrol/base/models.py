@@ -107,3 +107,4 @@ class Datum(models.Model):
 
     class Meta:
         db_table = 'datum'
+        index_together = ('series', 'timestamp')
