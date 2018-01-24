@@ -249,15 +249,24 @@ if FETCH_MEASURE_DATA:
     CELERY_BEAT_SCHEDULE.update({
         'fetch_measure_data': {
             'schedule': crontab(minute='*/5'),  # every 5 minutes
-            'task': 'missioncontrol.etl.tasks.update_measures'
+            'task': 'missioncontrol.etl.tasks.update_measures',
+            'options': {
+                'expires': 5 * 60
+            }
         },
         'fetch_experiment_data': {
             'schedule': crontab(minute='*/5'),  # every 5 minutes
-            'task': 'missioncontrol.etl.tasks.update_experiment_data'
+            'task': 'missioncontrol.etl.tasks.update_experiment_data',
+            'options': {
+                'expires': 5 * 60
+            }
         },
         'update_active_experiments': {
             'schedule': crontab(minute='*/5'),  # every 5 minutes
-            'task': 'missioncontrol.etl.tasks.update_experiment_list'
+            'task': 'missioncontrol.etl.tasks.update_experiment_list',
+            'options': {
+                'expires': 5 * 60
+            }
         }
 
     })
