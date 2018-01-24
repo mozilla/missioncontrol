@@ -19,6 +19,12 @@ logger = logging.getLogger(__name__)
 
 
 def aggregates(request):
+    '''
+    Returns a set of aggregates for a specific set of dimensions
+
+    This method is unused in the frontend currently and may be removed
+    soon. It is also quite slow. Using it is not recommended.
+    '''
     url_path = request.GET.urlencode()
     results = cache.get('aggregates:%s' % url_path)
 
@@ -37,6 +43,9 @@ def aggregates(request):
 
 
 def channel_platform_summary(request):
+    '''
+    Lists measures available for specified channel/platform combinations
+    '''
     platform_filter = [platform.lower() for platform in request.GET.getlist('platform')]
     channel_filter = [channel.lower() for channel in request.GET.getlist('channel')]
 
@@ -91,6 +100,9 @@ def _filter_datums_to_time_interval(datums, start, interval,
 
 
 def measure(request):
+    '''
+    Gets data specific to a channel/platform/measure combination
+    '''
     channel_name = request.GET.get('channel')
     platform_name = request.GET.get('platform')
     measure_name = request.GET.get('measure')
@@ -173,6 +185,9 @@ def measure(request):
 
 
 def experiment(request):
+    '''
+    Gets measure data associated with a specific experiment
+    '''
     measure_name = request.GET.get('measure')
     interval = request.GET.get('interval')
     start = request.GET.get('start')
