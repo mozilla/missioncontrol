@@ -1,8 +1,6 @@
 import os
 import random
 from celery import Celery
-from celery.five import string_t
-from celery.utils.time import maybe_iso8601
 
 # Based off of:
 # https://github.com/mozilla/telemetry-analysis-service/blob/4f576889aae89d753c9ad7f254a9a42fe2d4dbff/atmo/celery.py
@@ -52,15 +50,6 @@ class McCelery(Celery):
     """
     A custom Celery class to implement exponential backoff retries.
     """
-    def send_task(self, *args, **kwargs):
-        # HACK: This needs to be removed once Celery > 4.0.2 is out:
-        # see https://github.com/celery/celery/issues/3734
-        # and https://github.com/celery/celery/pull/3790
-        expires = kwargs.get('expires')
-        if isinstance(expires, string_t):
-            kwargs['expires'] = maybe_iso8601(expires)
-        return super().send_task(*args, **kwargs)
-
     def backoff(self, n, cap=60 * 60):
         """
         Return a fully jittered backoff value for the given number.
