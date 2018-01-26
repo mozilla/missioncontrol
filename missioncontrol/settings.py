@@ -223,8 +223,8 @@ CELERY_BROKER_TRANSPORT_OPTIONS = {
 }
 #: Use the django_celery_results database backend.
 CELERY_RESULT_BACKEND = 'django-db'
-#: Throw away task results after two weeks, for debugging purposes.
-CELERY_RESULT_EXPIRES = timedelta(days=14)
+#: Throw away task results after one day, for debugging purposes.
+CELERY_RESULT_EXPIRES = timedelta(days=1)
 #: Track if a task has been started, not only pending etc.
 CELERY_TASK_TRACK_STARTED = True
 #: Add a 5 minute soft timeout to all Celery tasks.
