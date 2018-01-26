@@ -184,8 +184,8 @@ urllib3==1.22 \
 celery==4.1.0 \
     --hash=sha256:81a67f0d53a688ec2bc8557bd5d6d7218f925a6f2e6df80e01560de9e28997ec \
     --hash=sha256:77ff3730198d6a17b3c1f05579ebe570b579efb35f6d7e13dba3b1368d068b35
-celery-redbeat==0.10.0 \
-    --hash=sha256:0ac7e6fbf09b91e03a4b2f92474a82bacf256f0f82e0c29f147358a91b26c472
+celery-redbeat==0.11.1 \
+    --hash=sha256:fa1951cee7dfb8e185f53ce6dfb78f53b66ace76d5799f67ddac75ae1550aa87
 django_celery_results==1.0.1 \
     --hash=sha256:dfa240fb535a1a2d01c9e605ad71629909318eae6b893c5009eafd7265fde10b \
     --hash=sha256:8bca2605eeff4418be7ce428a6958d64bee0f5bdf1f8e563fbc09a9e2f3d990f
