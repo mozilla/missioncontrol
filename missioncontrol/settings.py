@@ -235,6 +235,8 @@ CELERY_TASK_TIME_LIMIT = CELERY_TASK_SOFT_TIME_LIMIT * 2
 CELERY_TASK_SEND_SENT_EVENT = True
 #: Completely disable the rate limiting feature since it's costly
 CELERY_WORKER_DISABLE_RATE_LIMITS = True
+#: Stop hijacking the root logger so Sentry works.
+CELERY_WORKER_HIJACK_ROOT_LOGGER = False
 #: The scheduler to use for periodic and scheduled tasks.
 CELERY_BEAT_SCHEDULER = 'redbeat.RedBeatScheduler'
 #: Maximum time to sleep between re-checking the schedule
