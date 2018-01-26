@@ -6,6 +6,7 @@ set -eo pipefail
 : "${SLEEP:=1}"
 : "${TRIES:=60}"
 : "${MONITOR_PIDFILE:=/app/celerymonitor.pid}"
+: "${SCHEDULER_PIDFILE:=/app/celerybeat.pid}"
 
 usage() {
   echo "usage: bin/run web|web-dev|test"
@@ -42,12 +43,13 @@ case $1 in
     exec python manage.py runserver 0.0.0.0:${PORT}
     ;;
   worker)
-    exec newrelic-admin run-program celery -A missioncontrol.celery:celery worker -l info -O fair --events --concurrency=8
+    exec newrelic-admin run-program celery -A missioncontrol.celery:celery worker -l info --events --concurrency=8
     ;;
   scheduler)
+    [ -f ${SCHEDULER_PIDFILE} ] && rm ${SCHEDULER_PIDFILE}
     python manage.py migrate --noinput
     exec newrelic-admin run-program celery -A missioncontrol.celery:celery \
-      beat -l info --pidfile /tmp/celerybeat.pid
+      beat -l info --pidfile ${SCHEDULER_PIDFILE}
     ;;
   monitor)
     [ -f ${MONITOR_PIDFILE} ] && rm ${MONITOR_PIDFILE}
