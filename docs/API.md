@@ -64,6 +64,8 @@ Query parameters:
   is specified (see below)
 * `relative` (optional): If true (specified and non-zero), return results
   *from* the time of release of the latest version
+* `version` (optional): Retrieve only data particular to a specific version.
+  May be specified multiple times.
 
 Returns a dictionary with one element called `measure_data`, a dictionary
 whose keys are a set of buildids representing unique version, and whose

@@ -109,6 +109,7 @@ def measure(request):
     interval = request.GET.get('interval')
     start = request.GET.get('start')
     relative = request.GET.get('relative')
+    versions = request.GET.getlist('version')
 
     if not all([channel_name, platform_name, measure_name, interval]):
         return HttpResponseBadRequest("All of channel, platform, measure, interval required")
@@ -120,6 +121,9 @@ def measure(request):
         series__build__channel__name=channel_name,
         series__build__platform__name=platform_name,
         series__measure__name=measure_name)
+
+    if versions:
+        datums = datums.filter(series__build__version__in=versions)
 
     if not datums.exists():
         return HttpResponseNotFound("Data not available for this measure combination")
@@ -142,21 +146,24 @@ def measure(request):
                 'timestamp', 'value', 'usage_hours').order_by('timestamp'):
             ret[build_id]['data'].append((timestamp, value, usage_hours))
     else:
-        latest_build_id = datums.aggregate(
-            Max('series__build__build_id'))['series__build__build_id__max']
-        if int(interval) == 0:
-            # if interval is 0 for relative, just use the interval of the latest
-            # released version
-            timestamps_for_latest = datums.filter(
-                series__build__build_id=latest_build_id).aggregate(
-                    Min('timestamp'), Max('timestamp'))
-            interval = (timestamps_for_latest['timestamp__max'] -
-                        timestamps_for_latest['timestamp__min']).total_seconds()
-        # get data for current + up to three previous versions (handling each
-        # build id for each version, if there are multiple)
-        versions = datums.values_list(
-            'series__build__version').distinct().order_by(
-                '-series__build__version')[0:4]
+        if not versions:
+            # if the user does not specify a list of versions, generate our
+            # own based on the latest version with data
+            latest_build_id = datums.aggregate(
+                Max('series__build__build_id'))['series__build__build_id__max']
+            if int(interval) == 0:
+                # if interval is 0 for relative, just use the interval of the latest
+                # released version
+                timestamps_for_latest = datums.filter(
+                    series__build__build_id=latest_build_id).aggregate(
+                        Min('timestamp'), Max('timestamp'))
+                interval = (timestamps_for_latest['timestamp__max'] -
+                            timestamps_for_latest['timestamp__min']).total_seconds()
+            # get data for current + up to three previous versions (handling each
+            # build id for each version, if there are multiple)
+            versions = datums.values_list(
+                'series__build__version').distinct().order_by(
+                    '-series__build__version')[0:4]
         version_timestamps = {
             (d[0], d[1]): d[2] for d in datums.filter(
                 series__build__version__in=versions).values_list(
