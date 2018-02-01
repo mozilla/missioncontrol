@@ -158,6 +158,53 @@ def test_get_measure(fake_measure_data, client):
         }
     }
 
+    # make sure that if we specify a specific version, we only get that one
+    resp = client.get(reverse('measure'), {
+        'platform': platform,
+        'channel': channel,
+        'measure': measure,
+        'start': int(time.mktime(
+            (datetime.datetime.now() - datetime.timedelta(minutes=66)).timetuple())),
+        'interval': 86400,
+        'version': '55.0'
+    })
+    assert resp.json()['measure_data'] == {
+        '20170629075044': {
+            'data': [
+                ['2017-07-01T11:55:00Z', 10.0, 16.0],
+                ['2017-07-01T12:00:00Z', 10.0, 20.0]
+            ],
+            'version': '55.0'
+        }
+    }
+
+    # make sure that if we specify both versions, we get both
+    resp = client.get(reverse('measure'), {
+        'platform': platform,
+        'channel': channel,
+        'measure': measure,
+        'start': int(time.mktime(
+            (datetime.datetime.now() - datetime.timedelta(minutes=66)).timetuple())),
+        'interval': 86400,
+        'version': ['55.0', '55.0.1']
+    })
+    assert resp.json()['measure_data'] == {
+        '20170620075044': {
+            'data': [
+                ['2017-07-01T11:55:00Z', 10.0, 16.0],
+                ['2017-07-01T12:00:00Z', 10.0, 20.0]
+            ],
+            'version': '55.0.1'
+        },
+        '20170629075044': {
+            'data': [
+                ['2017-07-01T11:55:00Z', 10.0, 16.0],
+                ['2017-07-01T12:00:00Z', 10.0, 20.0]
+            ],
+            'version': '55.0'
+        }
+    }
+
 
 @pytest.mark.parametrize('interval', [86400, 300, 0])
 @freeze_time('2017-07-01 13:00')
@@ -186,6 +233,30 @@ def test_compare(fake_measure_data_offset, client, interval):
         },
         '20170629075044': {
             'data': expected_data,
+            'version': '55.0'
+        }
+    }
+
+
+@freeze_time('2017-07-01 13:00')
+def test_compare_version(fake_measure_data_offset, client):
+    (platform, channel, measure) = ('linux', 'release', 'main_crashes')
+
+    resp = client.get(reverse('measure'), {
+        'platform': platform,
+        'channel': channel,
+        'measure': measure,
+        'interval': 86400,
+        'relative': 1,
+        'version': '55.0'
+    })
+
+    # should only get the information for 55.0, since that's all we asked for
+    assert resp.json()['measure_data'] == {
+        '20170629075044': {
+            'data': [[0, 100.0, 20.0],
+                     [300, 10.0, 16.0],
+                     [600, 10.0, 20.0]],
             'version': '55.0'
         }
     }
