@@ -179,13 +179,17 @@ def measure(request):
                 'version': version,
                 'data': []
             }
+            if start:
+                start_timestamp = base_timestamp + datetime.timedelta(seconds=int(start))
+            else:
+                start_timestamp = base_timestamp
             ret[build_id]['data'] = [
                 [int((timestamp - base_timestamp).total_seconds()), value, usage_hours] for
                 (timestamp, value, usage_hours) in datums.filter(
                     series__build__version=version,
                     series__build__build_id=build_id,
-                    timestamp__range=(base_timestamp,
-                                      base_timestamp + datetime.timedelta(seconds=int(interval)))
+                    timestamp__range=(start_timestamp,
+                                      start_timestamp + datetime.timedelta(seconds=int(interval)))
                 ).order_by('timestamp').values_list('timestamp', 'value', 'usage_hours')]
 
     return JsonResponse(data={'measure_data': ret})

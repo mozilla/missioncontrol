@@ -207,24 +207,30 @@ def test_get_measure(fake_measure_data, client):
 
 
 @pytest.mark.parametrize('interval', [86400, 300, 0])
+@pytest.mark.parametrize('start', [None, 0, 250, 301])
 @freeze_time('2017-07-01 13:00')
-def test_compare(fake_measure_data_offset, client, interval):
+def test_compare(fake_measure_data_offset, client, interval, start):
     (platform, channel, measure) = ('linux', 'release', 'main_crashes')
 
-    resp = client.get(reverse('measure'), {
+    params = {
         'platform': platform,
         'channel': channel,
         'measure': measure,
         'interval': interval,
         'relative': 1
-    })
+    }
+    if start is not None:
+        params.update({'start': start})
+    resp = client.get(reverse('measure'), params)
     # despite the samples being captured at different times, they should
     # return the same relative value for compare
+    min_time = start or 0
     expected_data = [
         datum for datum in
         [[0, 100.0, 20.0],
          [300, 10.0, 16.0],
-         [600, 10.0, 20.0]] if not interval or datum[0] <= interval
+         [600, 10.0, 20.0]] if datum[0] >= min_time and
+        (not interval or datum[0] <= (min_time + interval))
     ]
     assert resp.json()['measure_data'] == {
         '20170620075044': {
