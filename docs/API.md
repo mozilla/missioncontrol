@@ -58,12 +58,12 @@ Query parameters:
 * `platform` (required): Platform for measure (e.g. `windows`)
 * `measure` (required): Measure identifier (e.g. `main_crashes`)
 * `interval` (required): Interval of data to gather, in seconds
-* `start` (optional): Starting point to gather measure data from. If
-  not specified, will return `interval` worth of data, counting back
-  from the time of the query. This parameter is ignored if `relative`
-  is specified (see below)
 * `relative` (optional): If true (specified and non-zero), return results
   *from* the time of release of the latest version
+* `start` (optional): Starting point to gather measure data from. If
+  not specified, will return `interval` worth of data, counting either back
+  from the time of the query (non-relative) or up to the specified time
+  interval (relative).
 * `version` (optional): Retrieve only data particular to a specific version.
   May be specified multiple times.
 
