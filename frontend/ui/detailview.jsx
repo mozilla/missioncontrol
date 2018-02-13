@@ -89,6 +89,12 @@ const getOptionalParameters = (props) => {
     normalized = (parseInt(urlParams.get('normalized'), 10));
   }
 
+  // likewise with skipFirst24 (but false if not specified)
+  let skipFirst24 = false;
+  if (urlParams.has('skipFirst24')) {
+    skipFirst24 = (parseInt(urlParams.get('normalized'), 10));
+  }
+
   // disabledVersions is a comma-seperated list when specified
   const disabledVersions = new Set(urlParams.has('disabledVersions') ?
     urlParams.get('disabledVersions').split(',') : []);
@@ -100,6 +106,7 @@ const getOptionalParameters = (props) => {
     timeInterval,
     relative,
     normalized,
+    skipFirst24,
     disabledVersions,
     versionGrouping,
     percentile: percentileThreshold,
@@ -127,6 +134,7 @@ class DetailViewComponent extends React.Component {
     this.timeIntervalChanged = this.timeIntervalChanged.bind(this);
     this.cancelChooseCustomTimeInterval = this.cancelChooseCustomTimeInterval.bind(this);
     this.relativeChanged = this.relativeChanged.bind(this);
+    this.skipFirst24CheckboxChanged = this.skipFirst24CheckboxChanged.bind(this);
     this.percentileChanged = this.percentileChanged.bind(this);
     this.normalizeCheckboxChanged = this.normalizeCheckboxChanged.bind(this);
     this.versionCheckboxChanged = this.versionCheckboxChanged.bind(this);
@@ -168,6 +176,11 @@ class DetailViewComponent extends React.Component {
         }
         build.data.forEach((datum) => {
           const date = this.state.relative ? datum[0] / 60.0 / 60.0 : new Date(datum[0]);
+          if (this.state.relative && this.state.skipFirst24 && date < 24) {
+            // if skipping the first 24 hours, filter out any datums within
+            // that interval
+            return;
+          }
           if (!seriesMap[build.version][date]) {
             seriesMap[build.version][date] = {
               [measure]: 0,
@@ -245,11 +258,17 @@ class DetailViewComponent extends React.Component {
     this.setState(newParams, cb);
 
     // generate a new url string, so we can link to this particular view
-    const params = ['timeInterval', 'relative', 'percentile', 'normalized', 'disabledVersions', 'versionGrouping'];
-    if (newParams.startTime) {
-      // only want to put startTime in url string if it's defined
-      params.push('startTime');
-    }
+    const params = [
+      'timeInterval', 'relative', 'percentile', 'normalized',
+      'disabledVersions', 'versionGrouping'
+    ];
+    // only want to put startTime, skipFirst24 in url string if they are
+    // defined
+    ['skipFirst24', 'startTime'].forEach((param) => {
+      if (newParams[param]) {
+        params.push(param);
+      }
+    });
 
     const paramStr = params.map((paramName) => {
       let value = (!_.isUndefined(newParams[paramName])) ? newParams[paramName] : this.state[paramName];
@@ -273,11 +292,14 @@ class DetailViewComponent extends React.Component {
     } else {
       const timeInterval = this.state.relative ?
         TIME_INTERVALS_RELATIVE[index] : this.state.validTimeIntervals[index];
+      const skipFirst24 = (timeInterval.interval > 0 && timeInterval.interval <= 86400) ?
+        undefined : this.state.skipFirst24;
       this.navigate({
         customStartDate: undefined,
         customEndDate: undefined,
         startTime: timeInterval.startTime,
-        timeInterval: timeInterval.interval
+        timeInterval: timeInterval.interval,
+        skipFirst24
       }, () => {
         this.fetchMeasureData();
       });
@@ -307,6 +329,16 @@ class DetailViewComponent extends React.Component {
         validTimeIntervals: getValidTimeIntervals(timeParams)
       }, () => {
         this.fetchMeasureData();
+      });
+    });
+  }
+
+  skipFirst24CheckboxChanged(ev) {
+    this.navigate({
+      skipFirst24: ev.target.checked
+    }, () => {
+      this.setState({
+        seriesList: this.getSeriesList()
       });
     });
   }
@@ -498,26 +530,42 @@ class DetailViewComponent extends React.Component {
                 }
                 {
                   this.state.relative &&
-                  <select
-                    value={
-                      TIME_INTERVALS_RELATIVE.findIndex(timeInterval =>
-                        timeInterval.interval === this.state.timeInterval)
+                  <FormGroup>
+                    <select
+                      value={
+                        TIME_INTERVALS_RELATIVE.findIndex(timeInterval =>
+                          timeInterval.interval === this.state.timeInterval)
                       }
-                    onChange={this.timeIntervalChanged}
-                    className="mb-2 mr-sm-2 mb-sm-0">
-                    {
-                      TIME_INTERVALS_RELATIVE
-                        .map((timeInterval, index) => (
-                          <option
-                            key={timeInterval.interval}
-                            value={index} >
-                            {timeInterval.label}
-                          </option>
-                        ))
-                    }
-                  </select>
-
-                }
+                      onChange={this.timeIntervalChanged}
+                      className="mb-2 mr-sm-2 mb-sm-0">
+                      {
+                        TIME_INTERVALS_RELATIVE
+                          .map((timeInterval, index) => (
+                            <option
+                              key={timeInterval.interval}
+                              value={index} >
+                              {timeInterval.label}
+                            </option>
+                          ))
+                        }
+                    </select>
+                    <FormGroup
+                      check
+                      title="Skip first 24 hours after release">
+                      <Label for="skip-first-24-checkbox" check>
+                        <Input
+                          id="skip-first-24-checkbox"
+                          type="checkbox"
+                          checked={this.state.skipFirst24}
+                          disabled={this.state.timeInterval > 0 && this.state.timeInterval <= 86400}
+                          onChange={this.skipFirst24CheckboxChanged} />
+                        {' '}
+                        Skip first 24 hours
+                      </Label>
+                    </FormGroup>
+                    &nbsp;&nbsp;
+                  </FormGroup>
+                  }
                 <select
                   value={
                     PERCENTILES.findIndex(p => p.value === this.state.percentile)
