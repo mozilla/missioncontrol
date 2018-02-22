@@ -13,12 +13,14 @@ from missioncontrol.etl.date import datetime_to_utc
 
 @pytest.fixture
 def mock_raw_query_data(monkeypatch, base_datapoint_time):
+    # we test the case where display_version is None (currently happens with old data,
+    # probably will not be a problem in the future)
     base_datapoint_time_without_utc = datetime.datetime.fromtimestamp(
         base_datapoint_time.timestamp(), tz=None)
     return [
-        [base_datapoint_time_without_utc, '20170629075044', '55.0.2', 120, 10, 120],
+        [base_datapoint_time_without_utc, '20170629075044', '55.0.2', None, 120, 10, 120],
         [base_datapoint_time_without_utc -
-         datetime.timedelta(minutes=10), '20170629075044', '55.0.2', 120, 20, 120]
+         datetime.timedelta(minutes=10), '20170629075044', '55.0.2', '55.0.2', 120, 20, 120]
     ]
 
 
@@ -45,7 +47,7 @@ def test_update_measure_new_series(initial_data, prepopulated_version_cache,
         series__build__platform__name='linux').values_list(
             'timestamp', 'value', 'usage_hours').order_by(
                 'timestamp')) == sorted(
-                    [(datetime_to_utc(d[0]), d[3], d[4]) for d in mock_raw_query_data],
+                    [(datetime_to_utc(d[0]), d[4], d[5]) for d in mock_raw_query_data],
                     key=lambda d: d[0])
 
 
@@ -66,7 +68,7 @@ def test_update_measure_existing_series(fake_measure_data,
         series__build__platform__name='linux').values_list(
             'timestamp', 'value', 'usage_hours').order_by(
                 'timestamp')) == sorted(
-                    [(datetime_to_utc(d[0]), d[3], d[4]) for d in mock_raw_query_data],
+                    [(datetime_to_utc(d[0]), d[4], d[5]) for d in mock_raw_query_data],
                     key=lambda d: d[0])
 
     # assert that we have the expected number of total datums
