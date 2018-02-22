@@ -74,7 +74,7 @@ def update_measure(platform_name, channel_name, measure_name):
     # where possible (to reduce the risk of creating a malformed
     # query from incorrect parameters
     query_template = f'''
-        select window_start, build_id, version, sum({measure_name}),
+        select window_start, build_id, version, display_version, sum({measure_name}),
         sum(usage_hours), sum(count) as client_count
         from {MISSION_CONTROL_TABLE} where
         application=\'Firefox\' and
@@ -83,7 +83,7 @@ def update_measure(platform_name, channel_name, measure_name):
         os_name=%(os_name)s and
         channel=%(channel_name)s and
         window_start > timestamp %(min_timestamp)s
-        group by (window_start, build_id, version)
+        group by (window_start, build_id, version, display_version)
         having sum(count) > %(min_client_count)s'''.replace('\n', '').strip()
     params = {
         'min_version': min_version,
@@ -99,17 +99,16 @@ def update_measure(platform_name, channel_name, measure_name):
     # bulk create any new datum objects from the returned results
     series_cache = {}
     datum_objs = []
-    for (window_start, build_id, version, measure_count, usage_hours,
-         client_count) in raw_query(query_template, params):
+    for (window_start, build_id, version, display_version, measure_count,
+         usage_hours, client_count) in raw_query(query_template, params):
         # skip datapoints with no measures / usage hours
         if not measure_count or not usage_hours:
             continue
         series = series_cache.get((build_id, version))
         if not series:
-            build, _ = Build.objects.get_or_create(platform=platform,
-                                                   channel=channel,
-                                                   build_id=build_id,
-                                                   version=version)
+            build, _ = Build.objects.get_or_create(
+                platform=platform, channel=channel, build_id=build_id,
+                version=(display_version or version))
             series, _ = Series.objects.get_or_create(build=build,
                                                      measure=measure)
             series_cache[(build_id, version)] = series
