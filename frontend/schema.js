@@ -1,5 +1,6 @@
 export const CHANNEL_PLATFORM_SUMMARY_URL = `${process.env.SERVICE_DOMAIN}/api/channel-platform-summary/`;
 export const MEASURE_URL = `${process.env.SERVICE_DOMAIN}/api/measure/`;
+export const ERROR_AGGREGATES_URL = 'https://docs.telemetry.mozilla.org/datasets/streaming/error_aggregates/reference.html';
 
 export const TIME_INTERVALS = [
   { label: 'Last 24 hours', interval: 86400 },
