@@ -32,6 +32,7 @@ class DetailGraph extends React.Component {
         linked={true}
         linked_format={this.props.relative ? undefined : '%Y-%m-%d-%H-%M-%S'}
         aggregate_rollover={true}
+        y_extended_ticks={true}
         right={Math.min(120, 40 + (5 * (this.props.seriesList.length ?
                                         _.max(this.props.seriesList.map(s => s.name.length)) : 0)))} />);
   }
