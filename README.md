@@ -18,7 +18,7 @@ If you have any questions about Mission Control (either as a user or contributor
 Contributing
 ------------
 
-We welcome contributions to mission control! Working on the UI component (see
+We welcome contributions to Mission Control! Working on the UI component (see
 instructions immediately below) does not require any special access to Mozilla's
 internal systems.
 
