@@ -82,7 +82,8 @@ def update_measure(platform_name, channel_name, measure_name):
         build_id > %(min_build_id)s and
         os_name=%(os_name)s and
         channel=%(channel_name)s and
-        window_start > timestamp %(min_timestamp)s
+        window_start > timestamp %(min_timestamp)s and
+        submission_date > %(min_submission_date)s
         group by (window_start, build_id, version, display_version)
         having sum(count) > %(min_client_count)s'''.replace('\n', '').strip()
     params = {
@@ -92,7 +93,8 @@ def update_measure(platform_name, channel_name, measure_name):
         'os_name': platform.telemetry_name,
         'channel_name': channel_name,
         'min_client_count': MIN_CLIENT_COUNT,
-        'min_timestamp': min_timestamp.strftime("%Y-%m-%d %H:%M:%S")
+        'min_timestamp': min_timestamp.strftime("%Y-%m-%d %H:%M:%S"),
+        'min_submission_date': min_timestamp.strftime("%Y-%m-%d")
     }
     logger.info('Querying: %s', query_template % params)
 
