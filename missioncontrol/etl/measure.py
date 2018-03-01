@@ -83,7 +83,7 @@ def update_measure(platform_name, channel_name, measure_name):
         os_name=%(os_name)s and
         channel=%(channel_name)s and
         window_start > timestamp %(min_timestamp)s and
-        submission_date > %(min_submission_date)s
+        submission_date >= %(min_submission_date)s
         group by (window_start, build_id, version, display_version)
         having sum(count) > %(min_client_count)s'''.replace('\n', '').strip()
     params = {

@@ -50,7 +50,7 @@ def update_experiment(experiment_name):
         from {PRESTO_EXPERIMENTS_ERROR_AGGREGATES_TABLE} where
         experiment_id=%(experiment_name)s and
         window_start > timestamp %(min_timestamp)s and
-        submission_date > %(min_submission_date)s
+        submission_date >= %(min_submission_date)s
         group by (window_start, experiment_branch)'''.replace('\n', '').strip()
     params = {
         'experiment_name': experiment_name,
