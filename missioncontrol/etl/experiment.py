@@ -49,11 +49,13 @@ def update_experiment(experiment_name):
         {measure_name_query}
         from {PRESTO_EXPERIMENTS_ERROR_AGGREGATES_TABLE} where
         experiment_id=%(experiment_name)s and
-        window_start > timestamp %(min_timestamp)s
+        window_start > timestamp %(min_timestamp)s and
+        submission_date > %(min_submission_date)s
         group by (window_start, experiment_branch)'''.replace('\n', '').strip()
     params = {
         'experiment_name': experiment_name,
-        'min_timestamp': min_timestamp.strftime("%Y-%m-%d %H:%M:%S")
+        'min_timestamp': min_timestamp.strftime("%Y-%m-%d %H:%M:%S"),
+        'min_submission_date': min_timestamp.strftime("%Y-%m-%d")
     }
     logger.info('Querying: %s', query_template % params)
 
