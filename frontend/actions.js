@@ -45,7 +45,7 @@ function receiveMeasureData(params, data) {
     channel: params.channel,
     platform: params.platform,
     measure: params.measure,
-    data: data.measure_data,
+    data: data ? data.measure_data : undefined,
     receivedAt: Date.now()
   };
 }
@@ -54,7 +54,15 @@ export function fetchMeasureData(params) {
   return (dispatch) => {
     dispatch(requestMeasureData());
     return fetch(`${MEASURE_URL}?${stringify(params)}`)
-      .then(response => response.json())
-      .then(json => dispatch(receiveMeasureData(params, json)));
+      .then((response) => {
+        if (!response.ok) {
+          throw Error();
+        }
+        return response.json();
+      })
+      .then(json => dispatch(receiveMeasureData(params, json)))
+      .catch(() => {
+        dispatch(receiveMeasureData(params, {}));
+      });
   };
 }
