@@ -58,6 +58,7 @@ def update_experiment(experiment_name):
         'min_submission_date': min_timestamp.strftime("%Y%m%d")
     }
     logger.info('Querying: %s', query_template % params)
+    newrelic.agent.add_custom_parameter("query", query_template % params)
 
     series_cache = {}
     datum_objs = []
