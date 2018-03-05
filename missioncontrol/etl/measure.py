@@ -97,7 +97,6 @@ def update_measure(platform_name, channel_name, measure_name):
         'min_submission_date': min_timestamp.strftime("%Y-%m-%d")
     }
     logger.info('Querying: %s', query_template % params)
-    newrelic.agent.add_custom_parameter("query", query_template % params)
 
     # bulk create any new datum objects from the returned results
     series_cache = {}
