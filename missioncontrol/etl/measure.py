@@ -55,12 +55,12 @@ def update_measure(platform_name, channel_name, measure_name):
                                   platform=platform)
 
     min_timestamp = timezone.now() - DATA_EXPIRY_INTERVAL
-    min_buildid_timestamp = min_timestamp - channel.update_interval
     min_timestamp_in_data = Datum.objects.filter(
         series__build__channel=channel,
         series__measure=measure).aggregate(Max('timestamp'))['timestamp__max']
     if min_timestamp_in_data:
         min_timestamp = max([min_timestamp, min_timestamp_in_data])
+    min_buildid_timestamp = min_timestamp - channel.update_interval
 
     # also place a restriction on version (to avoid fetching data
     # for bogus versions)
@@ -97,7 +97,6 @@ def update_measure(platform_name, channel_name, measure_name):
         'min_submission_date': min_timestamp.strftime("%Y-%m-%d")
     }
     logger.info('Querying: %s', query_template % params)
-    newrelic.agent.add_custom_parameter("query", query_template % params)
 
     # bulk create any new datum objects from the returned results
     series_cache = {}
