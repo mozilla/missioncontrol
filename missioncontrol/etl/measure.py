@@ -16,8 +16,7 @@ from missioncontrol.base.models import (Build,
                                         Measure,
                                         Platform,
                                         Series)
-from missioncontrol.settings import (DATA_EXPIRY_INTERVAL,
-                                     MIN_CLIENT_COUNT,
+from missioncontrol.settings import (MIN_CLIENT_COUNT,
                                      MISSION_CONTROL_TABLE)
 from .measuresummary import (get_measure_summary_cache_key,
                              get_measure_summary)
@@ -54,13 +53,15 @@ def update_measure(platform_name, channel_name, measure_name):
     measure = Measure.objects.get(name=measure_name,
                                   platform=platform)
 
-    min_timestamp = timezone.now() - DATA_EXPIRY_INTERVAL
+    min_timestamp = timezone.now() - channel.update_interval
     min_timestamp_in_data = Datum.objects.filter(
         series__build__channel=channel,
         series__measure=measure).aggregate(Max('timestamp'))['timestamp__max']
     if min_timestamp_in_data:
         min_timestamp = max([min_timestamp, min_timestamp_in_data])
-    min_buildid_timestamp = min_timestamp - channel.update_interval
+
+    # ignore any buildids older than twice the update interval
+    min_buildid_timestamp = timezone.now() - (channel.update_interval * 2)
 
     # also place a restriction on version (to avoid fetching data
     # for bogus versions)
