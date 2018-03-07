@@ -20,7 +20,7 @@
   pk: 1
   fields:
     name: release
-    update_interval: 84 00:00:00 # = 12 weeks
+    update_interval: 42 00:00:00 # = 6 weeks
 - model: base.Channel
   pk: 2
   fields:
@@ -35,7 +35,7 @@
   pk: 4
   fields:
     name: esr
-    update_interval: 84 00:00:00
+    update_interval: 42 00:00:00 # = 6 weeks
 
 # measures (some are also in load_initial_data)
 - model: base.Measure
