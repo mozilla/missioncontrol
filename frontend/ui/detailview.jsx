@@ -205,7 +205,7 @@ class DetailViewComponent extends React.Component {
           seriesMap[buildId][date] = {
             [measure]: datum[1],
             usage_hours: datum[2],
-            date: new Date(date)
+            date
           };
         });
       });
