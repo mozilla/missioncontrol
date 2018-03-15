@@ -20,7 +20,7 @@
     "d3-time-format": "^2.0.5",
     "font-awesome": "^4.7.0",
     "lodash": "^4.17.4",
-    "metrics-graphics": "^2.12.0",
+    "metrics-graphics": "^2.14.0",
     "moment": "^2.18.1",
     "neutrino-middleware-env": "^7.3.2",
     "neutrino-preset-mozilla-rpweb": "^5.0.1",
