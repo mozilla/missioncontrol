@@ -1,4 +1,5 @@
 import requests
+from distutils.version import LooseVersion
 from django.core.cache import cache
 
 from missioncontrol.settings import (FIREFOX_VERSION_CACHE_TIMEOUT,
@@ -24,5 +25,12 @@ def get_firefox_versions():
     return mapped_versions
 
 
-def get_current_firefox_version(channel_name):
-    return get_firefox_versions()[channel_name]
+def get_current_firefox_version(channel):
+    return get_firefox_versions()[channel]
+
+
+def get_min_recent_firefox_version(channel):
+    current_version = get_current_firefox_version(channel)
+    if channel == 'esr':
+        return str(LooseVersion(current_version).version[0] - 7)
+    return str(LooseVersion(current_version).version[0] - 1)

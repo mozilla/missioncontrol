@@ -2,7 +2,7 @@ import datetime
 import logging
 import pytz
 from dateutil.tz import tzutc
-from distutils.version import LooseVersion
+from pkg_resources import parse_version
 
 import newrelic.agent
 from django.core.cache import cache
@@ -16,11 +16,13 @@ from missioncontrol.base.models import (Build,
                                         Measure,
                                         Platform,
                                         Series)
-from missioncontrol.settings import (MIN_CLIENT_COUNT,
+from missioncontrol.settings import (MEASURE_SUMMARY_CACHE_EXPIRY,
+                                     MIN_CLIENT_COUNT,
                                      MISSION_CONTROL_TABLE)
 from .measuresummary import (get_measure_summary_cache_key,
                              get_measure_summary)
-from .versions import get_current_firefox_version
+from .versions import (get_current_firefox_version,
+                       get_min_recent_firefox_version)
 
 
 logger = logging.getLogger(__name__)
@@ -66,10 +68,7 @@ def update_measure(platform_name, channel_name, measure_name):
     # also place a restriction on version (to avoid fetching data
     # for bogus versions)
     current_version = get_current_firefox_version(channel_name)
-    if channel == 'esr':
-        min_version = str(LooseVersion(current_version).version[0] - 7)
-    else:
-        min_version = str(LooseVersion(current_version).version[0] - 1)
+    min_version = get_min_recent_firefox_version(channel_name)
 
     # we prefer to specify parameters in a seperate params dictionary
     # where possible (to reduce the risk of creating a malformed
@@ -110,6 +109,11 @@ def update_measure(platform_name, channel_name, measure_name):
         # writing -- https://bugzilla.mozilla.org/show_bug.cgi?id=1447038)
         if measure_count < 0 or usage_hours <= 0:
             continue
+        # presto doesn't understand that 59.0 > 59.0b2 for beta, so reject
+        # early releases here
+        if channel == 'beta' and display_version and \
+           parse_version(display_version) > parse_version(current_version):
+            continue
         series = series_cache.get((build_id, version))
         if not series:
             build, _ = Build.objects.get_or_create(
@@ -142,4 +146,4 @@ def update_measure(platform_name, channel_name, measure_name):
     # update the measure summary in our cache
     cache.set(get_measure_summary_cache_key(platform_name, channel_name, measure_name),
               get_measure_summary(platform_name, channel_name, measure_name),
-              None)
+              MEASURE_SUMMARY_CACHE_EXPIRY)

@@ -80,18 +80,20 @@ def test_get_measure_summary(fake_measure_data, prepopulated_version_cache):
     from missioncontrol.etl.measuresummary import get_measure_summary
     assert get_measure_summary('linux', 'release', 'main_crashes') == {
         'lastUpdated': datetime.datetime(2017, 7, 1, 12, 0, tzinfo=tzutc()),
-        'latest': {
-            'median': 625.0,
-            'stdev': 2562.754,
-            'usageHours': 56.0,
-            'version': '55.0.1'
-        },
-        'previous': {
-            'median': 625.0,
-            'stdev': 2562.754,
-            'usageHours': 56.0,
-            'version': None
-        }
+        'versions': [
+            {
+                'adjustedMean': 2041.67,
+                'fieldDuration': 600,
+                'mean': 2041.67,
+                'version': '55.0.1'
+            },
+            {
+                'adjustedMean': 2041.67,
+                'fieldDuration': 600,
+                'mean': 2041.67,
+                'version': '55'
+            }
+        ]
     }
 
 
