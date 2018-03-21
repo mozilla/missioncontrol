@@ -65,9 +65,15 @@ def update_experiment(experiment_name):
     for (window_start, experiment_branch_name, usage_hours, client_count,
          *measure_counts) in raw_query(query_template, params):
         # skip datapoints with no usage hours
-        if not usage_hours:
+        if usage_hours <= 0:
             continue
         for (measure_name, measure_count) in zip(measure_names, measure_counts):
+            # skip any negative measure counts
+            # (in theory negative measures should be rejected at the ping
+            # validation level, but this is not yet the case at the time of this
+            # writing -- https://bugzilla.mozilla.org/show_bug.cgi?id=1447038)
+            if measure_count < 0:
+                continue
             series = series_cache.get((experiment_branch_name, measure_name))
             if not series:
                 experiment_branch, _ = ExperimentBranch.objects.get_or_create(
