@@ -48,6 +48,7 @@ def channel_platform_summary(request):
     '''
     platform_filter = [platform.lower() for platform in request.GET.getlist('platform')]
     channel_filter = [channel.lower() for channel in request.GET.getlist('channel')]
+    only_crash_measures = request.GET.get('only_crash_measures')
 
     platforms = Platform.objects.all()
     if platform_filter:
@@ -61,11 +62,17 @@ def channel_platform_summary(request):
     for channel in channels:
         for platform in platforms:
             measures = []
+            if only_crash_measures is None or (only_crash_measures.isdigit() and not
+                                               int(only_crash_measures)):
+                measure_names = Measure.objects.filter(
+                    platform=platform).values_list('name', flat=True)
+            else:
+                measure_names = ['main_crashes', 'content_crashes',
+                                 'content_shutdown_crashes']
             measure_name_map = {
                 get_measure_summary_cache_key(platform.name, channel.name,
                                               measure_name): measure_name
-                for measure_name in Measure.objects.filter(
-                        platform=platform).values_list('name', flat=True)
+                for measure_name in measure_names
             }
             measure_summaries = cache.get_many(measure_name_map.keys())
             for (measure_summary_cache_key, measure_summary) in measure_summaries.items():

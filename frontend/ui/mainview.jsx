@@ -1,10 +1,11 @@
 import _ from 'lodash';
+import numeral from 'numeral';
 import React from 'react';
 import { Helmet } from 'react-helmet';
-import { Card, CardBlock, CardColumns, CardHeader, CardText } from 'reactstrap';
+import { Card, CardBody, CardColumns, CardHeader } from 'reactstrap';
 import { connect } from 'react-redux';
-import { ErrorTable, ERROR_TYPE_OUTSIDE_RANGE, ERROR_TYPE_INSUFFICIENT_DATA } from './errortable.jsx';
 import Loading from './loading.jsx';
+import { KEY_MEASURES } from '../schema';
 
 // eventually this will load a summary for each channel/os combination, so
 // leaving this in for now even though were not using it
@@ -12,6 +13,24 @@ const mapStateToProps = state => ({ channelPlatformSummary: state.channelPlatfor
 
 const stringMatchesFilter = (strs, filterStr) =>
   _.every(filterStr.split(' ').map(filterSubStr => _.some(strs.map(str => str.toLowerCase().indexOf(filterSubStr.toLowerCase()) >= 0))));
+
+const getChangeIndicator = (versions) => {
+  if (versions.length > 2) {
+    const pctChange = ((versions[1].adjustedMean - versions[2].adjustedMean) / versions[2].adjustedMean) * 100.0;
+    const title = `${versions[2].adjustedMean} → ${versions[1].adjustedMean}`;
+    if (versions[1].adjustedMean > versions[2].adjustedMean) {
+      return (
+        <span title={title} className={(pctChange > 25) ? 'text-danger' : ''}>{numeral(pctChange).format('0.00a')}%&nbsp;
+          <i className="fa fa-arrow-up" aria-hidden="true"></i>
+        </span>);
+    }
+    return (
+      <span title={title} className={(pctChange < 25) ? 'text-success' : ''}>
+        {numeral(pctChange).format('0.00a')}%&nbsp;<i className="fa fa-arrow-down" aria-hidden="true"></i>
+      </span>);
+  }
+  return (<i className="fa fa-minus" aria-hidden="true"></i>);
+};
 
 class MainViewComponent extends React.Component {
   constructor(props) {
@@ -74,46 +93,27 @@ class MainViewComponent extends React.Component {
                     <CardHeader className={`alert-${summary.status}`}>
                       { summary.platform } { summary.channel }
                     </CardHeader>
-                    <CardBlock>
-                      {
-                            summary.passingMeasures && (
-                              <CardText>
-                                { summary.passingMeasures } measure(s)
-                                within acceptable range
-                              </CardText>
-                            )
+                    <CardBody>
+                      <table className="table table-sm summary-table">
+                        <tbody>
+                          {
+                            summary.measures
+                              .filter(measure => KEY_MEASURES.includes(measure.name) && measure.versions.length)
+                              .map(measure => (
+                                <tr key={measure.name} title={`Average ${measure.versions[1].adjustedMean} events per 1000 hours`}>
+                                  <td>{measure.name}</td>
+                                  <td id={`${summary.platform}-${summary.channel}-${measure.name}`} align="right">
+                                    {measure.versions[1].adjustedMean}
+                                  </td>
+                                  <td align="right">
+                                    {measure.versions && getChangeIndicator(measure.versions)}
+                                  </td>
+                                </tr>
+                            ))
                           }
-                      {
-                            (summary.errors && summary.errors.length) && (
-                              <div>
-                                <CardText>
-                                  { summary.errors.length } measure(s)
-                                  outside of acceptable range:
-                                </CardText>
-                                <ErrorTable
-                                  platformName={summary.platform}
-                                  channelName={summary.channel}
-                                  errorType={ERROR_TYPE_OUTSIDE_RANGE}
-                                  errors={summary.errors} />
-                              </div>
-                            )
-                          }
-                      {
-                            (summary.insufficientData && summary.insufficientData.length) && (
-                              <div>
-                                <CardText>
-                                  { summary.insufficientData.length } measure(s)
-                                  with insufficient data:
-                                </CardText>
-                                <ErrorTable
-                                  platformName={summary.platform}
-                                  channelName={summary.channel}
-                                  errorType={ERROR_TYPE_INSUFFICIENT_DATA}
-                                  errors={summary.insufficientData} />
-                              </div>
-                            )
-                          }
-                    </CardBlock>
+                        </tbody>
+                      </table>
+                    </CardBody>
                   </Card>
                     ))
               }

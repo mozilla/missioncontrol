@@ -76,3 +76,24 @@ html, body, #root {
 .buildid-link:hover {
   color: #0056b3;
 }
+
+.summary-tooltip {
+  max-width: 600px;
+}
+
+.summary-options {
+  width: 100%;
+}
+
+.summary-buttons {
+  padding: 20px;
+}
+
+.summary-table {
+  font-size: 12px;
+  border-top: none;
+}
+
+.summary-table td {
+  border-top: none;
+}

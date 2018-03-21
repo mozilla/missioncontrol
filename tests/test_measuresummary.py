@@ -12,7 +12,8 @@ from missioncontrol.etl.measuresummary import get_measure_summary
 
 
 @pytest.mark.parametrize('num_datapoints', [2, 1, 0])
-def test_get_measure_summary(base_datapoint_time, initial_data, num_datapoints):
+def test_get_measure_summary(base_datapoint_time, prepopulated_version_cache,
+                             initial_data, num_datapoints):
     '''
     Test getting the measure summary with a small number of datapoints
 
@@ -39,51 +40,31 @@ def test_get_measure_summary(base_datapoint_time, initial_data, num_datapoints):
     if num_datapoints == 0:
         assert get_measure_summary(
             platform_name, channel_name, measure_name) == {
-                "latest": {
-                    "version": None,
-                    "median": None,
-                    "stdev": 0.0,
-                    "usageHours": 0.0
-                },
-                "previous": {
-                    "version": None,
-                    "median": None,
-                    "stdev": 0.0,
-                    "usageHours": 0.0
-                },
+                "versions": [],
                 "lastUpdated": None
             }
     elif num_datapoints == 1:
         assert get_measure_summary(
             platform_name, channel_name, measure_name) == {
-                "latest": {
-                    "version": "55.0",
-                    "median": 0.0,
-                    "stdev": 0.0,
-                    "usageHours": 1.0
-                },
-                "previous": {
-                    "version": None,
-                    "median": None,
-                    "stdev": 0.0,
-                    "usageHours": 0.0
-                },
+                "versions": [],
                 "lastUpdated": latest_timestamp
             }
     else:  # num_datapoints == 2
         assert get_measure_summary(
             platform_name, channel_name, measure_name) == {
-                "latest": {
-                    "version": "55.0",
-                    "median": 250.0,
-                    "stdev": 353.553,
-                    "usageHours": 3.0
-                },
-                "previous": {
-                    "version": None,
-                    "median": None,
-                    "stdev": 0.0,
-                    "usageHours": 0.0
-                },
+                "versions": [
+                    {
+                        "version": "55.0",
+                        "adjustedMean": 250.0,
+                        "mean": 250.0,
+                        "fieldDuration": 3600
+                    },
+                    {
+                        "version": "55",
+                        "adjustedMean": 250.0,
+                        "mean": 250.0,
+                        "fieldDuration": 3600
+                    }
+                ],
                 "lastUpdated": latest_timestamp
             }

@@ -30,6 +30,10 @@ export const DEFAULT_TIME_INTERVAL_RELATIVE = 0;
 export const DEFAULT_PERCENTILE = 99;
 export const DEFAULT_VERSION_GROUPING_TYPE = 'version';
 
+export const KEY_MEASURES = [
+  'content_crashes', 'main_crashes', 'content_shutdown_crashes'
+];
+
 export const CRASH_STATS_MAPPING = {
   content_crashes: {
     processType: 'content'
