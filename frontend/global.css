@@ -56,6 +56,10 @@ html, body, #root {
     cursor: pointer;
 }
 
+.missioncontrol-card .card-body {
+    padding: 1rem 0.5rem;
+}
+
 .missioncontrol-card:hover {
     box-shadow: 0 1px 4px 0 rgba(0,0,0,0.37);
     transition: box-shadow 0.28s cubic-bezier(0.4,0,0.2,1);
