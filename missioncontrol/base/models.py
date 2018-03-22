@@ -18,7 +18,6 @@ class Channel(models.Model):
     '''
     name = models.CharField(max_length=100, unique=True)
     update_interval = models.DurationField()
-    min_expected_client_count = models.PositiveIntegerField()
 
     class Meta:
         db_table = 'channel'

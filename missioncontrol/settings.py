@@ -348,6 +348,7 @@ FIREFOX_EXPERIMENTS_URL = ('https://normandy.cdn.mozilla.net/api/v1/recipe/'
                            'signed/?enabled=true&' 'latest_revision__action=3')
 
 DATA_EXPIRY_INTERVAL = timedelta(days=120)
+MIN_CLIENT_COUNT = 100  # minimum number of client submissions for aggregate to be used
 MEASURE_SUMMARY_SAMPLING_INTERVAL = timedelta(days=1)
 MEASURE_SUMMARY_VERSION_INTERVAL = 3  # maximum number of previous major versions to consider
 MEASURE_SUMMARY_CACHE_EXPIRY = 24 * 60 * 60  # keep measure summaries in cache for up to one day

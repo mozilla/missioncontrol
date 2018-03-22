@@ -17,6 +17,7 @@ from missioncontrol.base.models import (Build,
                                         Platform,
                                         Series)
 from missioncontrol.settings import (MEASURE_SUMMARY_CACHE_EXPIRY,
+                                     MIN_CLIENT_COUNT,
                                      MISSION_CONTROL_TABLE)
 from .measuresummary import (get_measure_summary_cache_key,
                              get_measure_summary)
@@ -91,7 +92,7 @@ def update_measure(platform_name, channel_name, measure_name):
         'min_build_id': min_buildid_timestamp.strftime('%Y%m%d'),
         'os_name': platform.telemetry_name,
         'channel_name': channel_name,
-        'min_client_count': channel.min_expected_client_count,
+        'min_client_count': MIN_CLIENT_COUNT,
         'min_timestamp': min_timestamp.strftime("%Y-%m-%d %H:%M:%S"),
         'min_submission_date': min_timestamp.strftime("%Y-%m-%d")
     }
