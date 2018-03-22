@@ -21,21 +21,25 @@
   fields:
     name: release
     update_interval: 42 00:00:00 # = 6 weeks
+    min_expected_client_count: 1000
 - model: base.Channel
   pk: 2
   fields:
     name: beta
     update_interval: 14 00:00:00
+    min_expected_client_count: 10
 - model: base.Channel
   pk: 3
   fields:
     name: nightly
     update_interval: 3 00:00:00
+    min_expected_client_count: 10
 - model: base.Channel
   pk: 4
   fields:
     name: esr
     update_interval: 42 00:00:00 # = 6 weeks
+    min_expected_client_count: 50
 
 # measures (some are also in load_initial_data)
 - model: base.Measure
