@@ -103,6 +103,8 @@ def update_measure(platform_name, channel_name, measure_name):
     datum_objs = []
     for (window_start, build_id, version, display_version, measure_count,
          usage_hours, client_count) in raw_query(query_template, params):
+        if measure_count is None:
+            measure_count = 0
         # skip datapoints with negative measure counts or no usage hours
         # (in theory negative measures should be rejected at the ping
         # validation level, but this is not yet the case at the time of this
