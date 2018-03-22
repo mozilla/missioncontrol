@@ -100,10 +100,10 @@ class MainViewComponent extends React.Component {
                             summary.measures
                               .filter(measure => KEY_MEASURES.includes(measure.name) && measure.versions.length)
                               .map(measure => (
-                                <tr key={measure.name} title={`Average ${measure.versions[1].adjustedMean} events per 1000 hours`}>
+                                <tr key={measure.name} title={(measure.versions.length > 1) ? `Average ${measure.versions[1].adjustedMean} events per 1000 hours` : ''}>
                                   <td>{measure.name}</td>
                                   <td id={`${summary.platform}-${summary.channel}-${measure.name}`} align="right">
-                                    {measure.versions[1].adjustedMean}
+                                    {(measure.versions.length > 1) && measure.versions[1].adjustedMean}
                                   </td>
                                   <td align="right">
                                     {measure.versions && getChangeIndicator(measure.versions)}
