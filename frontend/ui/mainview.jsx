@@ -25,7 +25,7 @@ const getChangeIndicator = (versions) => {
         </span>);
     }
     return (
-      <span title={title} className={(pctChange < 25) ? 'text-success' : ''}>
+      <span title={title} className={(pctChange < -25) ? 'text-success' : ''}>
         {numeral(pctChange).format('0.00a')}%&nbsp;<i className="fa fa-arrow-down" aria-hidden="true"></i>
       </span>);
   }
