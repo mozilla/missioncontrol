@@ -1,18 +1,14 @@
-import _ from 'lodash';
 import numeral from 'numeral';
 import React from 'react';
 import { Helmet } from 'react-helmet';
-import { Card, CardBody, CardColumns, CardHeader } from 'reactstrap';
+import { Card, CardBody, CardColumns, CardHeader, Nav, NavItem, NavLink } from 'reactstrap';
 import { connect } from 'react-redux';
 import Loading from './loading.jsx';
-import { KEY_MEASURES } from '../schema';
+import { CHANNEL_ICON_MAPPING, KEY_MEASURES } from '../schema';
 
 // eventually this will load a summary for each channel/os combination, so
 // leaving this in for now even though were not using it
 const mapStateToProps = state => ({ channelPlatformSummary: state.channelPlatformSummary });
-
-const stringMatchesFilter = (strs, filterStr) =>
-  _.every(filterStr.split(' ').map(filterSubStr => _.some(strs.map(str => str.toLowerCase().indexOf(filterSubStr.toLowerCase()) >= 0))));
 
 const getChangeIndicator = (versions) => {
   if (versions.length > 2) {
@@ -32,16 +28,24 @@ const getChangeIndicator = (versions) => {
   return (<i className="fa fa-minus" aria-hidden="true"></i>);
 };
 
+const getOptionalParameters = (props) => {
+  const urlParams = new URLSearchParams(props.location.search);
+
+  return {
+    channel: urlParams.get('channel') ? urlParams.get('channel') : 'release'
+  };
+};
+
 class MainViewComponent extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      filter: '',
-      isLoading: true
+      isLoading: true,
+      ...getOptionalParameters(props)
     };
 
-    this.filterChanged = this.filterChanged.bind(this);
     this.cardClicked = this.cardClicked.bind(this);
+    this.channelBtnClicked = this.channelBtnClicked.bind(this);
   }
 
   componentDidMount() {
@@ -59,6 +63,11 @@ class MainViewComponent extends React.Component {
     this.props.history.push(`${channelName}/${platformName}`);
   }
 
+  channelBtnClicked(channelName) {
+    this.setState({ channel: channelName });
+    this.props.history.push(`?channel=${channelName}`);
+  }
+
   render() {
     return (
       <div>
@@ -67,16 +76,23 @@ class MainViewComponent extends React.Component {
             Mission Control
           </title>
         </Helmet>
-        <div className="container">
-          <div className="input-group filter-group">
-            <input
-              id="filter-input"
-              type="text"
-              className="form-control"
-              placeholder="Filter results"
-              onChange={this.filterChanged} />
-          </div>
-        </div>
+        <Nav
+          className="justify-content-center release-selector"
+          pills>
+          {
+            ['release', 'beta', 'nightly', 'esr'].map(channel => (
+              <NavItem key={`btn-${channel}`}>
+                <NavLink
+                  href={`#?channel=${channel}`}
+                  onClick={() => this.channelBtnClicked(channel)}
+                  active={this.state.channel === channel}>
+                  <img className="channel-icon" src={CHANNEL_ICON_MAPPING[channel]}></img>
+                  { channel }
+                </NavLink>
+              </NavItem>
+            ))
+          }
+        </Nav>
         <div className="container center">
           {
             this.state.isLoading && <Loading />
@@ -85,13 +101,13 @@ class MainViewComponent extends React.Component {
             !this.state.isLoading && <CardColumns>
               {
                 this.props.channelPlatformSummary && this.props.channelPlatformSummary.summaries.map(summary =>
-                  stringMatchesFilter([summary.platform, summary.channel], this.state.filter) && (
+                  summary.channel === this.state.channel && (
                   <Card
                     key={`${summary.platform}-${summary.channel}`}
                     onClick={() => this.cardClicked(summary.channel, summary.platform)}
                     className="missioncontrol-card">
                     <CardHeader className={`alert-${summary.status}`}>
-                      { summary.platform } { summary.channel }
+                      { summary.platform }
                     </CardHeader>
                     <CardBody>
                       <table className="table table-sm summary-table">

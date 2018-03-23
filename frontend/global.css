@@ -101,3 +101,12 @@ html, body, #root {
 .summary-table td {
   border-top: none;
 }
+
+.release-selector {
+  padding: 20px;
+  cursor: pointer;
+}
+
+.release-selector .channel-icon {
+  padding: 4px;
+}

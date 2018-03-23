@@ -34,6 +34,13 @@ export const KEY_MEASURES = [
   'content_crashes', 'main_crashes', 'content_shutdown_crashes'
 ];
 
+export const CHANNEL_ICON_MAPPING = {
+  beta: 'images/firefox-beta.png',
+  esr: 'images/firefox.png',
+  nightly: 'images/firefox-nightly.png',
+  release: 'images/firefox.png'
+};
+
 export const CRASH_STATS_MAPPING = {
   content_crashes: {
     processType: 'content'
