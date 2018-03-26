@@ -1,3 +1,7 @@
+import firefoxIcon from './images/firefox.png';
+import betaIcon from './images/firefox-beta.png';
+import nightlyIcon from './images/firefox-nightly.png';
+
 export const CHANNEL_PLATFORM_SUMMARY_URL = `${process.env.SERVICE_DOMAIN}/api/channel-platform-summary/`;
 export const MEASURE_URL = `${process.env.SERVICE_DOMAIN}/api/measure/`;
 export const ERROR_AGGREGATES_URL = 'https://docs.telemetry.mozilla.org/datasets/streaming/error_aggregates/reference.html';
@@ -35,10 +39,10 @@ export const KEY_MEASURES = [
 ];
 
 export const CHANNEL_ICON_MAPPING = {
-  beta: 'images/firefox-beta.png',
-  esr: 'images/firefox.png',
-  nightly: 'images/firefox-nightly.png',
-  release: 'images/firefox.png'
+  beta: betaIcon,
+  esr: firefoxIcon,
+  nightly: nightlyIcon,
+  release: firefoxIcon
 };
 
 export const CRASH_STATS_MAPPING = {
