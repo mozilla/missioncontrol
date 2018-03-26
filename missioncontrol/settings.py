@@ -163,6 +163,7 @@ CSP_FONT_SRC = (
 )
 CSP_IMG_SRC = (
     "'self'",
+    "data:",
     'http://*.mozilla.net',
     'https://*.mozilla.net',
     'http://*.mozilla.org',
