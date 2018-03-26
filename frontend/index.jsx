@@ -6,12 +6,11 @@ import { createStore, applyMiddleware } from 'redux';
 import 'bootstrap/dist/css/bootstrap.css';
 import 'metrics-graphics/dist/metricsgraphics.css';
 import 'font-awesome/css/font-awesome.min.css';
-import Dashboard from './ui/dashboard.jsx';
+import Dashboard from './ui/dashboard';
 import rootReducer from './reducers';
 import './global.css';
 
 const loggerMiddleware = createLogger();
-
 const store = createStore(
   rootReducer,
   applyMiddleware(thunkMiddleware, loggerMiddleware)

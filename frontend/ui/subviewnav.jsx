@@ -6,21 +6,18 @@ export default class SubViewNav extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      breadcrumbs: props.breadcrumbs
+      breadcrumbs: props.breadcrumbs,
     };
   }
 
   render() {
     return (
       <Breadcrumb className="header-breadcrumb">
-        { this.state.breadcrumbs.map(bc => (
+        {this.state.breadcrumbs.map(bc => (
           <BreadcrumbItem key={bc.link}>
-            <Link to={bc.link}>
-              {bc.name}
-            </Link>
+            <Link to={bc.link}>{bc.name}</Link>
           </BreadcrumbItem>
-        ))
-        }
+        ))}
       </Breadcrumb>
     );
   }

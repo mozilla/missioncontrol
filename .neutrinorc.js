@@ -14,7 +14,7 @@ module.exports = {
     source: 'frontend'
   },
   use: [
-    'neutrino-preset-mozilla-rpweb',
-    ['neutrino-middleware-env', Object.keys(envs)],
+    'neutrino-preset-mozilla-frontend-infra/react',
+    ['@neutrinojs/env', Object.keys(envs)],
   ]
 };

@@ -11,12 +11,14 @@ export class ErrorTable extends React.Component {
       platformName: props.platformName,
       channelName: props.channelName,
       errorType: props.errorType,
-      errors: props.errors
+      errors: props.errors,
     };
   }
 
   render() {
-    const errorTypeOutsideRange = this.state.errorType === ERROR_TYPE_OUTSIDE_RANGE;
+    const errorTypeOutsideRange =
+      this.state.errorType === ERROR_TYPE_OUTSIDE_RANGE;
+
     return (
       <table className="table table-sm">
         <thead>
@@ -27,19 +29,24 @@ export class ErrorTable extends React.Component {
           </tr>
         </thead>
         <tbody>
-          {
-            this.state.errors.map(e => (
-              <tr key={e.measure} className={errorTypeOutsideRange ? 'table-danger' : 'table-warning'}>
-                <td>
-                  <Link to={`/${this.state.channelName}/${this.state.platformName}/${e.measure}`}>
-                    { e.measure }
-                  </Link>
-                </td>
-                <td>{ errorTypeOutsideRange ? e.limit : e.expected }</td>
-                <td>{ e.current }</td>
-              </tr>
-            ))
-          }
+          {this.state.errors.map(e => (
+            <tr
+              key={e.measure}
+              className={
+                errorTypeOutsideRange ? 'table-danger' : 'table-warning'
+              }>
+              <td>
+                <Link
+                  to={`/${this.state.channelName}/${this.state.platformName}/${
+                    e.measure
+                  }`}>
+                  {e.measure}
+                </Link>
+              </td>
+              <td>{errorTypeOutsideRange ? e.limit : e.expected}</td>
+              <td>{e.current}</td>
+            </tr>
+          ))}
         </tbody>
       </table>
     );

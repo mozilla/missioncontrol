@@ -5,7 +5,7 @@ export default class Loading extends React.Component {
     return (
       <div className="container d-flex align-items-center justify-content-center loading-widget">
         <p>
-          Loading... <i className="fa fa-spinner fa-pulse" aria-hidden="true"></i>
+          Loading... <i className="fa fa-spinner fa-pulse" aria-hidden="true" />
         </p>
       </div>
     );

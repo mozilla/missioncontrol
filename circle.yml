@@ -21,6 +21,7 @@ machine:
 dependencies:
   pre:
     - docker info
+    # horrible set of hacks to install latest yarn (we need >= 1.2.1 for @neutrinojs/env)
     - which yarn
     - rm -f `which yarn`
     - curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | sudo apt-key add -
