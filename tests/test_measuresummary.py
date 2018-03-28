@@ -55,14 +55,18 @@ def test_get_measure_summary(base_datapoint_time, prepopulated_version_cache,
                 "versions": [
                     {
                         "version": "55.0",
-                        "adjustedMean": 250.0,
-                        "mean": 250.0,
+                        "adjustedCount": 1,
+                        "count": 1,
+                        "adjustedRate": 250.0,
+                        "rate": 250.0,
                         "fieldDuration": 3600
                     },
                     {
                         "version": "55",
-                        "adjustedMean": 250.0,
-                        "mean": 250.0,
+                        "adjustedCount": 1,
+                        "adjustedRate": 250.0,
+                        "count": 1,
+                        "rate": 250.0,
                         "fieldDuration": 3600
                     }
                 ],

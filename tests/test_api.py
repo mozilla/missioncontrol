@@ -49,15 +49,19 @@ def test_measure_summary_incorporated(client, monkeypatch, prepopulated_version_
                         'lastUpdated': '2017-07-01T12:00:00Z',
                         'versions': [
                             {
-                                'adjustedMean': 2041.67,
+                                'adjustedCount': 120,
+                                'adjustedRate': 2041.67,
+                                'count': 120,
                                 'fieldDuration': 600,
-                                'mean': 2041.67,
+                                'rate': 2041.67,
                                 'version': '55.0.1'
                             },
                             {
-                                'adjustedMean': 2041.67,
+                                'adjustedCount': 240,
+                                'adjustedRate': 2041.67,
+                                'count': 240,
                                 'fieldDuration': 600,
-                                'mean': 2041.67,
+                                'rate': 2041.67,
                                 'version': '55'
                             }
                         ]

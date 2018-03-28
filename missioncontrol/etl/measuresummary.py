@@ -115,15 +115,17 @@ def get_measure_summary(platform_name, channel_name, measure_name):
                 'version': version[0],
                 'fieldDuration': int(field_duration.total_seconds())
             }
-            for (mean_id, interval) in (('mean', version_end - version_start),
-                                        ('adjustedMean', latest_version_interval)):
-
+            for (mean_id, count_id, interval) in (
+                    ('rate', 'count', version_end - version_start),
+                    ('adjustedRate', 'adjustedCount', latest_version_interval)
+            ):
                 values = _get_data_interval_for_version(platform_name,
                                                         channel_name,
                                                         measure_name,
                                                         version[0],
                                                         version_start,
                                                         version_start + interval)
+                version_data[count_id] = int(sum([v[0] for v in values]))
                 normalized_values = [v[0]/(v[1]/1000.0) for v in values]
                 if len(normalized_values) > 1:
                     version_data[mean_id] = round(statistics.mean(normalized_values), 2)

@@ -46,14 +46,24 @@ const mapStateToProps = (state, ownProps) => {
   return { measures: [] };
 };
 
-const getReleaseMean = (release, meanType) => {
-  const meanProperty = meanType === 'adjusted' ? 'adjustedMean' : 'mean';
+const getReleaseValue = (release, countType, timeWindow) => {
+  const property =
+    timeWindow === 'adjusted'
+      ? `adjusted${_.capitalize(countType)}`
+      : countType;
 
-  if (!release || !release[meanProperty]) {
+  if (!release || !release[property]) {
     return 'N/A';
   }
 
-  return numeral(release[meanProperty]).format('0.00a');
+  return (
+    <span
+      title={
+        countType === 'count' ? numeral(release[property]).format('0,0') : null
+      }>
+      {numeral(release[property]).format('0.00a')}
+    </span>
+  );
 };
 
 export class SubViewComponent extends React.Component {
@@ -63,10 +73,11 @@ export class SubViewComponent extends React.Component {
       channel: props.match.params.channel,
       platform: props.match.params.platform,
       isLoading: true,
-      meanType: 'adjusted',
+      timeWindow: 'adjusted',
+      countType: 'rate',
     };
-
-    this.onDataBtnClick = this.onDataBtnClick.bind(this);
+    this.ontimeWindowBtnClick = this.ontimeWindowBtnClick.bind(this);
+    this.onCountTypeBtnClick = this.onCountTypeBtnClick.bind(this);
   }
 
   componentDidMount() {
@@ -78,8 +89,12 @@ export class SubViewComponent extends React.Component {
       .then(() => this.setState({ isLoading: false }));
   }
 
-  onDataBtnClick(selected) {
-    this.setState({ meanType: selected });
+  ontimeWindowBtnClick(selected) {
+    this.setState({ timeWindow: selected });
+  }
+
+  onCountTypeBtnClick(selected) {
+    this.setState({ countType: selected });
   }
 
   render() {
@@ -105,19 +120,46 @@ export class SubViewComponent extends React.Component {
               <div className="summary-options container center">
                 <center>
                   <ButtonGroup className="center summary-buttons">
-                    {['adjusted', 'all'].map(meanType => (
+                    {['adjusted', 'all'].map(timeWindow => (
                       <Button
-                        key={`btn-${meanType}`}
-                        onClick={() => this.onDataBtnClick(meanType)}
-                        active={this.state.meanType === meanType}>
-                        {_.capitalize(meanType)}
+                        key={`btn-${timeWindow}`}
+                        onClick={() => this.ontimeWindowBtnClick(timeWindow)}
+                        active={this.state.timeWindow === timeWindow}>
+                        {_.capitalize(timeWindow)}
+                      </Button>
+                    ))}
+                  </ButtonGroup>
+                  &nbsp;
+                  <ButtonGroup className="center summary-buttons">
+                    {['rate', 'count'].map(countType => (
+                      <Button
+                        key={`btn-${countType}`}
+                        onClick={() => this.onCountTypeBtnClick(countType)}
+                        active={this.state.countType === countType}>
+                        {_.capitalize(countType)}
                       </Button>
                     ))}
                   </ButtonGroup>
                   <p className="text-muted">
-                    {this.state.meanType === 'adjusted'
-                      ? "Showing mean error rate (number of events per 1000 hours) within latest release's time window"
-                      : 'Showing mean error rate for full duration of each release (time from when first seen to when next release arrives)'}
+                    Showing&nbsp;
+                    {this.state.countType === 'rate' ? (
+                      <abbr title="Average number of events per 1000 hours">
+                        mean error rate
+                      </abbr>
+                    ) : (
+                      'total number of errors'
+                    )}
+                    &nbsp;
+                    {this.state.timeWindow === 'adjusted' ? (
+                      "within latest release's time window"
+                    ) : (
+                      <span>
+                        for&nbsp;
+                        <abbr title="Time from when first seen to when next release arrives">
+                          full duration of each release
+                        </abbr>
+                      </span>
+                    )}
                   </p>
                 </center>
               </div>
@@ -132,33 +174,36 @@ export class SubViewComponent extends React.Component {
                   </tr>
                 </thead>
                 <tbody>
-                  {this.props.measures.map(measure => (
-                    <tr key={measure.name}>
-                      <td>
-                        <a
-                          href={`#/${this.state.channel}/${
-                            this.state.platform
-                          }/${measure.name}`}>
-                          {measure.name}
-                        </a>
-                      </td>
-                      {this.props.versions.map(versionStr => (
-                        <td key={`${measure.name}-${versionStr}`}>
-                          {getReleaseMean(
-                            measure.versions.find(
-                              release => release.version === versionStr
-                            ),
-                            this.state.meanType
-                          )}
+                  {this.props.measures
+                    .sort((m, n) => m.name > n.name)
+                    .map(measure => (
+                      <tr key={measure.name}>
+                        <td>
+                          <a
+                            href={`#/${this.state.channel}/${
+                              this.state.platform
+                            }/${measure.name}`}>
+                            {measure.name}
+                          </a>
                         </td>
-                      ))}
-                      <td al>
-                        {measure.lastUpdated
-                          ? moment(measure.lastUpdated).fromNow()
-                          : 'N/A'}
-                      </td>
-                    </tr>
-                  ))}
+                        {this.props.versions.map(versionStr => (
+                          <td key={`${measure.name}-${versionStr}`}>
+                            {getReleaseValue(
+                              measure.versions.find(
+                                release => release.version === versionStr
+                              ),
+                              this.state.countType,
+                              this.state.timeWindow
+                            )}
+                          </td>
+                        ))}
+                        <td al>
+                          {measure.lastUpdated
+                            ? moment(measure.lastUpdated).fromNow()
+                            : 'N/A'}
+                        </td>
+                      </tr>
+                    ))}
                 </tbody>
               </table>
               {this.props.latestReleaseAge < 86400 && (
