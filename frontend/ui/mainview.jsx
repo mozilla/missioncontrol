@@ -22,12 +22,12 @@ const mapStateToProps = state => ({
 const getChangeIndicator = versions => {
   if (versions.length > 2) {
     const pctChange =
-      (versions[1].adjustedMean - versions[2].adjustedMean) /
-      versions[2].adjustedMean *
+      (versions[1].adjustedRate - versions[2].adjustedRate) /
+      versions[2].adjustedRate *
       100.0;
-    const title = `${versions[2].adjustedMean} → ${versions[1].adjustedMean}`;
+    const title = `${versions[2].adjustedRate} → ${versions[1].adjustedRate}`;
 
-    if (versions[1].adjustedMean > versions[2].adjustedMean) {
+    if (versions[1].adjustedRate > versions[2].adjustedRate) {
       return (
         <span title={title} className={pctChange > 25 ? 'text-danger' : ''}>
           {numeral(pctChange).format('0.00a')}%&nbsp;
@@ -139,7 +139,7 @@ class MainViewComponent extends React.Component {
                                     title={
                                       measure.versions.length > 1
                                         ? `Average ${
-                                            measure.versions[1].adjustedMean
+                                            measure.versions[1].adjustedRate
                                           } events per 1000 hours`
                                         : ''
                                     }>
@@ -150,7 +150,7 @@ class MainViewComponent extends React.Component {
                                       }-${measure.name}`}
                                       align="right">
                                       {measure.versions.length > 1 &&
-                                        measure.versions[1].adjustedMean}
+                                        measure.versions[1].adjustedRate}
                                     </td>
                                     <td align="right">
                                       {measure.versions &&
