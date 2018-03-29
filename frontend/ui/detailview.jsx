@@ -624,7 +624,7 @@ class DetailViewComponent extends React.Component {
           breadcrumbs={[
             {
               name: 'Home',
-              link: '/',
+              link: `/?channel=${this.state.channel}`,
             },
             {
               name: `${this.state.platform} ${this.state.channel}`,
