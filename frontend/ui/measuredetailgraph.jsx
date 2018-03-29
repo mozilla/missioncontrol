@@ -27,7 +27,7 @@ class MeasureDetailGraph extends React.Component {
 
         return {
           ...series,
-          data: series.data.filter(d => d[this.props.measure] < threshold),
+          data: series.data.filter(d => d[this.props.measure] <= threshold),
         };
       });
     }
