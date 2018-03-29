@@ -106,7 +106,7 @@ export class SubViewComponent extends React.Component {
         <SubViewNav
           className="header-element"
           breadcrumbs={[
-            { name: 'Home', link: '/' },
+            { name: 'Home', link: `/?channel=${this.state.channel}` },
             {
               name: `${this.state.platform} ${this.state.channel}`,
               link: `/${this.state.channel}/${this.state.platform}`,
