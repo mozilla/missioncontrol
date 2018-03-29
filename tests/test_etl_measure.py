@@ -82,15 +82,19 @@ def test_get_measure_summary(fake_measure_data, prepopulated_version_cache):
         'lastUpdated': datetime.datetime(2017, 7, 1, 12, 0, tzinfo=tzutc()),
         'versions': [
             {
-                'adjustedMean': 2041.67,
+                'adjustedCount': 120,
+                'adjustedRate': 2041.67,
+                'count': 120,
                 'fieldDuration': 600,
-                'mean': 2041.67,
+                'rate': 2041.67,
                 'version': '55.0.1'
             },
             {
-                'adjustedMean': 2041.67,
+                'adjustedCount': 240,
+                'adjustedRate': 2041.67,
+                'count': 240,
                 'fieldDuration': 600,
-                'mean': 2041.67,
+                'rate': 2041.67,
                 'version': '55'
             }
         ]
