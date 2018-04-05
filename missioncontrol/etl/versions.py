@@ -34,3 +34,7 @@ def get_min_recent_firefox_version(channel):
     if channel == 'esr':
         return str(LooseVersion(current_version).version[0] - 7)
     return str(LooseVersion(current_version).version[0] - 1)
+
+
+def get_major_version(versionstr):
+    return LooseVersion(versionstr).version[0]

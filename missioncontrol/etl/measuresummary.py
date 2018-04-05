@@ -1,13 +1,13 @@
 import datetime
 import statistics
 
-from distutils.version import LooseVersion
 from django.db.models import (Max, Min)
 from pkg_resources import parse_version
 
 from missioncontrol.base.models import Datum
 from missioncontrol.settings import MEASURE_SUMMARY_VERSION_INTERVAL
-from .versions import get_current_firefox_version
+from .versions import (get_current_firefox_version,
+                       get_major_version)
 
 
 def get_measure_summary_cache_key(platform_name, channel_name, measure_name):
@@ -43,18 +43,19 @@ def get_measure_summary(platform_name, channel_name, measure_name):
         series__build__platform__name=platform_name)
 
     current_version = get_current_firefox_version(channel_name)
+    current_major_version = get_major_version(current_version)
 
     # if we are on esr, we will look up to 7 versions back
     # all other channels, just 2
     if channel_name == 'esr':
-        min_version = LooseVersion(current_version).version[0] - 7
+        min_version = current_major_version - 7
     else:
-        min_version = LooseVersion(current_version).version[0] - MEASURE_SUMMARY_VERSION_INTERVAL
+        min_version = current_major_version - MEASURE_SUMMARY_VERSION_INTERVAL
 
     raw_version_data = sorted(
         datums.filter(
             series__build__version__gte=min_version,
-            series__build__version__lte=current_version
+            series__build__version__lt=str(current_major_version + 1)
         ).values_list('series__build__version').distinct().annotate(
             Min('timestamp'), Max('timestamp')
         ), key=lambda d: parse_version(d[0]))
@@ -67,7 +68,7 @@ def get_measure_summary(platform_name, channel_name, measure_name):
     # group versions by major version -- we'll aggregate
     grouped_versions = {}
     for (version, min_timestamp, max_timestamp) in raw_version_data:
-        major_version = LooseVersion(version).version[0]
+        major_version = get_major_version(version)
         if not grouped_versions.get(major_version):
             grouped_versions[major_version] = []
         grouped_versions[major_version].append(

@@ -21,7 +21,8 @@ from missioncontrol.settings import (MEASURE_SUMMARY_CACHE_EXPIRY,
 from .measuresummary import (get_measure_summary_cache_key,
                              get_measure_summary)
 from .versions import (get_current_firefox_version,
-                       get_min_recent_firefox_version)
+                       get_min_recent_firefox_version,
+                       get_major_version)
 
 
 logger = logging.getLogger(__name__)
@@ -68,6 +69,7 @@ def update_measure(platform_name, channel_name, measure_name):
     # also place a restriction on version (to avoid fetching data
     # for bogus versions)
     current_version = get_current_firefox_version(channel_name)
+    next_major_version = get_major_version(current_version) + 1
     min_version = get_min_recent_firefox_version(channel_name)
 
     # we prefer to specify parameters in a seperate params dictionary
@@ -78,7 +80,7 @@ def update_measure(platform_name, channel_name, measure_name):
         sum(usage_hours), sum(count) as client_count
         from {MISSION_CONTROL_TABLE} where
         application=\'Firefox\' and
-        version >= %(min_version)s and version <= %(current_version)s and
+        version >= %(min_version)s and version < %(next_major_version)s and
         build_id > %(min_build_id)s and
         os_name=%(os_name)s and
         channel=%(channel_name)s and
@@ -89,7 +91,7 @@ def update_measure(platform_name, channel_name, measure_name):
         sum(usage_hours) > 0'''.replace('\n', '').strip()
     params = {
         'min_version': min_version,
-        'current_version': current_version,
+        'next_major_version': str(next_major_version),
         'min_build_id': min_buildid_timestamp.strftime('%Y%m%d'),
         'os_name': platform.telemetry_name,
         'channel_name': channel_name,
