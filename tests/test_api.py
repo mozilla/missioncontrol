@@ -9,6 +9,7 @@ from freezegun import freeze_time
 from missioncontrol.etl.measuresummary import (get_measure_summary,
                                                get_measure_summary_cache_key)
 from missioncontrol.base.models import (Channel,
+                                        Measure,
                                         Platform)
 
 
@@ -34,8 +35,7 @@ def test_measure_summary_incorporated(client, monkeypatch, prepopulated_version_
               None)
     resp = client.get(reverse('channel-platform-summary'), {
         'platform': 'linux',
-        'channel': 'release',
-        'measure': 'main_crashes'
+        'channel': 'release'
     })
     assert resp.status_code == 200
     assert resp.json() == {
@@ -67,6 +67,22 @@ def test_measure_summary_incorporated(client, monkeypatch, prepopulated_version_
                         ]
                     }
                 ]
+            }
+        ]
+    }
+    # verify that the measure / summary disappears when we disable it
+    Measure.objects.all().update(enabled=False)
+    resp = client.get(reverse('channel-platform-summary'), {
+        'platform': 'linux',
+        'channel': 'release'
+    })
+    assert resp.status_code == 200
+    assert resp.json() == {
+        'summaries': [
+            {
+                'channel': 'release',
+                'platform': 'linux',
+                'measures': []
             }
         ]
     }

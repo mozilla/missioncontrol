@@ -40,11 +40,3 @@
     name: esr
     update_interval: 42 00:00:00 # = 6 weeks
     min_expected_client_count: 50
-
-# measures (some are also in load_initial_data)
-- model: base.Measure
-  pk: 1
-  fields:
-    name: gpu_crashes
-    min_version: 53
-    platform: 1
