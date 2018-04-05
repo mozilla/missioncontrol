@@ -52,6 +52,7 @@ def update_measure(platform_name, channel_name, measure_name):
     platform = Platform.objects.get(name=platform_name)
     channel = Channel.objects.get(name=channel_name)
     measure = Measure.objects.get(name=measure_name,
+                                  channels=channel,
                                   platform=platform)
 
     min_timestamp = timezone.now() - channel.update_interval

@@ -65,7 +65,8 @@ def channel_platform_summary(request):
             if only_crash_measures is None or (only_crash_measures.isdigit() and not
                                                int(only_crash_measures)):
                 measure_names = Measure.objects.filter(
-                    platform=platform).values_list('name', flat=True)
+                    channels=channel, platform=platform,
+                    enabled=True).values_list('name', flat=True)
             else:
                 measure_names = ['main_crashes', 'content_crashes',
                                  'content_shutdown_crashes']

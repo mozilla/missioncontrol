@@ -77,7 +77,9 @@ class Measure(models.Model):
     name = models.SlugField(max_length=100)
     min_version = models.PositiveIntegerField(null=True)
     # may want to add max_version in future (but for now, YAGNI)
+    channels = models.ManyToManyField(Channel, related_name='measure_channels')
     platform = models.ForeignKey(Platform, null=True)
+    enabled = models.BooleanField(default=True)
 
     class Meta:
         db_table = 'measure'
