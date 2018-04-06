@@ -1,5 +1,5 @@
 import datetime
-import statistics
+import math
 
 from django.db.models import (Max, Min)
 from pkg_resources import parse_version
@@ -16,6 +16,8 @@ def get_measure_summary_cache_key(platform_name, channel_name, measure_name):
                              'summary']])
 
 
+# returns a list of (rate, value, usage_hours) tuples in the interval for that
+# version
 def _get_data_interval_for_version(platform_name, channel_name, measure_name,
                                    version, start, end):
     datums = Datum.objects.filter(
@@ -23,11 +25,13 @@ def _get_data_interval_for_version(platform_name, channel_name, measure_name,
         series__build__channel__name=channel_name,
         series__build__platform__name=platform_name,
         series__build__version__startswith=version)
-    return list(
+    value_usage_hours = list(
         datums.filter(
             timestamp__range=(start, end)
         ).values_list('value', 'usage_hours')
     )
+    return sorted([(value/(usage_hours*1000.0), value, usage_hours) for
+                   (value, usage_hours) in value_usage_hours])
 
 
 def get_measure_summary(platform_name, channel_name, measure_name):
@@ -116,7 +120,7 @@ def get_measure_summary(platform_name, channel_name, measure_name):
                 'version': version[0],
                 'fieldDuration': int(field_duration.total_seconds())
             }
-            for (mean_id, count_id, interval) in (
+            for (rate_id, count_id, interval) in (
                     ('rate', 'count', version_end - version_start),
                     ('adjustedRate', 'adjustedCount', latest_version_interval)
             ):
@@ -126,12 +130,17 @@ def get_measure_summary(platform_name, channel_name, measure_name):
                                                         version[0],
                                                         version_start,
                                                         version_start + interval)
-                version_data[count_id] = int(sum([v[0] for v in values]))
-                normalized_values = [v[0]/(v[1]/1000.0) for v in values]
-                if len(normalized_values) > 1:
-                    version_data[mean_id] = round(statistics.mean(normalized_values), 2)
-                else:
-                    version_data[mean_id] = round(normalized_values[0], 2)
+                raw_count = int(sum([v[1] for v in values]))
+                version_data[count_id] = raw_count
+
+                # to prevent outliers from impacting our rate calculation, we'll use
+                # the 99th percentile of captured values
+                end = math.ceil(len(values) * 0.99)
+                rate_values = values[:end]
+                version_data[rate_id] = round(
+                    sum([v[1] for v in rate_values]) /
+                    sum([v[2]/1000.0 for v in rate_values]), 2)
+
             version_summaries.append(version_data)
 
     return {

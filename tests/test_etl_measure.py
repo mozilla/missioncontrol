@@ -82,18 +82,18 @@ def test_get_measure_summary(fake_measure_data, prepopulated_version_cache):
         'versions': [
             {
                 'adjustedCount': 120,
-                'adjustedRate': 2041.67,
+                'adjustedRate': 2142.86,
                 'count': 120,
                 'fieldDuration': 600,
-                'rate': 2041.67,
+                'rate': 2142.86,
                 'version': '55.0.1'
             },
             {
                 'adjustedCount': 240,
-                'adjustedRate': 2041.67,
+                'adjustedRate': 2142.86,
                 'count': 240,
                 'fieldDuration': 600,
-                'rate': 2041.67,
+                'rate': 2142.86,
                 'version': '55'
             }
         ]
