@@ -101,6 +101,28 @@ html, body, #root {
   padding: 20px;
 }
 
+.channel-summary {
+  text-align: center;
+  padding: 20px;
+}
+
+.channel-summary-score {
+  font-size: 5.0rem;
+  font-weight: bold;
+}
+
+.channel-summary-title {
+  margin-bottom: -12px;
+  font-size: 1rem;
+  font-weight: 300 !important;
+}
+
+.summary-rate {
+  font-size: 2.5rem;
+  font-weight: bold;
+  text-align: center;
+}
+
 .summary-table {
   font-size: 12px;
   border-top: none;
