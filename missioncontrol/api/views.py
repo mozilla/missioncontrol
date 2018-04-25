@@ -158,7 +158,10 @@ def measure(request):
         if not versions:
             # if the user does not specify a list of versions, generate our
             # own based on the latest version with data
-            latest_build_id = datums.aggregate(
+            latest_build_id = datums.filter(
+                timestamp__gt=(datetime.datetime.now() -
+                               datetime.timedelta(days=1))
+            ).aggregate(
                 Max('series__build__build_id'))['series__build__build_id__max']
             if int(interval) == 0:
                 # if interval is 0 for relative, just use the interval of the latest
