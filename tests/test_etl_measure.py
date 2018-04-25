@@ -39,11 +39,11 @@ def test_update_measure_new_series(initial_data, prepopulated_version_cache,
     from missioncontrol.etl.measure import update_measure
     update_measure('linux', 'release', 'main_crashes')
     assert list(Datum.objects.filter(
-        series__measure__name='main_crashes',
-        series__build__build_id='20170629075044',
-        series__build__version='55.0.2',
-        series__build__channel__name='release',
-        series__build__platform__name='linux').values_list(
+        measure__name='main_crashes',
+        build__build_id='20170629075044',
+        build__version='55.0.2',
+        build__channel__name='release',
+        build__platform__name='linux').values_list(
             'timestamp', 'value', 'usage_hours').order_by(
                 'timestamp')) == sorted(
                     [(datetime_to_utc(d[0]), d[4], d[5]) for d in mock_raw_query_data],
@@ -60,11 +60,11 @@ def test_update_measure_existing_series(fake_measure_data,
     update_measure('linux', 'release', 'main_crashes')
     # assert that new data gets inserted as expected
     assert list(Datum.objects.filter(
-        series__measure__name='main_crashes',
-        series__build__build_id='20170629075044',
-        series__build__version='55.0.2',
-        series__build__channel__name='release',
-        series__build__platform__name='linux').values_list(
+        measure__name='main_crashes',
+        build__build_id='20170629075044',
+        build__version='55.0.2',
+        build__channel__name='release',
+        build__platform__name='linux').values_list(
             'timestamp', 'value', 'usage_hours').order_by(
                 'timestamp')) == sorted(
                     [(datetime_to_utc(d[0]), d[4], d[5]) for d in mock_raw_query_data],

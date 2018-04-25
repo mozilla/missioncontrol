@@ -1,3 +1,10 @@
+# application types
+- model: base.Application
+  pk: 1
+  fields:
+    name: firefox
+    telemetry_name: Firefox
+
 # operating systems
 - model: base.Platform
   pk: 1
@@ -21,7 +28,7 @@
   fields:
     name: release
     update_interval: 42 00:00:00 # = 6 weeks
-    min_expected_client_count: 1000
+    min_expected_client_count: 100
 - model: base.Channel
   pk: 2
   fields:
