@@ -173,9 +173,9 @@ def measure(request):
                             timestamps_for_latest['timestamp__min']).total_seconds()
             # get data for current + up to three previous versions (handling each
             # build id for each version, if there are multiple)
-            versions = sorted(
+            versions = list(reversed(sorted(
                 [str(d[0]) for d in datums.values_list('series__build__version').distinct()],
-                key=parse_version)[0:4]
+                key=parse_version)))[0:4]
         version_timestamps = {
             (d[0], d[1]): d[2] for d in datums.filter(
                 series__build__version__in=versions).values_list(
