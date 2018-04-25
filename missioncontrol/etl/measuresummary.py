@@ -21,10 +21,10 @@ def get_measure_summary_cache_key(platform_name, channel_name, measure_name):
 def _get_data_interval_for_version(platform_name, channel_name, measure_name,
                                    version, start, end):
     datums = Datum.objects.filter(
-        series__measure__name=measure_name,
-        series__build__channel__name=channel_name,
-        series__build__platform__name=platform_name,
-        series__build__version__startswith=version)
+        measure__name=measure_name,
+        build__channel__name=channel_name,
+        build__platform__name=platform_name,
+        build__version__startswith=version)
     value_usage_hours = list(
         datums.filter(
             timestamp__range=(start, end)
@@ -42,9 +42,9 @@ def get_measure_summary(platform_name, channel_name, measure_name):
     24 hours, compared to previous versions.
     '''
     datums = Datum.objects.filter(
-        series__measure__name=measure_name,
-        series__build__channel__name=channel_name,
-        series__build__platform__name=platform_name)
+        measure__name=measure_name,
+        build__channel__name=channel_name,
+        build__platform__name=platform_name)
 
     current_version = get_current_firefox_version(channel_name)
     current_major_version = get_major_version(current_version)
@@ -58,9 +58,9 @@ def get_measure_summary(platform_name, channel_name, measure_name):
 
     raw_version_data = sorted(
         datums.filter(
-            series__build__version__gte=min_version,
-            series__build__version__lt=str(current_major_version + 1)
-        ).values_list('series__build__version').distinct().annotate(
+            build__version__gte=min_version,
+            build__version__lt=str(current_major_version + 1)
+        ).values_list('build__version').distinct().annotate(
             Min('timestamp'), Max('timestamp')
         ), key=lambda d: parse_version(d[0]))
     if not raw_version_data:

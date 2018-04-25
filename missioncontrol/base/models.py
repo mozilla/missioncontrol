@@ -1,6 +1,17 @@
 from django.db import models
 
 
+class Application(models.Model):
+    '''
+    Represents a type of application e.g. "firefox", "fennec"
+    '''
+    name = models.CharField(max_length=100, unique=True)
+    telemetry_name = models.CharField(max_length=100, unique=True)
+
+    class Meta:
+        db_table = 'application'
+
+
 class Platform(models.Model):
     '''
     Represents a platform e.g. "windows"
@@ -49,17 +60,13 @@ class ExperimentBranch(models.Model):
 
 class Build(models.Model):
     '''
-    Represents a specific build of the product (if a value is None, then
-    this "build" represents the aggregate of all possible values for that
-    particular dimension given the other constraints)
+    Represents a specific build of the product
     '''
-    platform = models.ForeignKey(Platform, null=True)
-    channel = models.ForeignKey(Channel, null=True)
-    build_id = models.CharField(max_length=14, null=True)
-    version = models.CharField(max_length=10, null=True)
-
-    experiment_branch = models.ForeignKey(ExperimentBranch, null=True,
-                                          default=None)
+    application = models.ForeignKey(Application)
+    platform = models.ForeignKey(Platform)
+    channel = models.ForeignKey(Channel)
+    build_id = models.CharField(max_length=14)
+    version = models.CharField(max_length=20)
 
     class Meta:
         db_table = 'build'
@@ -69,40 +76,29 @@ class Build(models.Model):
 class Measure(models.Model):
     '''
     Represents a type of measure (e.g. "main_crashes")
-
-    Some measures occur only on specific types of platform (e.g. "gpu_crashes"
-    is Windows-only). If no platform is specified, then the measure is
-    applicable to all platforms
     '''
     name = models.SlugField(max_length=100)
     min_version = models.PositiveIntegerField(null=True)
     # may want to add max_version in future (but for now, YAGNI)
     channels = models.ManyToManyField(Channel, related_name='measure_channels')
+    application = models.ForeignKey(Application, null=True)
     platform = models.ForeignKey(Platform, null=True)
     enabled = models.BooleanField(default=True)
 
     class Meta:
         db_table = 'measure'
-        unique_together = ('name', 'platform')
-
-
-class Series(models.Model):
-    '''
-    Represents a signature for a type of series on a specific build
-    '''
-    build = models.ForeignKey(Build)
-    measure = models.ForeignKey(Measure)
-
-    class Meta:
-        db_table = 'series'
+        unique_together = ('name', 'application', 'platform')
 
 
 class Datum(models.Model):
     '''
-    An individual data point for a specific series (see above)
+    An individual aggregate of data over a 5-minute period
     '''
     id = models.BigAutoField(primary_key=True)
-    series = models.ForeignKey(Series)
+    build = models.ForeignKey(Build, null=True)
+    experiment_branch = models.ForeignKey(ExperimentBranch, null=True,
+                                          default=None)
+    measure = models.ForeignKey(Measure)
     timestamp = models.DateTimeField()
     value = models.FloatField()
     usage_hours = models.FloatField()
@@ -110,4 +106,5 @@ class Datum(models.Model):
 
     class Meta:
         db_table = 'datum'
-        index_together = ('series', 'timestamp')
+        unique_together = (('build', 'measure', 'timestamp'),
+                           ('experiment_branch', 'measure', 'timestamp'))

@@ -12,8 +12,7 @@ from missioncontrol.base.models import (Build,
                                         Experiment,
                                         ExperimentBranch,
                                         Measure,
-                                        Platform,
-                                        Series)
+                                        Platform)
 
 
 def pytest_runtest_setup(item):
@@ -51,13 +50,16 @@ def initial_data(transactional_db):
     call_command('load_initial_data')
 
 
-def _create_fake_series_data(series, base_datapoint_time, time_offset):
+def _create_fake_series_data(build, measure, experiment_branch,
+                             base_datapoint_time, time_offset):
     for (timestamp, value, usage_hours, client_count) in (
             (base_datapoint_time - time_offset - datetime.timedelta(minutes=10), 100, 20, 100),
             (base_datapoint_time - time_offset - datetime.timedelta(minutes=5), 10, 16, 101),
             (base_datapoint_time - time_offset, 10, 20, 102)):
-        Datum.objects.create(series=series, timestamp=timestamp,
-                             value=value, usage_hours=usage_hours,
+        Datum.objects.create(build=build, measure=measure,
+                             experiment_branch=experiment_branch,
+                             timestamp=timestamp, value=value,
+                             usage_hours=usage_hours,
                              client_count=client_count)
 
 
@@ -71,8 +73,8 @@ def _create_fake_measure_data(base_datapoint_time, offset_earlier_version):
                                      build_id=build_id,
                                      version=version)
         measure = Measure.objects.get(name='main_crashes', platform__name='linux')
-        series = Series.objects.create(build=build, measure=measure)
-        _create_fake_series_data(series, base_datapoint_time, time_offset)
+        _create_fake_series_data(build, measure, None, base_datapoint_time,
+                                 time_offset)
 
 
 @pytest.fixture
@@ -93,9 +95,5 @@ def fake_experiments_data(transactional_db, base_datapoint_time):
     for branch_name in ['branch1', 'branch2']:
         experiment_branch = ExperimentBranch.objects.create(
             experiment=experiment, name=branch_name)
-        build = Build.objects.create(platform=None, channel=None, build_id=None,
-                                     version=None,
-                                     experiment_branch=experiment_branch)
-        series = Series.objects.create(build=build, measure=measure)
-        _create_fake_series_data(series, base_datapoint_time,
-                                 datetime.timedelta())
+        _create_fake_series_data(None, measure, experiment_branch,
+                                 base_datapoint_time, datetime.timedelta())

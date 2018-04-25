@@ -8,8 +8,7 @@ from missioncontrol.base.models import (Build,
                                         Channel,
                                         Datum,
                                         Measure,
-                                        Platform,
-                                        Series)
+                                        Platform)
 from missioncontrol.etl.measuresummary import get_measure_summary
 
 
@@ -23,14 +22,14 @@ def _generate_fake_data(platform_name, channel_name, measure_name, buildid,
         version=version)
     measure = Measure.objects.get(name=measure_name,
                                   platform__name=platform_name)
-    series = Series.objects.create(build=build, measure=measure)
     latest_timestamp = None
     random.seed(42)
     for i in range(num_datapoints):
         latest_timestamp = base_datapoint_time + datetime.timedelta(hours=i)
         (value, usage_hours, client_count) = (
             math.floor((i + 1) / 2.0) + random.randint(0, 5), float(i + 1), i)
-        Datum.objects.create(series=series, timestamp=latest_timestamp,
+        Datum.objects.create(build=build, measure=measure,
+                             timestamp=latest_timestamp,
                              value=value, usage_hours=usage_hours,
                              client_count=client_count)
     return latest_timestamp

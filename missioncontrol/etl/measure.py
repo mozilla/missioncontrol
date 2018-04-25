@@ -14,8 +14,7 @@ from missioncontrol.base.models import (Build,
                                         Channel,
                                         Datum,
                                         Measure,
-                                        Platform,
-                                        Series)
+                                        Platform)
 from missioncontrol.settings import (MEASURE_SUMMARY_CACHE_EXPIRY,
                                      MISSION_CONTROL_TABLE)
 from .measuresummary import (get_measure_summary_cache_key,
@@ -29,7 +28,7 @@ logger = logging.getLogger(__name__)
 
 
 @celery.task
-def update_measure(platform_name, channel_name, measure_name):
+def update_measure(platform_name, channel_name, measure_name, submission_date=None):
     '''
     Updates (or creates) a local cache entry for a specify platform/channel/measure
     aggregate, which can later be retrieved by the API
@@ -58,8 +57,8 @@ def update_measure(platform_name, channel_name, measure_name):
 
     min_timestamp = timezone.now() - channel.update_interval
     min_timestamp_in_data = Datum.objects.filter(
-        series__build__channel=channel,
-        series__measure=measure).aggregate(Max('timestamp'))['timestamp__max']
+        build__channel=channel,
+        measure=measure).aggregate(Max('timestamp'))['timestamp__max']
     if min_timestamp_in_data:
         min_timestamp = max([min_timestamp, min_timestamp_in_data])
 
@@ -102,7 +101,7 @@ def update_measure(platform_name, channel_name, measure_name):
     logger.info('Querying: %s', query_template % params)
 
     # bulk create any new datum objects from the returned results
-    series_cache = {}
+    build_cache = {}
     datum_objs = []
     for (window_start, build_id, version, display_version, measure_count,
          usage_hours, client_count) in raw_query(query_template, params):
@@ -119,14 +118,12 @@ def update_measure(platform_name, channel_name, measure_name):
         if channel == 'beta' and display_version and \
            parse_version(display_version) > parse_version(current_version):
             continue
-        series = series_cache.get((build_id, version))
-        if not series:
+        build = build_cache.get((build_id, version))
+        if not build:
             build, _ = Build.objects.get_or_create(
                 platform=platform, channel=channel, build_id=build_id,
                 version=(display_version or version))
-            series, _ = Series.objects.get_or_create(build=build,
-                                                     measure=measure)
-            series_cache[(build_id, version)] = series
+            build_cache[(build_id, version)] = build
 
         try:
             buildstamp = pytz.utc.localize(
@@ -141,7 +138,8 @@ def update_measure(platform_name, channel_name, measure_name):
         if buildstamp < window_start - channel.update_interval:
             continue
         datum_objs.append(Datum(
-            series=series,
+            build=build,
+            measure=measure,
             timestamp=window_start,
             value=measure_count,
             usage_hours=usage_hours,

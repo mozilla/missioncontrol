@@ -127,12 +127,12 @@ def measure(request):
             "Interval / start time must be specified in seconds (as an integer) %s" % interval)
 
     datums = Datum.objects.filter(
-        series__build__channel__name=channel_name,
-        series__build__platform__name=platform_name,
-        series__measure__name=measure_name)
+        build__channel__name=channel_name,
+        build__platform__name=platform_name,
+        measure__name=measure_name)
 
     if versions:
-        datums = datums.filter(series__build__version__in=versions)
+        datums = datums.filter(build__version__in=versions)
 
     if not datums.exists():
         return HttpResponseNotFound("Data not available for this measure combination")
@@ -144,14 +144,14 @@ def measure(request):
         datums = _filter_datums_to_time_interval(datums, start, interval)
 
         for (build_id, version) in datums.values_list(
-                'series__build__build_id',
-                'series__build__version').distinct():
+                'build__build_id',
+                'build__version').distinct():
             ret[build_id] = {
                 'data': [],
                 'version': version
             }
         for (build_id, timestamp, value, usage_hours) in datums.values_list(
-                'series__build__build_id',
+                'build__build_id',
                 'timestamp', 'value', 'usage_hours').order_by('timestamp'):
             ret[build_id]['data'].append((timestamp, value, usage_hours))
     else:
@@ -162,24 +162,24 @@ def measure(request):
                 timestamp__gt=(datetime.datetime.now() -
                                datetime.timedelta(days=1))
             ).aggregate(
-                Max('series__build__build_id'))['series__build__build_id__max']
+                Max('build__build_id'))['build__build_id__max']
             if int(interval) == 0:
                 # if interval is 0 for relative, just use the interval of the latest
                 # released version
                 timestamps_for_latest = datums.filter(
-                    series__build__build_id=latest_build_id).aggregate(
+                    build__build_id=latest_build_id).aggregate(
                         Min('timestamp'), Max('timestamp'))
                 interval = (timestamps_for_latest['timestamp__max'] -
                             timestamps_for_latest['timestamp__min']).total_seconds()
             # get data for current + up to three previous versions (handling each
             # build id for each version, if there are multiple)
             versions = list(reversed(sorted(
-                [str(d[0]) for d in datums.values_list('series__build__version').distinct()],
+                [str(d[0]) for d in datums.values_list('build__version').distinct()],
                 key=parse_version)))[0:4]
         version_timestamps = {
             (d[0], d[1]): d[2] for d in datums.filter(
-                series__build__version__in=versions).values_list(
-                    'series__build__version', 'series__build__build_id').distinct().annotate(
+                build__version__in=versions).values_list(
+                    'build__version', 'build__build_id').distinct().annotate(
                         Min('timestamp'))
         }
 
@@ -198,8 +198,8 @@ def measure(request):
             ret[build_id]['data'] = [
                 [int((timestamp - base_timestamp).total_seconds()), value, usage_hours] for
                 (timestamp, value, usage_hours) in datums.filter(
-                    series__build__version=version,
-                    series__build__build_id=build_id,
+                    build__version=version,
+                    build__build_id=build_id,
                     timestamp__range=(start_timestamp,
                                       start_timestamp + datetime.timedelta(seconds=int(interval)))
                 ).order_by('timestamp').values_list('timestamp', 'value', 'usage_hours')]
@@ -223,12 +223,12 @@ def experiment(request):
             "Interval / start time must be specified in seconds (as an integer)")
 
     datums = Datum.objects.filter(
-        series__measure__name=measure_name,
-        series__build__channel=None,
-        series__build__platform=None,
-        series__build__build_id=None,
-        series__build__version=None,
-        series__build__experiment_branch__experiment__name=experiment_name)
+        measure__name=measure_name,
+        build__channel=None,
+        build__platform=None,
+        build__build_id=None,
+        build__version=None,
+        experiment_branch__experiment__name=experiment_name)
 
     if not datums.exists():
         return HttpResponseNotFound("No data available for this experiment")
@@ -237,7 +237,7 @@ def experiment(request):
 
     datums = _filter_datums_to_time_interval(datums, start, interval)
     for (experiment_branch, timestamp, value, usage_hours) in datums.values_list(
-            'series__build__experiment_branch__name',
+            'experiment_branch__name',
             'timestamp', 'value', 'usage_hours').order_by('timestamp'):
         if not ret.get(experiment_branch):
             ret[experiment_branch] = []
