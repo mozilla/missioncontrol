@@ -1,3 +1,4 @@
+import percentile from 'aggregatejs/percentile';
 import React from 'react';
 import _ from 'lodash';
 import moment from 'moment';
@@ -16,9 +17,12 @@ import { stringify } from 'query-string';
 import Loading from './loading';
 import DateSelectorModal from './dateselectormodal';
 import DetailGraph from './detailgraph';
-import MeasureDetailGraph from './measuredetailgraph';
 import SubViewNav from './subviewnav';
 import {
+  DEFAULT_AGGREGATE_LENGTH,
+  AGGREGATE_LENGTHS,
+  AGGREGATE_LENGTH_5MIN,
+  AGGREGATE_LENGTH_60MIN,
   DEFAULT_PERCENTILE,
   DEFAULT_TIME_INTERVAL,
   DEFAULT_TIME_INTERVAL_RELATIVE,
@@ -95,6 +99,12 @@ const getOptionalParameters = props => {
     customEndDate = new Date((startTime + timeInterval) * 1000);
   }
 
+  const aggregateLength = parseInt(
+    urlParams.get('aggregateLength')
+      ? urlParams.get('aggregateLength')
+      : DEFAULT_AGGREGATE_LENGTH,
+    10
+  );
   // grouping can be either by build id or by version
   const versionGrouping = urlParams.has('versionGrouping')
     ? urlParams.get('versionGrouping')
@@ -128,6 +138,7 @@ const getOptionalParameters = props => {
   );
 
   return {
+    aggregateLength,
     startTime,
     customStartDate,
     customEndDate,
@@ -165,6 +176,9 @@ class DetailViewComponent extends React.Component {
       this.cancelChooseCustomTimeInterval.bind(this);
     this.handleRelativeChanged = this.handleRelativeChanged.bind(this);
     this.handleSkipFirst24Changed = this.handleSkipFirst24Changed.bind(this);
+    this.handleAggregateLengthChanged = this.handleAggregateLengthChanged.bind(
+      this
+    );
     this.handlePercentileChanged = this.handlePercentileChanged.bind(this);
     this.handleNormalizeChanged = this.handleNormalizeChanged.bind(this);
     this.handleVersionChanged = this.handleVersionChanged.bind(this);
@@ -202,7 +216,7 @@ class DetailViewComponent extends React.Component {
       );
   }
 
-  getSeriesList() {
+  getRawSeriesList() {
     const { measure } = this.props.match.params;
     const seriesMap = {};
 
@@ -217,9 +231,10 @@ class DetailViewComponent extends React.Component {
         }
 
         build.data.forEach(datum => {
+          const dateKey = datum[0];
           const date = this.state.relative
-            ? datum[0] / 60.0 / 60.0
-            : new Date(datum[0]);
+            ? dateKey / 60.0 / 60.0
+            : new Date(dateKey);
 
           if (this.state.relative && this.state.skipFirst24 && date < 24) {
             // if skipping the first 24 hours, filter out any datums within
@@ -227,16 +242,16 @@ class DetailViewComponent extends React.Component {
             return;
           }
 
-          if (!seriesMap[build.version][date]) {
-            seriesMap[build.version][date] = {
+          if (!seriesMap[build.version][dateKey]) {
+            seriesMap[build.version][dateKey] = {
               [measure]: 0,
               usage_hours: 0,
               date,
             };
           }
 
-          seriesMap[build.version][date][measure] += datum[1];
-          seriesMap[build.version][date].usage_hours += datum[2];
+          seriesMap[build.version][dateKey][measure] += datum[1];
+          seriesMap[build.version][dateKey].usage_hours += datum[2];
         });
       });
     } else {
@@ -248,11 +263,12 @@ class DetailViewComponent extends React.Component {
 
         seriesMap[buildId] = {};
         build.data.forEach(datum => {
+          const dateKey = datum[0];
           const date = this.state.relative
-            ? datum[0] / 60.0 / 60.0
-            : new Date(datum[0]);
+            ? dateKey / 60.0 / 60.0
+            : new Date(dateKey);
 
-          seriesMap[buildId][date] = {
+          seriesMap[buildId][dateKey] = {
             [measure]: datum[1],
             usage_hours: datum[2],
             date,
@@ -261,11 +277,14 @@ class DetailViewComponent extends React.Component {
       });
     }
 
+    const sortedSeriesValues = data =>
+      _.values(data).sort((a, b) => a.date - b.date);
+
     // if we have <= 3 series, just return all verbatim
     if (Object.keys(seriesMap).length <= 3) {
       return _.map(seriesMap, (data, name) => ({
         name,
-        data: _.values(data),
+        data: sortedSeriesValues(data),
       })).sort((a, b) => a.name < b.name);
     }
 
@@ -311,11 +330,80 @@ class DetailViewComponent extends React.Component {
       mostRecent
         .map(version => ({
           name: version,
-          data: _.values(seriesMap[version]),
+          data: sortedSeriesValues(seriesMap[version]),
         }))
         .sort((a, b) => a.name < b.name),
-      [{ name: 'Older', data: _.values(aggregated) }]
+      [{ name: 'Older', data: sortedSeriesValues(aggregated) }]
     );
+  }
+
+  getSeriesList() {
+    const { measure } = this.props.match.params;
+    let seriesList = this.getRawSeriesList();
+
+    if (this.state.percentile < 100) {
+      seriesList = seriesList.map(series => {
+        const threshold = percentile(
+          series.data.map(d => d[measure]),
+          this.state.percentile / 100.0
+        );
+
+        return {
+          ...series,
+          data: series.data.filter(d => d[measure] < threshold),
+        };
+      });
+    }
+
+    if (this.state.aggregateLength > AGGREGATE_LENGTH_5MIN) {
+      const dateRounder = date => {
+        if (this.state.relative) {
+          return date - date % this.state.aggregateLength;
+        }
+
+        if (this.state.aggregateLength === AGGREGATE_LENGTH_60MIN) {
+          return new Date(date.setMinutes(0));
+        }
+
+        // 1 day
+        return new Date(new Date(date.setMinutes(0)).setHours(0));
+      };
+
+      seriesList = seriesList.map(series => ({
+        ...series,
+        data: series.data.reduce((data, datum) => {
+          const newData = _.clone(data);
+          const newDate = dateRounder(datum.date);
+
+          if (
+            newData.length > 0 &&
+            +newData[newData.length - 1].date === +newDate
+          ) {
+            Object.keys(newData[newData.length - 1]).forEach(k => {
+              if (k !== 'date') {
+                newData[newData.length - 1][k] += datum[k];
+              }
+            });
+          } else {
+            newData.push({ ...datum, date: newDate });
+          }
+
+          return newData;
+        }, []),
+      }));
+    }
+
+    if (this.state.normalized) {
+      seriesList = seriesList.map(series => ({
+        ...series,
+        data: series.data.map(d => ({
+          ...d,
+          [measure]: d[measure] / (d.usage_hours / 1000.0),
+        })),
+      }));
+    }
+
+    return seriesList;
   }
 
   navigate(newParams, cb) {
@@ -323,6 +411,7 @@ class DetailViewComponent extends React.Component {
 
     // generate a new url string, so we can link to this particular view
     const params = [
+      'aggregateLength',
       'timeInterval',
       'relative',
       'percentile',
@@ -432,6 +521,22 @@ class DetailViewComponent extends React.Component {
     this.navigate(
       {
         skipFirst24: ev.target.checked,
+      },
+      () => {
+        this.setState({
+          seriesList: this.getSeriesList(),
+        });
+      }
+    );
+  }
+
+  handleAggregateLengthChanged(ev) {
+    const index = parseInt(ev.target.value, 10);
+    const chosenAggregateLength = AGGREGATE_LENGTHS[index];
+
+    this.navigate(
+      {
+        aggregateLength: chosenAggregateLength.value,
       },
       () => {
         this.setState({
@@ -717,6 +822,18 @@ class DetailViewComponent extends React.Component {
                   </FormGroup>
                 )}
                 <select
+                  value={AGGREGATE_LENGTHS.findIndex(
+                    p => p.value === this.state.aggregateLength
+                  )}
+                  onChange={this.handleAggregateLengthChanged}
+                  className="mb-2 mr-sm-2 mb-sm-0">
+                  {AGGREGATE_LENGTHS.map((p, index) => (
+                    <option key={`AGGREGATE_LENGTH-${p.value}`} value={index}>
+                      {p.label}
+                    </option>
+                  ))}
+                </select>
+                <select
                   value={PERCENTILES.findIndex(
                     p => p.value === this.state.percentile
                   )}
@@ -757,10 +874,11 @@ class DetailViewComponent extends React.Component {
                           <div
                             className="large-graph-container center"
                             id="measure-series">
-                            <MeasureDetailGraph
-                              measure={this.props.match.params.measure}
-                              normalized={this.state.normalized}
-                              percentileThreshold={this.state.percentile}
+                            <DetailGraph
+                              title={`${this.props.match.params.measure} ${
+                                this.state.normalized ? 'per 1k hours' : ''
+                              }`}
+                              y={this.props.match.params.measure}
                               seriesList={this.state.seriesList}
                               relative={this.state.relative}
                             />

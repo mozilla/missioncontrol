@@ -24,6 +24,17 @@ export const TIME_INTERVALS_RELATIVE = [
   { label: 'Up to 24 hours after release', interval: 86400 },
 ];
 
+export const AGGREGATE_LENGTH_5MIN = 5;
+export const AGGREGATE_LENGTH_60MIN = 60;
+export const AGGREGATE_LENGTH_1DAY = 1440;
+export const DEFAULT_AGGREGATE_LENGTH = AGGREGATE_LENGTH_60MIN;
+
+export const AGGREGATE_LENGTHS = [
+  { label: 'Every 5 minutes', value: AGGREGATE_LENGTH_5MIN },
+  { label: 'Hourly', value: AGGREGATE_LENGTH_60MIN },
+  { label: 'Daily', value: AGGREGATE_LENGTH_1DAY },
+];
+
 export const PERCENTILES = [
   { label: 'All values', value: 100 },
   { label: '99th percentile', value: 99 },
@@ -34,6 +45,8 @@ export const PERCENTILES = [
 
 export const DEFAULT_TIME_INTERVAL = 172800;
 export const DEFAULT_TIME_INTERVAL_RELATIVE = 0;
+export const COLLAPSE_DATA_THRESHOLD = 172800;
+export const COLLAPSE_DATA_SIZE = 12; // hourly intervals
 export const DEFAULT_PERCENTILE = 99;
 export const DEFAULT_VERSION_GROUPING_TYPE = 'version';
 
