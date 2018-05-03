@@ -1,10 +1,10 @@
 import _ from 'lodash';
+import versionSort from 'version-sort';
 import moment from 'moment';
 import numeral from 'numeral';
 import React from 'react';
 import { Helmet } from 'react-helmet';
 import { connect } from 'react-redux';
-import { compareVersions } from 'compare-versions';
 import { Button, ButtonGroup } from 'reactstrap';
 import Loading from './loading';
 import SubViewNav from './subviewnav';
@@ -23,15 +23,15 @@ const mapStateToProps = (state, ownProps) => {
     if (channelPlatformData.length) {
       return {
         measures: channelPlatformData[0].measures,
-        versions: _.uniq(
-          _.flatten(
-            channelPlatformData[0].measures.map(measure =>
-              measure.versions.map(version => version.version)
+        versions: versionSort(
+          _.uniq(
+            _.flatten(
+              channelPlatformData[0].measures.map(measure =>
+                measure.versions.map(version => version.version)
+              )
             )
           )
-        )
-          .sort(compareVersions)
-          .reverse(),
+        ).reverse(),
         latestReleaseAge: _.min(
           _.flatten(
             channelPlatformData[0].measures.map(measure =>

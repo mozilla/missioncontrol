@@ -1,7 +1,8 @@
-import percentile from 'aggregatejs/percentile';
-import React from 'react';
 import _ from 'lodash';
 import moment from 'moment';
+import percentile from 'aggregatejs/percentile';
+import versionSort from 'version-sort';
+import React from 'react';
 import {
   Button,
   FormGroup,
@@ -282,16 +283,17 @@ class DetailViewComponent extends React.Component {
 
     // if we have <= 3 series, just return all verbatim
     if (Object.keys(seriesMap).length <= 3) {
-      return _.map(seriesMap, (data, name) => ({
-        name,
-        data: sortedSeriesValues(data),
-      })).sort((a, b) => a.name < b.name);
+      return versionSort(
+        _.map(seriesMap, (data, name) => ({
+          name,
+          data: sortedSeriesValues(data),
+        })),
+        { nested: 'name' }
+      ).reverse();
     }
 
     // take two most recent versions
-    let mostRecent = Object.keys(seriesMap)
-      .sort()
-      .slice(-2);
+    let mostRecent = versionSort(Object.keys(seriesMap)).slice(-2);
 
     // if the second most recent has negligible results (<10% of) relative
     // to the most recent, just concatenate it in with the other results under
@@ -327,12 +329,13 @@ class DetailViewComponent extends React.Component {
     );
 
     return _.concat(
-      mostRecent
-        .map(version => ({
+      versionSort(
+        mostRecent.map(version => ({
           name: version,
           data: sortedSeriesValues(seriesMap[version]),
-        }))
-        .sort((a, b) => a.name < b.name),
+        })),
+        { nested: 'name' }
+      ).reverse(),
       [{ name: 'Older', data: sortedSeriesValues(aggregated) }]
     );
   }
@@ -635,7 +638,9 @@ class DetailViewComponent extends React.Component {
       return _.map(this.props.measureData, (data, buildId) => ({
         title: buildId,
         subtitles: [data.version],
-      }));
+      }))
+        .sort()
+        .reverse();
     }
 
     // otherwise, group all buildids with same version together
@@ -649,10 +654,13 @@ class DetailViewComponent extends React.Component {
       versionMap[build.version].push(buildId);
     });
 
-    return Object.keys(versionMap).map(version => ({
-      title: version,
-      subtitles: versionMap[version],
-    }));
+    return versionSort(
+      Object.keys(versionMap).map(version => ({
+        title: version,
+        subtitles: versionMap[version],
+      })),
+      { nested: 'title' }
+    ).reverse();
   }
 
   buildIdClicked(buildId) {
@@ -926,47 +934,45 @@ class DetailViewComponent extends React.Component {
                           : 'buildid'}
                       </legend>
                       {this.props.measureData &&
-                        this.getLegend()
-                          .sort((a, b) => a.title < b.title)
-                          .map(item => (
-                            <div key={item.title}>
-                              <Label check>
-                                <Input
-                                  name={item.title}
-                                  type="checkbox"
-                                  checked={
-                                    !this.state.disabledVersions.has(item.title)
-                                  }
-                                  onChange={this.handleVersionChanged}
-                                />{' '}
-                                {item.title}
-                              </Label>
-                              <small>
-                                {this.state.versionGrouping === 'version' ? (
-                                  <ul className="list-unstyled">
-                                    {item.subtitles
-                                      .sort((a, b) => a < b)
-                                      .map(buildId => (
-                                        <dd
-                                          name={buildId}
-                                          className="buildid-link"
-                                          key={`buildid-${buildId}`}>
-                                          <Button
-                                            color="link"
-                                            onClick={() =>
-                                              this.buildIdClicked(buildId)
-                                            }>
-                                            {buildId}
-                                          </Button>
-                                        </dd>
-                                      ))}
-                                  </ul>
-                                ) : (
-                                  <p>{item.subtitles[0]}</p>
-                                )}
-                              </small>
-                            </div>
-                          ))}
+                        this.getLegend().map(item => (
+                          <div key={item.title}>
+                            <Label check>
+                              <Input
+                                name={item.title}
+                                type="checkbox"
+                                checked={
+                                  !this.state.disabledVersions.has(item.title)
+                                }
+                                onChange={this.handleVersionChanged}
+                              />{' '}
+                              {item.title}
+                            </Label>
+                            <small>
+                              {this.state.versionGrouping === 'version' ? (
+                                <ul className="list-unstyled">
+                                  {item.subtitles
+                                    .sort((a, b) => a < b)
+                                    .map(buildId => (
+                                      <dd
+                                        name={buildId}
+                                        className="buildid-link"
+                                        key={`buildid-${buildId}`}>
+                                        <Button
+                                          color="link"
+                                          onClick={() =>
+                                            this.buildIdClicked(buildId)
+                                          }>
+                                          {buildId}
+                                        </Button>
+                                      </dd>
+                                    ))}
+                                </ul>
+                              ) : (
+                                <p>{item.subtitles[0]}</p>
+                              )}
+                            </small>
+                          </div>
+                        ))}
                     </FormGroup>
                     <Button
                       color="link"

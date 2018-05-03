@@ -15,7 +15,6 @@
     "@neutrinojs/env": "^8.2.0",
     "aggregatejs": "^0.0.5",
     "bootstrap": "^4.0.0",
-    "compare-versions": "^3.1.0",
     "d3": "^4.9.1",
     "d3-time-format": "^2.0.5",
     "font-awesome": "^4.7.0",
@@ -39,6 +38,7 @@
     "reactstrap": "^5.0.0",
     "redux": "^3.6.0",
     "redux-logger": "^3.0.6",
-    "redux-thunk": "^2.2.0"
+    "redux-thunk": "^2.2.0",
+    "version-sort": "^0.1.1"
   }
 }
