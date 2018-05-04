@@ -1,5 +1,4 @@
 import _ from 'lodash';
-import versionSort from 'version-sort';
 import moment from 'moment';
 import numeral from 'numeral';
 import React from 'react';
@@ -23,15 +22,19 @@ const mapStateToProps = (state, ownProps) => {
     if (channelPlatformData.length) {
       return {
         measures: channelPlatformData[0].measures,
-        versions: versionSort(
-          _.uniq(
-            _.flatten(
-              channelPlatformData[0].measures.map(measure =>
-                measure.versions.map(version => version.version)
-              )
+        versions: _.uniq(
+          _.flatten(
+            channelPlatformData[0].measures.map(measure =>
+              measure.versions.map(version => version.version)
             )
           )
-        ).reverse(),
+        )
+          .sort((a, b) => {
+            const difference = parseInt(a, 10) - parseInt(b, 10);
+
+            return difference || a.localeCompare(b);
+          })
+          .reverse(),
         latestReleaseAge: _.min(
           _.flatten(
             channelPlatformData[0].measures.map(measure =>
