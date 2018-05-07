@@ -96,7 +96,7 @@ def update_measure(platform_name, channel_name, measure_name, submission_date=No
         os_name=%(os_name)s and
         channel=%(channel_name)s and
         window_start > timestamp %(min_timestamp)s and
-        submission_date = %(submission_date)s
+        submission_date_s3 = %(submission_date)s
         group by (window_start, build_id, display_version)
         having sum(count) > %(min_client_count)s and
         sum(usage_hours) > 0'''.replace('\n', '').strip()
@@ -108,7 +108,7 @@ def update_measure(platform_name, channel_name, measure_name, submission_date=No
         'os_name': platform.telemetry_name,
         'channel_name': channel_name,
         'min_timestamp': min_timestamp.strftime("%Y-%m-%d %H:%M:%S"),
-        'submission_date': submission_date.strftime("%Y-%m-%d"),
+        'submission_date': submission_date.strftime("%Y%m%d"),
         'min_client_count': channel.min_expected_client_count
     }
     logger.info('Querying: %s', query_template % params)
