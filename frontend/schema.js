@@ -50,11 +50,7 @@ export const COLLAPSE_DATA_SIZE = 12; // hourly intervals
 export const DEFAULT_PERCENTILE = 99;
 export const DEFAULT_VERSION_GROUPING_TYPE = 'version';
 
-export const KEY_MEASURES = [
-  'content_crashes',
-  'main_crashes',
-  'content_shutdown_crashes',
-];
+export const KEY_MEASURES = ['content_crashes', 'main_crashes'];
 
 export const CHANNEL_ICON_MAPPING = {
   beta: betaIcon,
