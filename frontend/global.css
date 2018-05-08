@@ -117,6 +117,12 @@ html, body, #root {
   font-weight: 300 !important;
 }
 
+.channel-summary-copy-button {
+  position: absolute;
+  margin-left: 20px;
+  margin-top: 40px;
+}
+
 .summary-rate {
   font-size: 2.5rem;
   font-weight: bold;

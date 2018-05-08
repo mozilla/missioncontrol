@@ -1,8 +1,10 @@
 import _ from 'lodash';
+import copy from 'copy-to-clipboard';
 import numeral from 'numeral';
 import React from 'react';
 import { Helmet } from 'react-helmet';
 import {
+  Button,
   Card,
   CardBody,
   CardColumns,
@@ -44,25 +46,36 @@ const mapStateToProps = state => {
     };
   }
 
-  return {
-    channelPlatformSummary: state.channelPlatformSummary,
-  };
+  return {};
 };
 
-const getSummaryRate = summaries => {
-  if (!_.every(summaries.map(summary => summary.summaryRate))) {
-    return 'N/A';
+const getSummaryScore = (summaries, channel) => {
+  const channelSummaries = summaries.filter(s => s.channel === channel);
+
+  if (!_.every(channelSummaries.map(summary => summary.summaryRate))) {
+    return undefined;
   }
 
-  const summaryRates = summaries.map(summary => summary.summaryRate);
+  const summaryRates = channelSummaries.map(s => s.summaryRate);
+  const geoMean = numeral(
+    summaryRates.reduce((total, curr) => total * curr) **
+      (1.0 / summaryRates.length)
+  ).format('0.00');
+  const breakdown = channelSummaries.map(s => ({
+    platform: s.platform,
+    measures: s.measures
+      .filter(m => KEY_MEASURES.includes(m.name))
+      .map(m => ({ name: m.name, value: m.versions[1].adjustedRate })),
+  }));
+  const derivation = `√${channelSummaries.length}(${channelSummaries
+    .map(s => `${s.summaryRate} ${s.platform}`)
+    .join(' * ')})`;
 
-  return (
-    <abbr title={`geometric mean of rates: ${summaryRates.join(' * ')}`}>
-      {numeral(summaryRates.reduce((total, curr) => total * curr)).format(
-        '0.00'
-      )}
-    </abbr>
-  );
+  return {
+    breakdown,
+    explanation: `= ${derivation}`,
+    value: geoMean,
+  };
 };
 
 const getChangeIndicator = versions => {
@@ -113,6 +126,7 @@ class MainViewComponent extends React.Component {
 
     this.cardClicked = this.cardClicked.bind(this);
     this.channelBtnClicked = this.channelBtnClicked.bind(this);
+    this.copyBtnClicked = this.copyBtnClicked.bind(this);
   }
 
   componentDidMount() {
@@ -130,7 +144,29 @@ class MainViewComponent extends React.Component {
     this.props.history.push(`?channel=${channelName}`);
   }
 
+  copyBtnClicked(summaryScore) {
+    copy(
+      `${this.state.channel} summary score: ${summaryScore.value} (${
+        summaryScore.explanation
+      })\n${summaryScore.breakdown
+        .map(
+          p =>
+            `* ${p.platform} (${p.measures
+              .map(m => `${m.name}: ${m.value}`)
+              .join(' / ')})`
+        )
+        .join('\n')}`
+    );
+  }
+
   render() {
+    const summaryScore = this.props.channelPlatformSummary
+      ? getSummaryScore(
+          this.props.channelPlatformSummary.summaries,
+          this.state.channel
+        )
+      : undefined;
+
     return (
       <div>
         <Helmet>
@@ -162,13 +198,15 @@ class MainViewComponent extends React.Component {
                   <div className="col align-self-center channel-summary">
                     <div className="channel-summary-title">Summary Score</div>
                     <div className="channel-summary-score">
-                      <abbr title="geometric mean of child rates">
-                        {getSummaryRate(
-                          this.props.channelPlatformSummary.summaries.filter(
-                            s => s.channel === this.state.channel
-                          )
-                        )}
+                      <abbr title={summaryScore.explanation}>
+                        {summaryScore.value}
                       </abbr>
+                      <Button
+                        className="channel-summary-copy-button"
+                        title="Copy textual summary to clipboard"
+                        onClick={() => this.copyBtnClicked(summaryScore)}>
+                        <i className="fa fa-copy" />
+                      </Button>
                     </div>
                   </div>
                 </div>
