@@ -36,7 +36,7 @@ def test_update_measure(prepopulated_builds,
                         mock_raw_query_data,
                         base_datapoint_time):
     from missioncontrol.etl.measure import update_measure
-    update_measure('linux', 'release', 'main_crashes')
+    update_measure('firefox', 'linux', 'release', 'main_crashes')
     # assert that data gets inserted as expected
     assert list(Datum.objects.filter(
         measure__name='main_crashes',

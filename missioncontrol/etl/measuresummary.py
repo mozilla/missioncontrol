@@ -10,18 +10,21 @@ from .versions import (get_current_firefox_version,
                        get_major_version)
 
 
-def get_measure_summary_cache_key(platform_name, channel_name, measure_name):
+def get_measure_summary_cache_key(application_name, platform_name,
+                                  channel_name, measure_name):
     return ':'.join(
-        [s.lower() for s in [platform_name, channel_name, measure_name,
-                             'summary']])
+        [s.lower() for s in [application_name, platform_name, channel_name,
+                             measure_name, 'summary']])
 
 
 # returns a list of (rate, value, usage_hours) tuples in the interval for that
 # version
-def _get_data_interval_for_version(platform_name, channel_name, measure_name,
-                                   version, start, end):
+def _get_data_interval_for_version(application_name, platform_name,
+                                   channel_name, measure_name, version, start,
+                                   end):
     datums = Datum.objects.filter(
         measure__name=measure_name,
+        build__application__name=application_name,
         build__channel__name=channel_name,
         build__platform__name=platform_name,
         build__version__startswith=version)
@@ -34,7 +37,7 @@ def _get_data_interval_for_version(platform_name, channel_name, measure_name,
                    (value, usage_hours) in value_usage_hours])
 
 
-def get_measure_summary(platform_name, channel_name, measure_name):
+def get_measure_summary(application_name, platform_name, channel_name, measure_name):
     '''
     Returns a data structure summarizing the "current" status of a measure
 
@@ -43,6 +46,7 @@ def get_measure_summary(platform_name, channel_name, measure_name):
     '''
     datums = Datum.objects.filter(
         measure__name=measure_name,
+        build__application__name=application_name,
         build__channel__name=channel_name,
         build__platform__name=platform_name)
 
@@ -124,7 +128,8 @@ def get_measure_summary(platform_name, channel_name, measure_name):
                     ('rate', 'count', version_end - version_start),
                     ('adjustedRate', 'adjustedCount', latest_version_interval)
             ):
-                values = _get_data_interval_for_version(platform_name,
+                values = _get_data_interval_for_version(application_name,
+                                                        platform_name,
                                                         channel_name,
                                                         measure_name,
                                                         version[0],

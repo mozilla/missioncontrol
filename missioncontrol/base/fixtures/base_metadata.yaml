@@ -4,6 +4,11 @@
   fields:
     name: firefox
     telemetry_name: Firefox
+- model: base.Application
+  pk: 2
+  fields:
+    name: fennec
+    telemetry_name: Fennec
 
 # operating systems
 - model: base.Platform
@@ -21,6 +26,11 @@
   fields:
     name: linux
     telemetry_name: Linux
+- model: base.Platform
+  pk: 4
+  fields:
+    name: android
+    telemetry_name: Android
 
 # channels
 - model: base.Channel

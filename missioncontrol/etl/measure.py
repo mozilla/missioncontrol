@@ -1,6 +1,5 @@
 import datetime
 import logging
-import pytz
 from dateutil.tz import tzutc
 from pkg_resources import parse_version
 
@@ -8,10 +7,10 @@ import newrelic.agent
 from django.core.cache import cache
 from django.db.models import Max
 from django.db.utils import IntegrityError
-from django.utils import timezone
 
 from missioncontrol.celery import celery
-from missioncontrol.base.models import (Build,
+from missioncontrol.base.models import (Application,
+                                        Build,
                                         Channel,
                                         Datum,
                                         Measure,
@@ -27,8 +26,8 @@ logger = logging.getLogger(__name__)
 
 
 @celery.task
-def update_measure(platform_name, channel_name, measure_name, submission_date=None,
-                   bulk_create=True):
+def update_measure(application_name, platform_name, channel_name, measure_name,
+                   submission_date=None, bulk_create=True):
     '''
     Updates (or creates) a local cache entry for a specify platform/channel/measure
     aggregate, which can later be retrieved by the API
@@ -41,14 +40,17 @@ def update_measure(platform_name, channel_name, measure_name, submission_date=No
     logger.info('Updating measure: %s %s %s (date: %s)', channel_name, platform_name,
                 measure_name, submission_date or 'latest')
 
+    newrelic.agent.add_custom_parameter("application", application_name)
     newrelic.agent.add_custom_parameter("platform", platform_name)
     newrelic.agent.add_custom_parameter("channel", channel_name)
     newrelic.agent.add_custom_parameter("measure", measure_name)
 
+    application = Application.objects.get(name=application_name)
     platform = Platform.objects.get(name=platform_name)
     channel = Channel.objects.get(name=channel_name)
     measure = Measure.objects.get(name=measure_name,
                                   channels=channel,
+                                  application=application,
                                   platform=platform)
     if submission_date is None:
         now = datetime.datetime.utcnow()
@@ -74,6 +76,7 @@ def update_measure(platform_name, channel_name, measure_name, submission_date=No
     valid_versions = sorted(
         list(
             Build.objects.filter(
+                application=application,
                 channel=channel,
                 platform=platform,
                 build_id__gte=min_buildid_timestamp.strftime('%Y%m%d'),
@@ -90,7 +93,7 @@ def update_measure(platform_name, channel_name, measure_name, submission_date=No
         select window_start, build_id, display_version, sum({measure_name}),
         sum(usage_hours), sum(count) as client_count
         from {MISSION_CONTROL_TABLE} where
-        application=\'Firefox\' and
+        application=%(application_name)s and
         display_version > %(min_version)s and display_version < %(max_version)s and
         build_id > %(min_build_id)s and build_id < %(max_build_id)s and
         os_name=%(os_name)s and
@@ -101,6 +104,7 @@ def update_measure(platform_name, channel_name, measure_name, submission_date=No
         having sum(count) > %(min_client_count)s and
         sum(usage_hours) > 0'''.replace('\n', '').strip()
     params = {
+        'application_name': application.telemetry_name,
         'min_version': str(min_version),
         'max_version': str(max_version),
         'min_build_id': min_buildid_timestamp.strftime('%Y%m%d'),
@@ -156,6 +160,8 @@ def update_measure(platform_name, channel_name, measure_name, submission_date=No
                 continue
 
     # update the measure summary in our cache
-    cache.set(get_measure_summary_cache_key(platform_name, channel_name, measure_name),
-              get_measure_summary(platform_name, channel_name, measure_name),
-              MEASURE_SUMMARY_CACHE_EXPIRY)
+    cache.set(
+        get_measure_summary_cache_key(application_name, platform_name, channel_name, measure_name),
+        get_measure_summary(application_name, platform_name, channel_name, measure_name),
+        MEASURE_SUMMARY_CACHE_EXPIRY
+    )
