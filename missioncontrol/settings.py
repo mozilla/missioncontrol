@@ -264,6 +264,13 @@ if FETCH_MEASURE_DATA:
                 'expires': 5 * 60
             }
         },
+        'update_build_data': {
+            'schedule': crontab(minute='*/5'),  # every 5 minutes
+            'task': 'missioncontrol.etl.tasks.update_build_data',
+            'options': {
+                'expires': 5 * 60
+            }
+        },
         'update_active_experiments': {
             'schedule': crontab(minute='*/5'),  # every 5 minutes
             'task': 'missioncontrol.etl.tasks.update_experiment_list',
@@ -342,6 +349,7 @@ LOGGING = {
     },
 }
 
+BUILDHUB_URL = 'https://buildhub.prod.mozaws.net/v1/buckets/build-hub/collections/releases/search'
 FIREFOX_VERSION_URL = 'https://product-details.mozilla.org/1.0/firefox_versions.json'
 FIREFOX_VERSION_CACHE_TIMEOUT = 300
 

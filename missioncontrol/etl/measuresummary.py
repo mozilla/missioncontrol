@@ -130,6 +130,11 @@ def get_measure_summary(platform_name, channel_name, measure_name):
                                                         version[0],
                                                         version_start,
                                                         version_start + interval)
+                if not values:
+                    # in rare cases (mostly during backfilling) we might not
+                    # have any actual data for the version in question in the
+                    # interval we want
+                    continue
                 raw_count = int(sum([v[1] for v in values]))
                 version_data[count_id] = raw_count
 
