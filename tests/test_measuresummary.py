@@ -4,7 +4,8 @@ import random
 
 import pytest
 
-from missioncontrol.base.models import (Build,
+from missioncontrol.base.models import (Application,
+                                        Build,
                                         Channel,
                                         Datum,
                                         Measure,
@@ -13,9 +14,11 @@ from missioncontrol.etl.measuresummary import get_measure_summary
 
 
 # silly helper function to generate some fake data
-def _generate_fake_data(platform_name, channel_name, measure_name, buildid,
-                        version, base_datapoint_time, num_datapoints):
+def _generate_fake_data(application_name, platform_name, channel_name,
+                        measure_name, buildid, version, base_datapoint_time,
+                        num_datapoints):
     build = Build.objects.create(
+        application=Application.objects.get(name=application_name),
         platform=Platform.objects.get(name=platform_name),
         channel=Channel.objects.get(name=channel_name),
         build_id=buildid,
@@ -36,17 +39,17 @@ def _generate_fake_data(platform_name, channel_name, measure_name, buildid,
 
 
 @pytest.mark.parametrize('num_datapoints', [2, 1, 0, 200])
-def test_get_measure_summary(base_datapoint_time, prepopulated_version_cache,
+def test_get_measure_summary(prepopulated_version_cache, base_datapoint_time,
                              initial_data, num_datapoints):
     '''
     Test getting the measure summary with a small number of datapoints
 
     Small number of endpoints are edge cases of the summarization algorithm
     '''
-    (platform_name, channel_name, measure_name) = ('linux', 'release',
-                                                   'main_crashes')
-    latest_timestamp = _generate_fake_data(platform_name, channel_name,
-                                           measure_name,
+    (application_name, platform_name, channel_name, measure_name) = (
+        'firefox', 'linux', 'release', 'main_crashes')
+    latest_timestamp = _generate_fake_data(application_name, platform_name,
+                                           channel_name, measure_name,
                                            '20170629075044', '55.0',
                                            base_datapoint_time,
                                            num_datapoints)
@@ -111,15 +114,16 @@ def test_get_measure_summary(base_datapoint_time, prepopulated_version_cache,
             }
 
 
-def test_get_measure_summary_high_beta(base_datapoint_time, prepopulated_version_cache,
+def test_get_measure_summary_high_beta(prepopulated_version_cache, base_datapoint_time,
                                        initial_data):
-    (platform_name, channel_name, measure_name) = ('linux', 'release',
-                                                   'main_crashes')
+    (application_name, platform_name, channel_name, measure_name) = (
+        'firefox', 'linux', 'release', 'main_crashes')
     for (version, buildid, delta) in [('55.0b1', '20170629075044', datetime.timedelta()),
                                       ('55.0b2', '20180629075044', datetime.timedelta(hours=1)),
                                       ('55.0b10', '20190629075044', datetime.timedelta(hours=2))]:
-        latest_timestamp = _generate_fake_data(platform_name, channel_name,
-                                               measure_name, buildid, version,
+        latest_timestamp = _generate_fake_data(application_name, platform_name,
+                                               channel_name, measure_name,
+                                               buildid, version,
                                                base_datapoint_time + delta, 2)
 
     assert get_measure_summary(

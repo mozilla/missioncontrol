@@ -6,6 +6,7 @@ from missioncontrol.base.models import (Experiment,
 from missioncontrol.celery import celery
 from missioncontrol.settings import FIREFOX_EXPERIMENTS_URL
 from missioncontrol.etl.measure import update_measure
+from .builds import update_builds
 from .experiment import update_experiment
 
 logger = logging.getLogger(__name__)
@@ -33,6 +34,14 @@ def update_experiment_data():
     for active_experiment in active_experiments:
         update_experiment.apply_async(
             args=[active_experiment])
+
+
+@celery.task
+def update_build_data():
+    """
+    Updates the list of valid builds from buildhub
+    """
+    update_builds()
 
 
 @celery.task

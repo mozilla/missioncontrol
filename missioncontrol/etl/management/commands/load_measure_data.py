@@ -1,4 +1,8 @@
-from django.core.management.base import BaseCommand
+import datetime
+
+from django.core.management.base import (BaseCommand,
+                                         CommandError)
+from dateutil import parser
 
 from missioncontrol.etl.measure import update_measure
 
@@ -13,6 +17,21 @@ class Command(BaseCommand):
                             help='channel to fetch data for')
         parser.add_argument('measure', metavar='measure', type=str,
                             help='measure to fetch data for')
+        parser.add_argument('--start-date', dest='start_date')
+        parser.add_argument('--end-date', dest='end_date')
 
     def handle(self, *args, **options):
-        update_measure(options['platform'], options['channel'], options['measure'])
+        (start_date, end_date) = (options['start_date'], options['end_date'])
+        if any((start_date, end_date)):
+            if not all((start_date, end_date)):
+                raise CommandError('Both --start-date and --end-date must be '
+                                   'specified (or neither)')
+            (start, end) = (parser.parse(start_date + ' -0000'),
+                            parser.parse(end_date + ' -0000'))
+            current = start
+            while current <= end:
+                update_measure(options['platform'], options['channel'], options['measure'],
+                               submission_date=current, bulk_create=False)
+                current += datetime.timedelta(days=1)
+        else:
+            update_measure(options['platform'], options['channel'], options['measure'])

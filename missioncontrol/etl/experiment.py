@@ -6,8 +6,7 @@ from django.db.models import Max
 from django.utils import timezone
 from dateutil.tz import tzutc
 
-from missioncontrol.base.models import (Build,
-                                        Datum,
+from missioncontrol.base.models import (Datum,
                                         Experiment,
                                         ExperimentBranch,
                                         Measure)
