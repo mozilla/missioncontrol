@@ -2,13 +2,15 @@ import datetime
 import logging
 import pytz
 from pkg_resources import parse_version
+from distutils.util import strtobool
 
 from django.core.cache import cache
 from django.db.models import (Max, Min)
 from django.http import (HttpResponseBadRequest, HttpResponseNotFound, JsonResponse)
 from django.utils import timezone
 
-from missioncontrol.base.models import (Channel,
+from missioncontrol.base.models import (Application,
+                                        Channel,
                                         Datum,
                                         Measure,
                                         Platform)
@@ -47,9 +49,17 @@ def channel_platform_summary(request):
     '''
     Lists measures available for specified channel/platform combinations
     '''
+    application_filter = [application.lower() for application in request.GET.getlist('application')]
     platform_filter = [platform.lower() for platform in request.GET.getlist('platform')]
     channel_filter = [channel.lower() for channel in request.GET.getlist('channel')]
-    only_crash_measures = request.GET.get('only_crash_measures')
+    try:
+        only_crash_measures = bool(strtobool(request.GET.get('only_crash_measures') or '0'))
+    except ValueError:
+        only_crash_measures = False
+
+    applications = Application.objects.all()
+    if application_filter:
+        applications = applications.filter(name__in=application_filter)
 
     platforms = Platform.objects.all()
     if platform_filter:
@@ -60,35 +70,37 @@ def channel_platform_summary(request):
         channels = channels.filter(name__in=channel_filter)
 
     summaries = []
-    for channel in channels:
-        for platform in platforms:
-            measures = []
-            if only_crash_measures is None or (only_crash_measures.isdigit() and not
-                                               int(only_crash_measures)):
-                measure_names = Measure.objects.filter(
-                    channels=channel, platform=platform,
-                    enabled=True).values_list('name', flat=True)
-            else:
-                measure_names = ['main_crashes', 'content_crashes',
-                                 'content_shutdown_crashes']
-            measure_name_map = {
-                get_measure_summary_cache_key(platform.name, channel.name,
-                                              measure_name): measure_name
-                for measure_name in measure_names
-            }
-            measure_summaries = cache.get_many(measure_name_map.keys())
-            for (measure_summary_cache_key, measure_summary) in measure_summaries.items():
-                measures.append({
-                    'name': measure_name_map[measure_summary_cache_key],
-                    **measure_summary,
-                    'lastUpdated': (datetime_to_utc(measure_summary['lastUpdated'])
-                                    if measure_summary.get('lastUpdated') else None)
+    for application in applications:
+        for channel in channels:
+            for platform in platforms:
+                measures = Measure.objects.filter(
+                    channels=channel, application=application,
+                    platform=platform, enabled=True)
+                if only_crash_measures:
+                    measures = measures.filter(name__in=['main_crashes', 'content_crashes',
+                                                         'content_shutdown_crashes'])
+                if not measures.exists():
+                    continue
+                measure_names = measures.values_list('name', flat=True)
+                measure_name_map = {
+                    get_measure_summary_cache_key(application.name,
+                                                  platform.name, channel.name,
+                                                  measure_name): measure_name
+                    for measure_name in measure_names
+                }
+                summaries.append({
+                    'application': application.name,
+                    'expectedMeasures': list(measure_names),
+                    'channel': channel.name,
+                    'platform': platform.name,
+                    'measures': [{
+                        'name': measure_name_map[measure_summary_cache_key],
+                        **measure_summary,
+                        'lastUpdated': (datetime_to_utc(measure_summary['lastUpdated'])
+                                        if measure_summary.get('lastUpdated') else None)
+                    } for (measure_summary_cache_key, measure_summary) in
+                                 cache.get_many(measure_name_map.keys()).items()]
                 })
-            summaries.append({
-                'channel': channel.name,
-                'platform': platform.name,
-                'measures': measures
-            })
     return JsonResponse(data={'summaries': summaries})
 
 

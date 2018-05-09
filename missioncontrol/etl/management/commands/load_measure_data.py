@@ -11,6 +11,8 @@ class Command(BaseCommand):
     """Management command to update data for a specific measure/platform/channel combination."""
 
     def add_arguments(self, parser):
+        parser.add_argument('application', metavar='application', type=str,
+                            help='application to fetch data for')
         parser.add_argument('platform', metavar='platform', type=str,
                             help='platform to fetch data for')
         parser.add_argument('channel', metavar='channel', type=str,
@@ -30,8 +32,10 @@ class Command(BaseCommand):
                             parser.parse(end_date + ' -0000'))
             current = start
             while current <= end:
-                update_measure(options['platform'], options['channel'], options['measure'],
+                update_measure(options['application'], options['platform'],
+                               options['channel'], options['measure'],
                                submission_date=current, bulk_create=False)
                 current += datetime.timedelta(days=1)
         else:
-            update_measure(options['platform'], options['channel'], options['measure'])
+            update_measure(options['application'], options['platform'],
+                           options['channel'], options['measure'])

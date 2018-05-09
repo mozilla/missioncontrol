@@ -17,13 +17,15 @@ from missioncontrol.etl.measuresummary import get_measure_summary
 def _generate_fake_data(application_name, platform_name, channel_name,
                         measure_name, buildid, version, base_datapoint_time,
                         num_datapoints):
+    application = Application.objects.get(name=application_name)
     build = Build.objects.create(
-        application=Application.objects.get(name=application_name),
+        application=application,
         platform=Platform.objects.get(name=platform_name),
         channel=Channel.objects.get(name=channel_name),
         build_id=buildid,
         version=version)
     measure = Measure.objects.get(name=measure_name,
+                                  application=application,
                                   platform__name=platform_name)
     latest_timestamp = None
     random.seed(42)
@@ -56,19 +58,19 @@ def test_get_measure_summary(prepopulated_version_cache, base_datapoint_time,
 
     if num_datapoints == 0:
         assert get_measure_summary(
-            platform_name, channel_name, measure_name) == {
+            application_name, platform_name, channel_name, measure_name) == {
                 "versions": [],
                 "lastUpdated": None
             }
     elif num_datapoints == 1:
         assert get_measure_summary(
-            platform_name, channel_name, measure_name) == {
+            application_name, platform_name, channel_name, measure_name) == {
                 "versions": [],
                 "lastUpdated": latest_timestamp
             }
     elif num_datapoints == 2:  # num_datapoints == 2
         assert get_measure_summary(
-            platform_name, channel_name, measure_name) == {
+            application_name, platform_name, channel_name, measure_name) == {
                 "versions": [
                     {
                         "version": "55.0",
@@ -91,7 +93,7 @@ def test_get_measure_summary(prepopulated_version_cache, base_datapoint_time,
             }
     else:  # num_datapoints == 100
         assert get_measure_summary(
-            platform_name, channel_name, measure_name) == {
+            application_name, platform_name, channel_name, measure_name) == {
                 "versions": [
                     {
                         "version": "55.0",
@@ -127,7 +129,7 @@ def test_get_measure_summary_high_beta(prepopulated_version_cache, base_datapoin
                                                base_datapoint_time + delta, 2)
 
     assert get_measure_summary(
-        platform_name, channel_name, measure_name) == {
+        application_name, platform_name, channel_name, measure_name) == {
             "versions": [
                 {
                     "version": "55.0b10",

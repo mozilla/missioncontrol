@@ -68,3 +68,12 @@ class Command(BaseCommand):
         # create a set of non-platform-specific crash measures for experiments
         for measure_name in DESKTOP_CRASH_MEASURES + DESKTOP_CRASH_MEASURES:
             Measure.objects.get_or_create(name=measure_name, platform=None)
+
+        # android / fennec only has a single quality measure: main_crashes
+        measure, _ = Measure.objects.update_or_create(
+            name='main_crashes',
+            application=Application.objects.get(name='fennec'),
+            platform=Platform.objects.get(name='android'),
+            defaults={'enabled': True})
+        measure.channels = Channel.objects.exclude(name='esr')
+        measure.save()

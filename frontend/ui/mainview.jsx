@@ -7,7 +7,7 @@ import {
   Button,
   Card,
   CardBody,
-  CardColumns,
+  CardDeck,
   CardHeader,
   Nav,
   NavItem,
@@ -26,8 +26,9 @@ const mapStateToProps = state => {
           // only pretend we have a summary rate if we've got all the key
           // measures for a particular channel/platform combo
           const summaryRate = _.every(
-            KEY_MEASURES.map(keyMeasure =>
-              summary.measures.map(m => m.name).includes(keyMeasure)
+            _.intersection(KEY_MEASURES, summary.expectedMeasures).map(
+              keyMeasure =>
+                summary.measures.map(m => m.name).includes(keyMeasure)
             )
           )
             ? _.sum(
@@ -79,7 +80,7 @@ const getSummaryScore = (summaries, channel) => {
 };
 
 const getChangeIndicator = versions => {
-  if (versions.length > 2) {
+  if (versions.length > 2 && versions[2].adjustedRate > 0.0) {
     const pctChange =
       (versions[1].adjustedRate - versions[2].adjustedRate) /
       versions[2].adjustedRate *
@@ -197,21 +198,26 @@ class MainViewComponent extends React.Component {
                 <div className="row">
                   <div className="col align-self-center channel-summary">
                     <div className="channel-summary-title">Summary Score</div>
-                    <div className="channel-summary-score">
-                      <abbr title={summaryScore.explanation}>
-                        {summaryScore.value}
-                      </abbr>
-                      <Button
-                        className="channel-summary-copy-button"
-                        title="Copy textual summary to clipboard"
-                        onClick={() => this.copyBtnClicked(summaryScore)}>
-                        <i className="fa fa-copy" />
-                      </Button>
-                    </div>
+                    {summaryScore && (
+                      <div className="channel-summary-score">
+                        <abbr title={summaryScore.explanation}>
+                          {summaryScore.value}
+                        </abbr>
+                        <Button
+                          className="channel-summary-copy-button"
+                          title="Copy textual summary to clipboard"
+                          onClick={() => this.copyBtnClicked(summaryScore)}>
+                          <i className="fa fa-copy" />
+                        </Button>
+                      </div>
+                    )}
+                    {!summaryScore && (
+                      <div className="channel-summary-score">N/A</div>
+                    )}
                   </div>
                 </div>
               </div>
-              <CardColumns>
+              <CardDeck>
                 {this.props.channelPlatformSummary &&
                   this.props.channelPlatformSummary.summaries.map(
                     summary =>
@@ -223,11 +229,15 @@ class MainViewComponent extends React.Component {
                           }
                           className="missioncontrol-card">
                           <CardHeader className={`alert-${summary.status}`}>
-                            {summary.platform}
+                            {summary.application} {summary.platform}
                           </CardHeader>
                           <CardBody>
                             <div className="summary-rate">
-                              <abbr title="main_crashes + content_crashes">
+                              <abbr
+                                title={_.intersection(
+                                  summary.expectedMeasures,
+                                  KEY_MEASURES
+                                ).join(' + ')}>
                                 {summary.summaryRate
                                   ? summary.summaryRate
                                   : 'N/A'}
@@ -272,7 +282,7 @@ class MainViewComponent extends React.Component {
                         </Card>
                       )
                   )}
-              </CardColumns>
+              </CardDeck>
             </div>
           )}
         </div>

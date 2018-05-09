@@ -8,21 +8,36 @@ from freezegun import freeze_time
 
 from missioncontrol.etl.measuresummary import (get_measure_summary,
                                                get_measure_summary_cache_key)
-from missioncontrol.base.models import (Channel,
+from missioncontrol.base.models import (Application,
+                                        Channel,
                                         Measure,
                                         Platform)
 
 
-def test_get_channel_platform_summary(client, monkeypatch, initial_data):
+def test_get_channel_platform_summary_no_data(client, monkeypatch,
+                                              initial_data):
     resp = client.get(reverse('channel-platform-summary'))
     assert resp.status_code == 200
     # no measures because no data
+    expected_summaries = []
+    for application_name in Application.objects.values_list('name', flat=True):
+        for channel_name in Channel.objects.values_list('name', flat=True):
+            for platform_name in Platform.objects.values_list('name', flat=True):
+                expected_measures = Measure.objects.filter(
+                    channels=Channel.objects.filter(name=channel_name),
+                    application__name=application_name,
+                    platform__name=platform_name)
+                if expected_measures.exists():
+                    expected_summaries.append({
+                        'application': application_name,
+                        'channel': channel_name,
+                        'platform': platform_name,
+                        'expectedMeasures': list(
+                            expected_measures.values_list('name', flat=True)),
+                        'measures': []
+                    })
     assert resp.json() == {
-        'summaries': [
-            {'channel': channel_name, 'measures': [], 'platform': platform_name}
-            for channel_name in Channel.objects.values_list('name', flat=True)
-            for platform_name in Platform.objects.values_list('name', flat=True)
-        ]
+        'summaries': expected_summaries
     }
 
 
@@ -30,8 +45,8 @@ def test_get_channel_platform_summary(client, monkeypatch, initial_data):
 def test_measure_summary_incorporated(client, monkeypatch, prepopulated_version_cache,
                                       fake_measure_data):
     # create a summary from the fake data we added, verify it's there
-    cache.set(get_measure_summary_cache_key('linux', 'release', 'main_crashes'),
-              get_measure_summary('linux', 'release', 'main_crashes'),
+    cache.set(get_measure_summary_cache_key('firefox', 'linux', 'release', 'main_crashes'),
+              get_measure_summary('firefox', 'linux', 'release', 'main_crashes'),
               None)
     resp = client.get(reverse('channel-platform-summary'), {
         'platform': 'linux',
@@ -41,8 +56,13 @@ def test_measure_summary_incorporated(client, monkeypatch, prepopulated_version_
     assert resp.json() == {
         'summaries': [
             {
+                'application': 'firefox',
                 'channel': 'release',
                 'platform': 'linux',
+                'expectedMeasures': list(Measure.objects.filter(
+                    channels=Channel.objects.filter(name='release'),
+                    application__name='firefox',
+                    platform__name='linux').values_list('name', flat=True)),
                 'measures': [
                     {
                         'name': 'main_crashes',
@@ -78,13 +98,7 @@ def test_measure_summary_incorporated(client, monkeypatch, prepopulated_version_
     })
     assert resp.status_code == 200
     assert resp.json() == {
-        'summaries': [
-            {
-                'channel': 'release',
-                'platform': 'linux',
-                'measures': []
-            }
-        ]
+        'summaries': []
     }
 
 
