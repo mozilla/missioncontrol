@@ -68,10 +68,7 @@ def get_measure_summary(application_name, platform_name, channel_name, measure_n
             Min('timestamp'), Max('timestamp')
         ), key=lambda d: parse_version(d[0]))
     if not raw_version_data:
-        return {
-            "versions": [],
-            "lastUpdated": None
-        }
+        return None
 
     # group versions by major version -- we'll aggregate
     grouped_versions = {}
@@ -152,6 +149,9 @@ def get_measure_summary(application_name, platform_name, channel_name, measure_n
                     sum([v[2]/1000.0 for v in rate_values]), 2)
 
             version_summaries.append(version_data)
+
+    if not version_summaries:
+        return None
 
     return {
         "versions": list(reversed(version_summaries)),
