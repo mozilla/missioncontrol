@@ -20,7 +20,8 @@ class Command(BaseCommand):
             'gmplugin_crashes',
             'main_crashes',
             'plugin_crashes',
-            'content_shutdown_crashes'
+            'content_shutdown_crashes',
+            'startup_crashes'
         ]
         UNIVERSAL_DESKTOP_QUALITY_MEASURES = [
             'browser_shim_usage_blocked',
