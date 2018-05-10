@@ -58,16 +58,10 @@ def test_get_measure_summary(prepopulated_version_cache, base_datapoint_time,
 
     if num_datapoints == 0:
         assert get_measure_summary(
-            application_name, platform_name, channel_name, measure_name) == {
-                "versions": [],
-                "lastUpdated": None
-            }
+            application_name, platform_name, channel_name, measure_name) is None
     elif num_datapoints == 1:
         assert get_measure_summary(
-            application_name, platform_name, channel_name, measure_name) == {
-                "versions": [],
-                "lastUpdated": latest_timestamp
-            }
+            application_name, platform_name, channel_name, measure_name) is None
     elif num_datapoints == 2:  # num_datapoints == 2
         assert get_measure_summary(
             application_name, platform_name, channel_name, measure_name) == {

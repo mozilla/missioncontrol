@@ -160,8 +160,12 @@ def update_measure(application_name, platform_name, channel_name, measure_name,
                 continue
 
     # update the measure summary in our cache
-    cache.set(
-        get_measure_summary_cache_key(application_name, platform_name, channel_name, measure_name),
-        get_measure_summary(application_name, platform_name, channel_name, measure_name),
-        MEASURE_SUMMARY_CACHE_EXPIRY
-    )
+    measure_summary = get_measure_summary(application_name, platform_name,
+                                          channel_name, measure_name)
+    if measure_summary:
+        cache.set(
+            get_measure_summary_cache_key(application_name, platform_name,
+                                          channel_name, measure_name),
+            measure_summary,
+            MEASURE_SUMMARY_CACHE_EXPIRY
+        )
