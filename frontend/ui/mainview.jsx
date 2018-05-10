@@ -90,7 +90,9 @@ const getChangeIndicator = versions => {
     if (versions[1].adjustedRate > versions[2].adjustedRate) {
       return (
         <span title={title} className={pctChange > 25 ? 'text-danger' : ''}>
-          {numeral(pctChange).format('0.00a')}%&nbsp;
+          {pctChange < 100.0
+            ? numeral(pctChange).format('0.00a')
+            : numeral(pctChange).format('0a')}%&nbsp;
           <i className="fa fa-arrow-up" aria-hidden="true" />
         </span>
       );
@@ -229,7 +231,7 @@ class MainViewComponent extends React.Component {
                           }
                           className="missioncontrol-card">
                           <CardHeader className={`alert-${summary.status}`}>
-                            {summary.application} {summary.platform}
+                            <center>{_.capitalize(summary.platform)}</center>
                           </CardHeader>
                           <CardBody>
                             <div className="summary-rate">
