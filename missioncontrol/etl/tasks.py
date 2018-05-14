@@ -18,10 +18,10 @@ def update_measures():
     Updates channel/platform data
     """
     logger.info('Scheduling data updates...')
-    for measure in Measure.objects.exclude(platform=None):
+    for measure in Measure.objects.exclude(platform=None, application=None):
         for channel in measure.channels.all():
             update_measure.apply_async(
-                args=[measure.platform.name, channel.name, measure.name])
+                args=[measure.application.name, measure.platform.name, channel.name, measure.name])
 
 
 @celery.task

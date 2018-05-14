@@ -56,9 +56,11 @@ def test_update_measure(prepopulated_builds,
 def test_all_measure_update_tasks_scheduled(initial_data, *args):
     # this test is a bit tautological, but at least exercises the function
     expected_calls = []
-    for measure in Measure.objects.exclude(platform=None):
+    for measure in Measure.objects.exclude(platform=None, application=None):
         for channel in measure.channels.all():
-            expected_calls.append(call(args=[measure.platform.name, channel.name,
+            expected_calls.append(call(args=[measure.application.name,
+                                             measure.platform.name,
+                                             channel.name,
                                              measure.name]))
 
     from missioncontrol.etl.tasks import update_measures
