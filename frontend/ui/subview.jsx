@@ -55,7 +55,7 @@ const getReleaseValue = (release, countType, timeWindow) => {
       ? `adjusted${_.capitalize(countType)}`
       : countType;
 
-  if (!release || !release[property]) {
+  if (_.isUndefined(release) || _.isUndefined(release[property])) {
     return 'N/A';
   }
 
