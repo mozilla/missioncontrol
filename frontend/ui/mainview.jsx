@@ -85,14 +85,13 @@ const getChangeIndicator = versions => {
       (versions[1].adjustedRate - versions[2].adjustedRate) /
       versions[2].adjustedRate *
       100.0;
+    const pctFormat = Math.abs(pctChange) < 10 ? '0.00a' : '0a';
     const title = `${versions[2].adjustedRate} → ${versions[1].adjustedRate}`;
 
     if (versions[1].adjustedRate > versions[2].adjustedRate) {
       return (
         <span title={title} className={pctChange > 25 ? 'text-danger' : ''}>
-          {pctChange < 10
-            ? numeral(pctChange).format('0.00a')
-            : numeral(pctChange).format('0a')}%&nbsp;
+          {numeral(pctChange).format(pctFormat)}%&nbsp;
           <i className="fa fa-arrow-up" aria-hidden="true" />
         </span>
       );
@@ -100,7 +99,7 @@ const getChangeIndicator = versions => {
 
     return (
       <span title={title} className={pctChange < -25 ? 'text-success' : ''}>
-        {numeral(pctChange).format('0.00a')}%&nbsp;<i
+        {numeral(pctChange).format(pctFormat)}%&nbsp;<i
           className="fa fa-arrow-down"
           aria-hidden="true"
         />
