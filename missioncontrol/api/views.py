@@ -45,6 +45,10 @@ def aggregates(request):
     return JsonResponse(data=dict(results=results))
 
 
+def _sorted_version_list(versions):
+    return list(reversed(sorted(versions, key=parse_version)))
+
+
 def channel_platform_summary(request):
     '''
     Lists measures available for specified channel/platform combinations
@@ -88,9 +92,16 @@ def channel_platform_summary(request):
                                                   measure_name): measure_name
                     for measure_name in measure_names
                 }
+                measure_summary_map = cache.get_many(measure_name_map.keys())
+                latest_version_seen = None
+                if measure_summary_map.values():
+                    latest_version_seen = _sorted_version_list(
+                        [measure_summary['versions'][0]['version'] for
+                         measure_summary in measure_summary_map.values()])[0]
                 summaries.append({
                     'application': application.name,
                     'expectedMeasures': list(measure_names),
+                    'latestVersionSeen': latest_version_seen,
                     'channel': channel.name,
                     'platform': platform.name,
                     'measures': [{
@@ -99,7 +110,7 @@ def channel_platform_summary(request):
                         'lastUpdated': (datetime_to_utc(measure_summary['lastUpdated'])
                                         if measure_summary.get('lastUpdated') else None)
                     } for (measure_summary_cache_key, measure_summary) in
-                                 cache.get_many(measure_name_map.keys()).items()]
+                                 measure_summary_map.items()]
                 })
     return JsonResponse(data={'summaries': summaries})
 
@@ -185,9 +196,9 @@ def measure(request):
                             timestamps_for_latest['timestamp__min']).total_seconds()
             # get data for current + up to three previous versions (handling each
             # build id for each version, if there are multiple)
-            versions = list(reversed(sorted(
-                [str(d[0]) for d in datums.values_list('build__version').distinct()],
-                key=parse_version)))[0:4]
+            versions = _sorted_version_list(
+                [str(d[0]) for d in datums.values_list('build__version').distinct()]
+            )[:4]
         version_timestamps = {
             (d[0], d[1]): d[2] for d in datums.filter(
                 build__version__in=versions).values_list(

@@ -32,6 +32,7 @@ def test_get_channel_platform_summary_no_data(client, monkeypatch,
                         'application': application_name,
                         'channel': channel_name,
                         'platform': platform_name,
+                        'latestVersionSeen': None,
                         'expectedMeasures': list(
                             expected_measures.values_list('name', flat=True)),
                         'measures': []
@@ -59,6 +60,7 @@ def test_measure_summary_incorporated(client, monkeypatch, prepopulated_version_
                 'application': 'firefox',
                 'channel': 'release',
                 'platform': 'linux',
+                'latestVersionSeen': '55.0.1',
                 'expectedMeasures': list(Measure.objects.filter(
                     channels=Channel.objects.filter(name='release'),
                     application__name='firefox',
