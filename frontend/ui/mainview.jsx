@@ -90,7 +90,7 @@ const getChangeIndicator = versions => {
     if (versions[1].adjustedRate > versions[2].adjustedRate) {
       return (
         <span title={title} className={pctChange > 25 ? 'text-danger' : ''}>
-          {pctChange < 100.0
+          {pctChange < 10
             ? numeral(pctChange).format('0.00a')
             : numeral(pctChange).format('0a')}%&nbsp;
           <i className="fa fa-arrow-up" aria-hidden="true" />
