@@ -231,7 +231,14 @@ class MainViewComponent extends React.Component {
                           }
                           className="missioncontrol-card">
                           <CardHeader className={`alert-${summary.status}`}>
-                            <center>{_.capitalize(summary.platform)}</center>
+                            <center>
+                              {_.capitalize(summary.platform)}{' '}
+                              {summary.latestVersionSeen && (
+                                <small className="text-muted">
+                                  ({summary.latestVersionSeen})
+                                </small>
+                              )}
+                            </center>
                           </CardHeader>
                           <CardBody>
                             <div className="summary-rate">
@@ -251,7 +258,9 @@ class MainViewComponent extends React.Component {
                                   .filter(
                                     measure =>
                                       KEY_MEASURES.includes(measure.name) &&
-                                      measure.versions.length
+                                      measure.versions.length &&
+                                      measure.versions[0].version ===
+                                        summary.latestVersionSeen
                                   )
                                   .map(measure => (
                                     <tr
