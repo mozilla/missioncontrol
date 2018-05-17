@@ -94,14 +94,21 @@ def channel_platform_summary(request):
                 }
                 measure_summary_map = cache.get_many(measure_name_map.keys())
                 latest_version_seen = None
+                latest_version_field_duration = None
                 if measure_summary_map.values():
                     latest_version_seen = _sorted_version_list(
                         [measure_summary['versions'][0]['version'] for
                          measure_summary in measure_summary_map.values()])[0]
+                    latest_version_field_duration = max(
+                        [measure_summary['versions'][0]['fieldDuration'] for
+                         measure_summary in measure_summary_map.values() if
+                         measure_summary['versions'][0]['version'] ==
+                         latest_version_seen])
                 summaries.append({
                     'application': application.name,
                     'expectedMeasures': list(measure_names),
                     'latestVersionSeen': latest_version_seen,
+                    'latestVersionFieldDuration': latest_version_field_duration,
                     'channel': channel.name,
                     'platform': platform.name,
                     'measures': [{

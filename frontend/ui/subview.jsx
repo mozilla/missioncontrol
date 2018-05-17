@@ -20,11 +20,13 @@ const mapStateToProps = (state, ownProps) => {
     );
 
     if (channelPlatformData.length) {
+      const channelPlatformSummary = channelPlatformData[0];
+
       return {
-        measures: channelPlatformData[0].measures,
+        measures: channelPlatformSummary.measures,
         versions: _.uniq(
           _.flatten(
-            channelPlatformData[0].measures.map(measure =>
+            channelPlatformSummary.measures.map(measure =>
               measure.versions.map(version => version.version)
             )
           )
@@ -35,13 +37,7 @@ const mapStateToProps = (state, ownProps) => {
             return difference || a.localeCompare(b);
           })
           .reverse(),
-        latestReleaseAge: _.min(
-          _.flatten(
-            channelPlatformData[0].measures.map(measure =>
-              measure.versions.map(version => version.fieldDuration)
-            )
-          )
-        ),
+        latestReleaseAge: channelPlatformSummary.latestVersionFieldDuration,
       };
     }
   }
@@ -209,16 +205,17 @@ export class SubViewComponent extends React.Component {
                     ))}
                 </tbody>
               </table>
-              {this.props.latestReleaseAge < 86400 && (
-                <p className="text-danger">
-                  <center>
-                    Latest release is new ({moment
-                      .duration(this.props.latestReleaseAge, 'seconds')
-                      .humanize()}{' '}
-                    in field), numbers should be viewed with skepticism
-                  </center>
-                </p>
-              )}
+              {this.props.latestReleaseAge &&
+                this.props.latestReleaseAge < 86400 && (
+                  <p className="text-danger">
+                    <center>
+                      Latest release is new ({moment
+                        .duration(this.props.latestReleaseAge, 'seconds')
+                        .humanize()}{' '}
+                      in field), numbers should be viewed with skepticism
+                    </center>
+                  </p>
+                )}
             </div>
           )}
         </div>
