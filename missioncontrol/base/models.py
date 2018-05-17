@@ -11,6 +11,9 @@ class Application(models.Model):
     class Meta:
         db_table = 'application'
 
+    def __str__(self):
+        return self.name
+
 
 class Platform(models.Model):
     '''
@@ -21,6 +24,9 @@ class Platform(models.Model):
 
     class Meta:
         db_table = 'platform'
+
+    def __str__(self):
+        return self.name
 
 
 class Channel(models.Model):
@@ -34,6 +40,9 @@ class Channel(models.Model):
     class Meta:
         db_table = 'channel'
 
+    def __str__(self):
+        return self.name
+
 
 class Experiment(models.Model):
     '''
@@ -44,6 +53,9 @@ class Experiment(models.Model):
 
     class Meta:
         db_table = 'experiment'
+
+    def __str__(self):
+        return self.name
 
 
 class ExperimentBranch(models.Model):
@@ -56,6 +68,9 @@ class ExperimentBranch(models.Model):
     class Meta:
         db_table = 'experiment_branch'
         unique_together = ('experiment', 'name')
+
+    def __str__(self):
+        return ' '.join([self.experiment.name, self.name])
 
 
 class Build(models.Model):
@@ -71,6 +86,10 @@ class Build(models.Model):
     class Meta:
         db_table = 'build'
         unique_together = ('platform', 'channel', 'build_id', 'version')
+
+    def __str__(self):
+        return ' '.join([self.platform.name, self.channel.name,
+                         self.build_id, self.version])
 
 
 class Measure(models.Model):
@@ -88,6 +107,9 @@ class Measure(models.Model):
     class Meta:
         db_table = 'measure'
         unique_together = ('name', 'application', 'platform')
+
+    def __str__(self):
+        return self.name
 
 
 class Datum(models.Model):
