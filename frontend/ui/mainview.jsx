@@ -33,7 +33,9 @@ const mapStateToProps = state => {
           )
             ? _.sum(
                 summary.measures
-                  .filter(m => KEY_MEASURES.includes(m.name))
+                  .filter(
+                    m => KEY_MEASURES.includes(m.name) && m.versions.length > 1
+                  )
                   .map(m => m.versions[1].adjustedRate)
               ).toFixed(2)
             : undefined;
@@ -65,7 +67,7 @@ const getSummaryScore = (summaries, channel) => {
   const breakdown = channelSummaries.map(s => ({
     platform: s.platform,
     measures: s.measures
-      .filter(m => KEY_MEASURES.includes(m.name))
+      .filter(m => KEY_MEASURES.includes(m.name) && m.versions.length > 1)
       .map(m => ({ name: m.name, value: m.versions[1].adjustedRate })),
   }));
   const derivation = `√${channelSummaries.length}(${channelSummaries
