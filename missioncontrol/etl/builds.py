@@ -41,6 +41,15 @@ async def _fetch_platforms(session, application):
 async def _fetch_version_data(session, buildhub_platform_name, application,
                               platform, channel):
     min_buildid_timestamp = timezone.now() - datetime.timedelta(days=180)
+    newest_build_id = Build.objects.filter(
+        application=application, platform=platform, channel=channel
+    ).values_list('build_id', flat=True).order_by('-build_id').first()
+    if newest_build_id:
+        # we will look at build ids up to a week old, in case buildhub is (very) slow to update
+        min_buildid_timestamp = max(min_buildid_timestamp,
+                                    datetime.datetime.strptime(newest_build_id[:8] + '+0000',
+                                                               '%Y%m%d%z') +
+                                    datetime.timedelta(days=7))
     query = {
       "aggs": {
         "buildid": {
