@@ -1,7 +1,6 @@
 import _ from 'lodash';
 import moment from 'moment';
 import percentile from 'aggregatejs/percentile';
-import versionSort from 'version-sort';
 import React from 'react';
 import {
   Button,
@@ -33,6 +32,7 @@ import {
   TIME_INTERVALS,
   TIME_INTERVALS_RELATIVE,
 } from '../schema';
+import { semVerCompare } from '../version';
 
 const mapStateToProps = (state, ownProps) => {
   const { measure } = ownProps.match.params;
@@ -283,17 +283,18 @@ class DetailViewComponent extends React.Component {
 
     // if we have <= 3 series, just return all verbatim
     if (Object.keys(seriesMap).length <= 3) {
-      return versionSort(
-        _.map(seriesMap, (data, name) => ({
-          name,
-          data: sortedSeriesValues(data),
-        })),
-        { nested: 'name' }
-      ).reverse();
+      return _.map(seriesMap, (data, name) => ({
+        name,
+        data: sortedSeriesValues(data),
+      }))
+        .sort((a, b) => semVerCompare(a.name, b.name))
+        .reverse();
     }
 
     // take two most recent versions
-    let mostRecent = versionSort(Object.keys(seriesMap)).slice(-2);
+    let mostRecent = Object.keys(seriesMap)
+      .sort(semVerCompare)
+      .slice(-2);
 
     // if the second most recent has negligible results (<10% of) relative
     // to the most recent, just concatenate it in with the other results under
@@ -329,13 +330,13 @@ class DetailViewComponent extends React.Component {
     );
 
     return _.concat(
-      versionSort(
-        mostRecent.map(version => ({
+      mostRecent
+        .map(version => ({
           name: version,
           data: sortedSeriesValues(seriesMap[version]),
-        })),
-        { nested: 'name' }
-      ).reverse(),
+        }))
+        .sort((a, b) => semVerCompare(a.name, b.name))
+        .reverse(),
       [{ name: 'Older', data: sortedSeriesValues(aggregated) }]
     );
   }
@@ -654,13 +655,13 @@ class DetailViewComponent extends React.Component {
       versionMap[build.version].push(buildId);
     });
 
-    return versionSort(
-      Object.keys(versionMap).map(version => ({
+    return Object.keys(versionMap)
+      .map(version => ({
         title: version,
         subtitles: versionMap[version],
-      })),
-      { nested: 'title' }
-    ).reverse();
+      }))
+      .sort((a, b) => semVerCompare(a.title, b.title))
+      .reverse();
   }
 
   buildIdClicked(buildId) {
