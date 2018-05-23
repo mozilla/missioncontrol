@@ -28,10 +28,10 @@ export default class Dashboard extends React.Component {
       store: props.store,
     };
 
-    this.handleToggleShowAbout = this.handleToggleShowAbout.bind(this);
+    this.toggleShowAbout = this.toggleShowAbout.bind(this);
   }
 
-  handleToggleShowAbout() {
+  toggleShowAbout() {
     this.setState({
       showingAbout: !this.state.showingAbout,
     });
@@ -44,14 +44,13 @@ export default class Dashboard extends React.Component {
   render() {
     return (
       <div className="body-container">
-        <Modal
-          isOpen={this.state.showingAbout}
-          onToggle={this.handleToggleShowAbout}>
-          <ModalHeader onToggle={this.handleToggleShowAbout}>About</ModalHeader>
+        <Modal isOpen={this.state.showingAbout} toggle={this.toggleShowAbout}>
+          <ModalHeader toggle={this.toggleShowAbout}>About</ModalHeader>
           <ModalBody>
             Mission Control is a monitoring service for Firefox release health,
-            it allows you to view in (near) real time the rate of crashes and
-            other quantitative measures of quality. Under the hood, it uses the{' '}
+            it allows you to view in (near) real time the rate (number of events
+            per thousand hours of use) of crashes and other error measures.
+            Under the hood, it uses the{' '}
             <a href={ERROR_AGGREGATES_URL} target="blank_">
               error aggregates dataset
             </a>.
@@ -69,7 +68,7 @@ export default class Dashboard extends React.Component {
                 Help
               </DropdownToggle>
               <DropdownMenu right>
-                <DropdownItem onClick={this.handleToggleShowAbout}>
+                <DropdownItem onClick={() => this.toggleShowAbout()}>
                   <i className="fa fa-info-circle" aria-hidden="true" />&nbsp;
                   About
                 </DropdownItem>
