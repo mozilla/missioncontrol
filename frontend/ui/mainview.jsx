@@ -3,23 +3,20 @@ import copy from 'copy-to-clipboard';
 import numeral from 'numeral';
 import React from 'react';
 import { Helmet } from 'react-helmet';
-import {
-  Button,
-  Card,
-  CardBody,
-  CardDeck,
-  CardHeader,
-  Nav,
-  NavItem,
-  NavLink,
-} from 'reactstrap';
+import { Button, CardDeck, Nav, NavItem, NavLink } from 'reactstrap';
 import { connect } from 'react-redux';
 import Loading from './loading';
+import PlatformCard from './platformcard';
 import { CHANNEL_ICON_MAPPING, KEY_MEASURES } from '../schema';
 
 const mapStateToProps = state => {
   if (state.channelPlatformSummary && state.channelPlatformSummary.summaries) {
     return {
+      applications: _.uniq(
+        state.channelPlatformSummary.summaries.map(
+          summary => summary.application
+        )
+      ),
       channelPlatformSummary: {
         ...state.channelPlatformSummary,
         summaries: state.channelPlatformSummary.summaries.map(summary => {
@@ -52,8 +49,10 @@ const mapStateToProps = state => {
   return {};
 };
 
-const getSummaryScore = (summaries, channel) => {
-  const channelSummaries = summaries.filter(s => s.channel === channel);
+const getSummaryScore = (summaries, application, channel) => {
+  const channelSummaries = summaries.filter(
+    s => s.application === application && s.channel === channel
+  );
 
   if (!_.every(channelSummaries.map(summary => summary.summaryRate))) {
     return undefined;
@@ -64,52 +63,23 @@ const getSummaryScore = (summaries, channel) => {
     summaryRates.reduce((total, curr) => total * curr) **
       (1.0 / summaryRates.length)
   ).format('0.00');
-  const breakdown = channelSummaries.map(s => ({
-    platform: s.platform,
-    measures: s.measures
-      .filter(m => KEY_MEASURES.includes(m.name) && m.versions.length > 1)
-      .map(m => ({ name: m.name, value: m.versions[1].adjustedRate })),
-  }));
-  const derivation = `√${channelSummaries.length}(${channelSummaries
-    .map(s => `${s.summaryRate} ${s.platform}`)
-    .join(' * ')})`;
 
   return {
-    breakdown,
-    explanation: `= ${derivation}`,
+    application,
+    breakdown: channelSummaries.map(s => ({
+      platform: s.platform,
+      measures: s.measures
+        .filter(m => KEY_MEASURES.includes(m.name) && m.versions.length > 1)
+        .map(m => ({ name: m.name, value: m.versions[1].adjustedRate })),
+    })),
+    explanation:
+      channelSummaries.length > 1
+        ? `= √${channelSummaries.length}(${channelSummaries
+            .map(s => `${s.summaryRate} ${s.platform}`)
+            .join(' * ')})`
+        : '',
     value: geoMean,
   };
-};
-
-const getChangeIndicator = versions => {
-  if (versions.length > 2 && versions[2].adjustedRate > 0.0) {
-    const pctChange =
-      (versions[1].adjustedRate - versions[2].adjustedRate) /
-      versions[2].adjustedRate *
-      100.0;
-    const pctFormat = Math.abs(pctChange) < 10 ? '0.00a' : '0a';
-    const title = `${versions[2].adjustedRate} → ${versions[1].adjustedRate}`;
-
-    if (versions[1].adjustedRate > versions[2].adjustedRate) {
-      return (
-        <span title={title} className={pctChange > 25 ? 'text-danger' : ''}>
-          {numeral(pctChange).format(pctFormat)}%&nbsp;
-          <i className="fa fa-arrow-up" aria-hidden="true" />
-        </span>
-      );
-    }
-
-    return (
-      <span title={title} className={pctChange < -25 ? 'text-success' : ''}>
-        {numeral(pctChange).format(pctFormat)}%&nbsp;<i
-          className="fa fa-arrow-down"
-          aria-hidden="true"
-        />
-      </span>
-    );
-  }
-
-  return <i className="fa fa-minus" aria-hidden="true" />;
 };
 
 const getOptionalParameters = props => {
@@ -128,7 +98,6 @@ class MainViewComponent extends React.Component {
       ...getOptionalParameters(props),
     };
 
-    this.cardClicked = this.cardClicked.bind(this);
     this.channelBtnClicked = this.channelBtnClicked.bind(this);
     this.copyBtnClicked = this.copyBtnClicked.bind(this);
   }
@@ -139,20 +108,22 @@ class MainViewComponent extends React.Component {
       .then(() => this.setState({ isLoading: false }));
   }
 
-  cardClicked(channelName, platformName) {
-    this.props.history.push(`${channelName}/${platformName}`);
-  }
-
   channelBtnClicked(channelName) {
     this.setState({ channel: channelName });
     this.props.history.push(`?channel=${channelName}`);
   }
 
   copyBtnClicked(summaryScore) {
+    let header = `${summaryScore.application} ${
+      this.state.channel
+    } summary score: ${summaryScore.value}`;
+
+    if (summaryScore.explanation.length) {
+      header += ` (${summaryScore.explanation})`;
+    }
+
     copy(
-      `${this.state.channel} summary score: ${summaryScore.value} (${
-        summaryScore.explanation
-      })\n${summaryScore.breakdown
+      `${header}\n${summaryScore.breakdown
         .map(
           p =>
             `* ${p.platform} (${p.measures
@@ -164,13 +135,6 @@ class MainViewComponent extends React.Component {
   }
 
   render() {
-    const summaryScore = this.props.channelPlatformSummary
-      ? getSummaryScore(
-          this.props.channelPlatformSummary.summaries,
-          this.state.channel
-        )
-      : undefined;
-
     return (
       <div>
         <Helmet>
@@ -196,105 +160,70 @@ class MainViewComponent extends React.Component {
         <div className="container center">
           {this.state.isLoading && <Loading />}
           {!this.state.isLoading && (
-            <div>
-              <div className="container">
-                <div className="row">
-                  <div className="col align-self-center channel-summary">
-                    <div className="channel-summary-title">Summary Score</div>
-                    {summaryScore && (
-                      <div className="channel-summary-score">
-                        <abbr title={summaryScore.explanation}>
-                          {summaryScore.value}
-                        </abbr>
-                        <Button
-                          className="channel-summary-copy-button"
-                          title="Copy textual summary to clipboard"
-                          onClick={() => this.copyBtnClicked(summaryScore)}>
-                          <i className="fa fa-copy" />
-                        </Button>
-                      </div>
-                    )}
-                    {!summaryScore && (
-                      <div className="channel-summary-score">N/A</div>
-                    )}
-                  </div>
-                </div>
-              </div>
-              <CardDeck>
-                {this.props.channelPlatformSummary &&
-                  this.props.channelPlatformSummary.summaries.map(
-                    summary =>
-                      summary.channel === this.state.channel && (
-                        <Card
-                          key={`${summary.platform}-${summary.channel}`}
-                          onClick={() =>
-                            this.cardClicked(summary.channel, summary.platform)
-                          }
-                          className="missioncontrol-card">
-                          <CardHeader className={`alert-${summary.status}`}>
-                            <center>
-                              {_.capitalize(summary.platform)}{' '}
-                              {summary.latestVersionSeen && (
-                                <small className="text-muted">
-                                  ({summary.latestVersionSeen})
-                                </small>
-                              )}
-                            </center>
-                          </CardHeader>
-                          <CardBody>
-                            <div className="summary-rate">
-                              <abbr
-                                title={_.intersection(
-                                  summary.expectedMeasures,
-                                  KEY_MEASURES
-                                ).join(' + ')}>
-                                {summary.summaryRate
-                                  ? summary.summaryRate
-                                  : 'N/A'}
-                              </abbr>
-                            </div>
-                            <table className="table table-sm summary-table">
-                              <tbody>
-                                {summary.measures
-                                  .filter(
-                                    measure =>
-                                      KEY_MEASURES.includes(measure.name) &&
-                                      measure.versions.length &&
-                                      measure.versions[0].version ===
-                                        summary.latestVersionSeen
-                                  )
-                                  .map(measure => (
-                                    <tr
-                                      key={measure.name}
-                                      title={
-                                        measure.versions.length > 1
-                                          ? `Average ${
-                                              measure.versions[1].adjustedRate
-                                            } events per 1000 hours`
-                                          : ''
-                                      }>
-                                      <td>{measure.name}</td>
-                                      <td
-                                        id={`${summary.platform}-${
-                                          summary.channel
-                                        }-${measure.name}`}
-                                        align="right">
-                                        {measure.versions.length > 1 &&
-                                          measure.versions[1].adjustedRate}
-                                      </td>
-                                      <td align="right">
-                                        {measure.versions &&
-                                          getChangeIndicator(measure.versions)}
-                                      </td>
-                                    </tr>
-                                  ))}
-                              </tbody>
-                            </table>
-                          </CardBody>
-                        </Card>
+            <div className="container">
+              <div className="row">
+                {this.props.applications &&
+                  this.props.channelPlatformSummary &&
+                  this.props.applications
+                    .filter(applicationName =>
+                      _.some(
+                        this.props.channelPlatformSummary.summaries,
+                        summary =>
+                          summary.channel === this.state.channel &&
+                          summary.application === applicationName
                       )
-                  )}
-              </CardDeck>
+                    )
+                    .map(applicationName => ({
+                      name: applicationName,
+                      summaryScore: getSummaryScore(
+                        this.props.channelPlatformSummary.summaries,
+                        applicationName,
+                        this.state.channel
+                      ),
+                    }))
+                    .map(application => (
+                      <div
+                        key={`summary-${application.name}`}
+                        className="col align-self-center channel-summary">
+                        <div className="channel-summary-title">
+                          {_.capitalize(application.name)} Summary Score
+                        </div>
+                        {application.summaryScore && (
+                          <div className="channel-summary-score">
+                            <abbr title={application.summaryScore.explanation}>
+                              {application.summaryScore.value}
+                            </abbr>
+                            <Button
+                              className="channel-summary-copy-button"
+                              title="Copy textual summary to clipboard"
+                              onClick={() =>
+                                this.copyBtnClicked(application.summaryScore)
+                              }>
+                              <i className="fa fa-copy" />
+                            </Button>
+                          </div>
+                        )}
+                        {!application.summaryScore && (
+                          <div className="channel-summary-score">N/A</div>
+                        )}
+                      </div>
+                    ))}
+              </div>
+              <div className="row">
+                <CardDeck>
+                  {this.props.channelPlatformSummary &&
+                    this.props.channelPlatformSummary.summaries.map(
+                      summary =>
+                        summary.channel === this.state.channel && (
+                          <PlatformCard
+                            key={`${summary.application}-${summary.platform}`}
+                            history={this.props.history}
+                            summary={summary}
+                          />
+                        )
+                    )}
+                </CardDeck>
+              </div>
             </div>
           )}
         </div>
