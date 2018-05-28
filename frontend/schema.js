@@ -27,7 +27,7 @@ export const TIME_INTERVALS_RELATIVE = [
 export const AGGREGATE_LENGTH_5MIN = 5;
 export const AGGREGATE_LENGTH_60MIN = 60;
 export const AGGREGATE_LENGTH_1DAY = 1440;
-export const DEFAULT_AGGREGATE_LENGTH = AGGREGATE_LENGTH_60MIN;
+export const DEFAULT_AGGREGATE_LENGTH = AGGREGATE_LENGTH_1DAY;
 
 export const AGGREGATE_LENGTHS = [
   { label: 'Every 5 minutes', value: AGGREGATE_LENGTH_5MIN },
@@ -43,8 +43,8 @@ export const PERCENTILES = [
   { label: '50th percentile', value: 50 },
 ];
 
-export const DEFAULT_TIME_INTERVAL = 172800;
-export const DEFAULT_TIME_INTERVAL_RELATIVE = 0;
+export const DEFAULT_TIME_INTERVAL = 1209600;
+export const DEFAULT_TIME_INTERVAL_RELATIVE = 604800;
 export const DEFAULT_PERCENTILE = 99;
 export const DEFAULT_VERSION_GROUPING_TYPE = 'version';
 
