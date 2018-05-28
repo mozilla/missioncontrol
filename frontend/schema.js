@@ -45,8 +45,6 @@ export const PERCENTILES = [
 
 export const DEFAULT_TIME_INTERVAL = 172800;
 export const DEFAULT_TIME_INTERVAL_RELATIVE = 0;
-export const COLLAPSE_DATA_THRESHOLD = 172800;
-export const COLLAPSE_DATA_SIZE = 12; // hourly intervals
 export const DEFAULT_PERCENTILE = 99;
 export const DEFAULT_VERSION_GROUPING_TYPE = 'version';
 
