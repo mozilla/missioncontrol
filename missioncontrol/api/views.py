@@ -173,16 +173,14 @@ def measure(request):
         # default is to get latest data for all series
         datums = _filter_datums_to_time_interval(datums, start, interval)
 
-        for (build_id, version) in datums.values_list(
-                'build__build_id',
-                'build__version').distinct():
-            ret[build_id] = {
-                'data': [],
-                'version': version
-            }
-        for (build_id, timestamp, value, usage_hours) in datums.values_list(
-                'build__build_id',
+        for (build_id, version, timestamp, value, usage_hours) in datums.values_list(
+                'build__build_id', 'build__version',
                 'timestamp', 'value', 'usage_hours').order_by('timestamp'):
+            if not ret.get(build_id):
+                ret[build_id] = {
+                    'data': [],
+                    'version': version
+                }
             ret[build_id]['data'].append((timestamp, value, usage_hours))
     else:
         if not versions:
