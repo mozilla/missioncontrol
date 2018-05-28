@@ -28,6 +28,7 @@ class DetailGraph extends React.Component {
         height={this.props.height || this.props.containerHeight}
         interpolate={curveLinear}
         missing_text="No data for this measure"
+        rollover_time_format="%b %e, %Y  %H:%M:%S"
         x_accessor="date"
         y_accessor={this.props.y}
         x_label={this.props.relative ? 'Hours since release' : undefined}
