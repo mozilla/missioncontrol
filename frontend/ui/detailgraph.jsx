@@ -3,6 +3,7 @@ import _ from 'lodash';
 import Dimensions from 'react-dimensions';
 import { curveLinear } from 'd3';
 import MetricsGraphics from 'react-metrics-graphics';
+import { AGGREGATE_LENGTH_1DAY } from '../schema';
 
 class DetailGraph extends React.Component {
   shouldComponentUpdate(nextProps) {
@@ -28,7 +29,11 @@ class DetailGraph extends React.Component {
         height={this.props.height || this.props.containerHeight}
         interpolate={curveLinear}
         missing_text="No data for this measure"
-        rollover_time_format="%b %e, %Y  %H:%M:%S"
+        rollover_time_format={
+          this.props.aggregateLength >= AGGREGATE_LENGTH_1DAY
+            ? undefined
+            : '%b %e, %Y  %H:%M:%S'
+        }
         x_accessor="date"
         y_accessor={this.props.y}
         x_label={this.props.relative ? 'Hours since release' : undefined}

@@ -890,6 +890,7 @@ class DetailViewComponent extends React.Component {
                               y={this.props.match.params.measure}
                               seriesList={this.state.seriesList}
                               relative={this.state.relative}
+                              aggregateLength={this.state.aggregateLength}
                             />
                           </div>
                         </Col>
