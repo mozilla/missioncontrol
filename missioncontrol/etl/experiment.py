@@ -31,7 +31,7 @@ def update_experiment(experiment_name):
 
     min_timestamp = timezone.now() - DATA_EXPIRY_INTERVAL
     min_timestamp_in_data = Datum.objects.filter(
-        experiment_branch__experiment__name=experiment_name,
+        experiment_branch__experiment=experiment,
         measure__in=measures).aggregate(Max('timestamp'))['timestamp__max']
     if min_timestamp_in_data:
         min_timestamp = max([min_timestamp, min_timestamp_in_data])
