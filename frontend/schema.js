@@ -24,9 +24,9 @@ export const TIME_INTERVALS_RELATIVE = [
   { label: 'Up to 24 hours after release', interval: 86400 },
 ];
 
-export const AGGREGATE_LENGTH_5MIN = 5;
-export const AGGREGATE_LENGTH_60MIN = 60;
-export const AGGREGATE_LENGTH_1DAY = 1440;
+export const AGGREGATE_LENGTH_5MIN = 5 / 60;
+export const AGGREGATE_LENGTH_60MIN = 1;
+export const AGGREGATE_LENGTH_1DAY = 24;
 export const DEFAULT_AGGREGATE_LENGTH = AGGREGATE_LENGTH_1DAY;
 
 export const AGGREGATE_LENGTHS = [
