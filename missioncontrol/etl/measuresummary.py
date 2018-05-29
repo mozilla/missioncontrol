@@ -4,7 +4,9 @@ import math
 from django.db.models import (Max, Min)
 from pkg_resources import parse_version
 
-from missioncontrol.base.models import Datum
+from missioncontrol.base.models import (Build,
+                                        Datum,
+                                        Measure)
 from missioncontrol.settings import MEASURE_SUMMARY_VERSION_INTERVAL
 from .versions import (get_current_firefox_version,
                        get_major_version)
@@ -44,12 +46,6 @@ def get_measure_summary(application_name, platform_name, channel_name, measure_n
     A dictionary with a summary of the current median result over the last
     24 hours, compared to previous versions.
     '''
-    datums = Datum.objects.filter(
-        measure__name=measure_name,
-        build__application__name=application_name,
-        build__channel__name=channel_name,
-        build__platform__name=platform_name)
-
     current_version = get_current_firefox_version(channel_name)
     current_major_version = get_major_version(current_version)
 
@@ -60,11 +56,18 @@ def get_measure_summary(application_name, platform_name, channel_name, measure_n
     else:
         min_version = current_major_version - MEASURE_SUMMARY_VERSION_INTERVAL
 
+    builds = Build.objects.filter(application__name=application_name,
+                                  channel__name=channel_name,
+                                  platform__name=platform_name,
+                                  version__gte=min_version,
+                                  version__lt=str(current_major_version + 1))
+    measure = Measure.objects.get(name=measure_name,
+                                  platform__name=platform_name)
+    datums = Datum.objects.filter(build__in=builds,
+                                  measure=measure)
+
     raw_version_data = sorted(
-        datums.filter(
-            build__version__gte=min_version,
-            build__version__lt=str(current_major_version + 1)
-        ).values_list('build__version').distinct().annotate(
+        datums.values_list('build__version').distinct().annotate(
             Min('timestamp'), Max('timestamp')
         ), key=lambda d: parse_version(d[0]))
     if not raw_version_data:
