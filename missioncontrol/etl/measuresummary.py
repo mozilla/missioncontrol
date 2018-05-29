@@ -21,15 +21,10 @@ def get_measure_summary_cache_key(application_name, platform_name,
 
 # returns a list of (rate, value, usage_hours) tuples in the interval for that
 # version
-def _get_data_interval_for_version(application_name, platform_name,
-                                   channel_name, measure_name, version, start,
-                                   end):
-    datums = Datum.objects.filter(
-        measure__name=measure_name,
-        build__application__name=application_name,
-        build__channel__name=channel_name,
-        build__platform__name=platform_name,
-        build__version__startswith=version)
+def _get_data_interval_for_version(builds, measure, version, start, end):
+    version_builds = builds.filter(version__startswith=version)
+    datums = Datum.objects.filter(build__in=version_builds,
+                                  measure=measure)
     value_usage_hours = list(
         datums.filter(
             timestamp__range=(start, end)
@@ -128,10 +123,7 @@ def get_measure_summary(application_name, platform_name, channel_name, measure_n
                     ('rate', 'count', version_end - version_start),
                     ('adjustedRate', 'adjustedCount', latest_version_interval)
             ):
-                values = _get_data_interval_for_version(application_name,
-                                                        platform_name,
-                                                        channel_name,
-                                                        measure_name,
+                values = _get_data_interval_for_version(builds, measure,
                                                         version[0],
                                                         version_start,
                                                         version_start + interval)
