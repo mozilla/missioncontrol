@@ -706,7 +706,7 @@ class DetailViewComponent extends React.Component {
         process_type: processType,
         date: [
           `>=${moment(Date.now() - this.state.timeInterval * 1000).format()}`,
-          `<${moment().format()}}`,
+          `<${moment().format()}`,
         ],
         sort: '-date',
         _facets: 'signature',
