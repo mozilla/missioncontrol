@@ -10,6 +10,7 @@ from django.http import (HttpResponseBadRequest, HttpResponseNotFound, JsonRespo
 from django.utils import timezone
 
 from missioncontrol.base.models import (Application,
+                                        Build,
                                         Channel,
                                         Datum,
                                         Measure,
@@ -156,10 +157,15 @@ def measure(request):
         return HttpResponseBadRequest(
             "Interval / start time must be specified in seconds (as an integer) %s" % interval)
 
-    datums = Datum.objects.filter(
-        build__channel__name=channel_name,
-        build__platform__name=platform_name,
-        measure__name=measure_name)
+    builds = Build.objects.filter(channel__name=channel_name,
+                                  platform__name=platform_name)
+    try:
+        measure = Measure.objects.get(name=measure_name,
+                                      platform__name=platform_name)
+    except Measure.DoesNotExist:
+        return HttpResponseNotFound("Measure not available")
+
+    datums = Datum.objects.filter(build__in=builds, measure=measure)
 
     if versions:
         datums = datums.filter(build__version__in=versions)
