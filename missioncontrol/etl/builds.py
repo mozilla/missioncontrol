@@ -48,7 +48,7 @@ async def _fetch_version_data(session, buildhub_platform_name, application,
         # we will look at build ids up to a week old, in case buildhub is (very) slow to update
         min_buildid_timestamp = max(min_buildid_timestamp,
                                     datetime.datetime.strptime(newest_build_id[:8] + '+0000',
-                                                               '%Y%m%d%z') +
+                                                               '%Y%m%d%z') -
                                     datetime.timedelta(days=7))
     query = {
       "aggs": {
