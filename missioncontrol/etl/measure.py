@@ -26,8 +26,8 @@ logger = logging.getLogger(__name__)
 
 
 @celery.task
-def update_measure(application_name, platform_name, channel_name, measure_name,
-                   submission_date=None, bulk_create=True):
+def update_measures(application_name, platform_name, channel_name,
+                    submission_date=None, bulk_create=True):
     '''
     Updates (or creates) a local cache entry for a specify platform/channel/measure
     aggregate, which can later be retrieved by the API
@@ -37,21 +37,19 @@ def update_measure(application_name, platform_name, channel_name, measure_name,
     # else imports this module first)
     from .presto import raw_query
 
-    logger.info('Updating measure: %s %s %s (date: %s)', channel_name, platform_name,
-                measure_name, submission_date or 'latest')
+    logger.info('Updating measures: %s %s (date: %s)', channel_name, platform_name,
+                submission_date or 'latest')
 
     newrelic.agent.add_custom_parameter("application", application_name)
     newrelic.agent.add_custom_parameter("platform", platform_name)
     newrelic.agent.add_custom_parameter("channel", channel_name)
-    newrelic.agent.add_custom_parameter("measure", measure_name)
 
     application = Application.objects.get(name=application_name)
     platform = Platform.objects.get(name=platform_name)
     channel = Channel.objects.get(name=channel_name)
-    measure = Measure.objects.get(name=measure_name,
-                                  channels=channel,
-                                  application=application,
-                                  platform=platform)
+    measures = Measure.objects.filter(channels=channel,
+                                      application=application,
+                                      platform=platform)
     if submission_date is None:
         now = datetime.datetime.utcnow()
         submission_date = datetime.datetime(year=now.year, month=now.month,
@@ -59,7 +57,7 @@ def update_measure(application_name, platform_name, channel_name, measure_name,
         min_timestamp = Datum.objects.filter(
             timestamp__gte=submission_date,
             build__channel=channel,
-            measure=measure).aggregate(Max('timestamp'))['timestamp__max']
+            measure__in=measures).aggregate(Max('timestamp'))['timestamp__max']
     else:
         min_timestamp = None
 
@@ -89,9 +87,12 @@ def update_measure(application_name, platform_name, channel_name, measure_name,
     # we prefer to specify parameters in a seperate params dictionary
     # where possible (to reduce the risk of creating a malformed
     # query from incorrect parameters
+    measure_sums = ', '.join([
+        'sum({})'.format(measure.name) for measure in measures])
     query_template = f'''
-        select window_start, build_id, display_version, sum({measure_name}),
-        sum(usage_hours), sum(count) as client_count
+        select window_start, build_id, display_version, sum(usage_hours),
+        sum(count),
+        {measure_sums}
         from {MISSION_CONTROL_TABLE} where
         application=%(application_name)s and
         display_version > %(min_version)s and display_version < %(max_version)s and
@@ -120,39 +121,40 @@ def update_measure(application_name, platform_name, channel_name, measure_name,
     # bulk create any new datum objects from the returned results
     build_cache = {}
     datum_objs = []
-    for (window_start, build_id, version, measure_count,
-         usage_hours, client_count) in raw_query(query_template, params):
-        if measure_count is None:
-            measure_count = 0
-        # skip datapoints with negative measure counts or no usage hours
-        # (in theory negative measures should be rejected at the ping
-        # validation level, but this is not yet the case at the time of this
-        # writing -- https://bugzilla.mozilla.org/show_bug.cgi?id=1447038)
-        if measure_count < 0 or usage_hours <= 0:
-            continue
-        # HACK: if channel is esr, tack on "esr" to the version
-        if channel.name == 'esr':
-            version += 'esr'
-        build = build_cache.get((build_id, version))
-        if not build:
-            try:
-                build = Build.objects.get(
-                    platform=platform, channel=channel, build_id=build_id,
-                    version=version)
-                build_cache[(build_id, version)] = build
-            except Build.DoesNotExist:
-                # build not released by us, skip
+    for row in raw_query(query_template, params):
+        (window_start, build_id, version, usage_hours, client_count) = row[:5]
+        for (measure, measure_count) in zip(measures, row[5:]):
+            if measure_count is None:
+                measure_count = 0
+            # skip datapoints with negative measure counts or no usage hours
+            # (in theory negative measures should be rejected at the ping
+            # validation level, but this is not yet the case at the time of this
+            # writing -- https://bugzilla.mozilla.org/show_bug.cgi?id=1447038)
+            if measure_count < 0 or usage_hours <= 0:
                 continue
-        # presto doesn't specify timezone information (but it's really utc)
-        window_start = datetime.datetime.fromtimestamp(
-            window_start.timestamp(), tz=tzutc())
-        datum_objs.append(Datum(
-            build=build,
-            measure=measure,
-            timestamp=window_start,
-            value=measure_count,
-            usage_hours=usage_hours,
-            client_count=client_count))
+            # HACK: if channel is esr, tack on "esr" to the version
+            if channel.name == 'esr':
+                version += 'esr'
+            build = build_cache.get((build_id, version))
+            if not build:
+                try:
+                    build = Build.objects.get(
+                        platform=platform, channel=channel, build_id=build_id,
+                        version=version)
+                    build_cache[(build_id, version)] = build
+                except Build.DoesNotExist:
+                    # build not released by us, skip
+                    continue
+            # presto doesn't specify timezone information (but it's really utc)
+            window_start = datetime.datetime.fromtimestamp(
+                window_start.timestamp(), tz=tzutc())
+            datum_objs.append(Datum(
+                build=build,
+                measure=measure,
+                timestamp=window_start,
+                value=measure_count,
+                usage_hours=usage_hours,
+                client_count=client_count))
     if bulk_create:
         Datum.objects.bulk_create(datum_objs)
     else:
@@ -163,12 +165,13 @@ def update_measure(application_name, platform_name, channel_name, measure_name,
                 continue
 
     # update the measure summary in our cache
-    measure_summary = get_measure_summary(application_name, platform_name,
-                                          channel_name, measure_name)
-    if measure_summary:
-        cache.set(
-            get_measure_summary_cache_key(application_name, platform_name,
-                                          channel_name, measure_name),
-            measure_summary,
-            MEASURE_SUMMARY_CACHE_EXPIRY
-        )
+    for measure in measures:
+        measure_summary = get_measure_summary(application_name, platform_name,
+                                              channel_name, measure.name)
+        if measure_summary:
+            cache.set(
+                get_measure_summary_cache_key(application_name, platform_name,
+                                              channel_name, measure.name),
+                measure_summary,
+                MEASURE_SUMMARY_CACHE_EXPIRY
+            )

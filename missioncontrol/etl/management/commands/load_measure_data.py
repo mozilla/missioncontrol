@@ -4,11 +4,11 @@ from django.core.management.base import (BaseCommand,
                                          CommandError)
 from dateutil import parser
 
-from missioncontrol.etl.measure import update_measure
+from missioncontrol.etl.measure import update_measures
 
 
 class Command(BaseCommand):
-    """Management command to update data for a specific measure/platform/channel combination."""
+    """Management command to update data for a specific platform/channel combination."""
 
     def add_arguments(self, parser):
         parser.add_argument('application', metavar='application', type=str,
@@ -17,8 +17,6 @@ class Command(BaseCommand):
                             help='platform to fetch data for')
         parser.add_argument('channel', metavar='channel', type=str,
                             help='channel to fetch data for')
-        parser.add_argument('measure', metavar='measure', type=str,
-                            help='measure to fetch data for')
         parser.add_argument('--start-date', dest='start_date')
         parser.add_argument('--end-date', dest='end_date')
 
@@ -32,10 +30,10 @@ class Command(BaseCommand):
                             parser.parse(end_date + ' -0000'))
             current = start
             while current <= end:
-                update_measure(options['application'], options['platform'],
-                               options['channel'], options['measure'],
-                               submission_date=current, bulk_create=False)
+                update_measures(options['application'], options['platform'],
+                                options['channel'], submission_date=current,
+                                bulk_create=False)
                 current += datetime.timedelta(days=1)
         else:
-            update_measure(options['application'], options['platform'],
-                           options['channel'], options['measure'])
+            update_measures(options['application'], options['platform'],
+                            options['channel'])

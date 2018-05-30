@@ -1,11 +1,14 @@
 import logging
 import requests
 
-from missioncontrol.base.models import (Experiment,
-                                        Measure)
+from missioncontrol.base.models import (Application,
+                                        Channel,
+                                        Experiment,
+                                        Measure,
+                                        Platform)
 from missioncontrol.celery import celery
 from missioncontrol.settings import FIREFOX_EXPERIMENTS_URL
-from missioncontrol.etl.measure import update_measure
+from missioncontrol.etl.measure import update_measures
 from .builds import update_builds
 from .experiment import update_experiment
 
@@ -13,15 +16,19 @@ logger = logging.getLogger(__name__)
 
 
 @celery.task
-def update_measures():
+def update_channel_measures():
     """
     Updates channel/platform data
     """
     logger.info('Scheduling data updates...')
-    for measure in Measure.objects.exclude(platform=None, application=None):
-        for channel in measure.channels.all():
-            update_measure.apply_async(
-                args=[measure.application.name, measure.platform.name, channel.name, measure.name])
+    for channel in Channel.objects.all():
+        for platform in Platform.objects.all():
+            for application in Application.objects.all():
+                if Measure.objects.filter(
+                        channels=channel, platform=platform,
+                        application=application).exists():
+                    update_measures.apply_async(
+                        args=[application.name, platform.name, channel.name])
 
 
 @celery.task

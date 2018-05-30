@@ -250,9 +250,9 @@ CELERY_BEAT_SCHEDULE = {}
 FETCH_MEASURE_DATA = config('FETCH_MEASURE_DATA', default=True, cast=bool)
 if FETCH_MEASURE_DATA:
     CELERY_BEAT_SCHEDULE.update({
-        'fetch_measure_data': {
+        'fetch_channel_measure_data': {
             'schedule': crontab(minute='*/5'),  # every 5 minutes
-            'task': 'missioncontrol.etl.tasks.update_measures',
+            'task': 'missioncontrol.etl.tasks.update_channels_measures',
             'options': {
                 'expires': 5 * 60
             }
