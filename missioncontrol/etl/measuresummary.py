@@ -62,6 +62,7 @@ def get_measure_summary(application_name, platform_name, channel_name, measure_n
                                   version__gte=min_version,
                                   version__lt=str(current_major_version + 1))
     measure = Measure.objects.get(name=measure_name,
+                                  application__name=application_name,
                                   platform__name=platform_name)
     datums = Datum.objects.filter(build__in=builds,
                                   measure=measure)
