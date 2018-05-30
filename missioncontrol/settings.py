@@ -252,7 +252,7 @@ if FETCH_MEASURE_DATA:
     CELERY_BEAT_SCHEDULE.update({
         'fetch_channel_measure_data': {
             'schedule': crontab(minute='*/5'),  # every 5 minutes
-            'task': 'missioncontrol.etl.tasks.update_channels_measures',
+            'task': 'missioncontrol.etl.tasks.update_channel_measures',
             'options': {
                 'expires': 5 * 60
             }
