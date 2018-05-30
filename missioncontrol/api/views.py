@@ -159,6 +159,9 @@ def measure(request):
 
     builds = Build.objects.filter(channel__name=channel_name,
                                   platform__name=platform_name)
+    if versions:
+        builds = builds.filter(version__in=versions)
+
     try:
         measure = Measure.objects.get(name=measure_name,
                                       platform__name=platform_name)
@@ -166,12 +169,6 @@ def measure(request):
         return HttpResponseNotFound("Measure not available")
 
     datums = Datum.objects.filter(build__in=builds, measure=measure)
-
-    if versions:
-        datums = datums.filter(build__version__in=versions)
-
-    if not datums.exists():
-        return HttpResponseNotFound("Data not available for this measure combination")
 
     ret = {}
 
