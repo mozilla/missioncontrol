@@ -76,8 +76,6 @@ class Command(BaseCommand):
             application=Application.objects.get(name='fennec'),
             platform=Platform.objects.get(name='android'),
             defaults={'enabled': True})
-        # there is no android/fennec on esr, and we are temporarily
-        # disabling gathering crash data on beta:
-        # https://github.com/mozilla/missioncontrol/issues/276
-        measure.channels = Channel.objects.exclude(name__in=['beta', 'esr'])
+        # there is no android/fennec on esr
+        measure.channels = Channel.objects.exclude(name__in=['esr'])
         measure.save()
