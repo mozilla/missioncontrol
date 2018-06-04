@@ -12,7 +12,7 @@ printf '{"commit":"%s","version":"%s","source":"https://github.com/%s/%s","build
 
 echo "Building frontend"
 yarn install
-yarn build
+SERVICE_DOMAIN="" yarn build
 
 echo "Building the docker image with the tag app:build"
 docker build -t app:build .
