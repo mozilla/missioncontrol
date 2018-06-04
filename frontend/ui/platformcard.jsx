@@ -10,7 +10,7 @@ const getChangeIndicator = versions => {
       (versions[1].adjustedRate - versions[2].adjustedRate) /
       versions[2].adjustedRate *
       100.0;
-    const pctFormat = Math.abs(pctChange) < 10 ? '0.00a' : '0a';
+    const pctFormat = Math.abs(pctChange) < 1 ? '0.0a' : '0a';
     const title = `${versions[2].adjustedRate} → ${versions[1].adjustedRate}`;
 
     if (versions[1].adjustedRate > versions[2].adjustedRate) {
