@@ -3,7 +3,7 @@ import copy from 'copy-to-clipboard';
 import numeral from 'numeral';
 import React from 'react';
 import { Helmet } from 'react-helmet';
-import { Button, CardDeck, Nav, NavItem, NavLink } from 'reactstrap';
+import { Button, Nav, NavItem, NavLink } from 'reactstrap';
 import { connect } from 'react-redux';
 import Loading from './loading';
 import PlatformCard from './platformcard';
@@ -157,10 +157,10 @@ class MainViewComponent extends React.Component {
             </NavItem>
           ))}
         </Nav>
-        <div className="container center">
+        <div className="container-fluid center">
           {this.state.isLoading && <Loading />}
           {!this.state.isLoading && (
-            <div className="container">
+            <div className="container-fluid">
               <div className="row">
                 {this.props.applications &&
                   this.props.channelPlatformSummary &&
@@ -210,19 +210,24 @@ class MainViewComponent extends React.Component {
                     ))}
               </div>
               <div className="row">
-                <CardDeck>
-                  {this.props.channelPlatformSummary &&
-                    this.props.channelPlatformSummary.summaries.map(
-                      summary =>
-                        summary.channel === this.state.channel && (
-                          <PlatformCard
-                            key={`${summary.application}-${summary.platform}`}
-                            history={this.props.history}
-                            summary={summary}
-                          />
-                        )
-                    )}
-                </CardDeck>
+                <div className="container-fluid mt-4">
+                  <div className="row justify-content-center">
+                    {this.props.channelPlatformSummary &&
+                      this.props.channelPlatformSummary.summaries.map(
+                        summary =>
+                          summary.channel === this.state.channel && (
+                            <div
+                              key={`${summary.application}-${summary.platform}`}
+                              className="col-auto mb-3">
+                              <PlatformCard
+                                history={this.props.history}
+                                summary={summary}
+                              />
+                            </div>
+                          )
+                      )}
+                  </div>
+                </div>
               </div>
             </div>
           )}
