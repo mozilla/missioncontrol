@@ -248,18 +248,13 @@ CELERY_REDBEAT_LOCK_TIMEOUT = CELERY_BEAT_MAX_LOOP_INTERVAL * 5
 CELERY_BEAT_SCHEDULE = {}
 
 FETCH_MEASURE_DATA = config('FETCH_MEASURE_DATA', default=True, cast=bool)
+FETCH_EXPERIMENT_DATA = config('FETCH_EXPERIMENT_DATA', default=False, cast=bool)
+
 if FETCH_MEASURE_DATA:
     CELERY_BEAT_SCHEDULE.update({
         'fetch_channel_measure_data': {
             'schedule': crontab(minute='*/5'),  # every 5 minutes
             'task': 'missioncontrol.etl.tasks.update_channel_measures',
-            'options': {
-                'expires': 5 * 60
-            }
-        },
-        'fetch_experiment_data': {
-            'schedule': crontab(minute='*/5'),  # every 5 minutes
-            'task': 'missioncontrol.etl.tasks.update_experiment_data',
             'options': {
                 'expires': 5 * 60
             }
@@ -270,15 +265,25 @@ if FETCH_MEASURE_DATA:
             'options': {
                 'expires': 5 * 60
             }
-        },
+        }
+    })
+
+if FETCH_EXPERIMENT_DATA:
+    CELERY_BEAT_SCHEDULE.update({
         'update_active_experiments': {
             'schedule': crontab(minute='*/5'),  # every 5 minutes
             'task': 'missioncontrol.etl.tasks.update_experiment_list',
             'options': {
                 'expires': 5 * 60
             }
+        },
+        'fetch_experiment_data': {
+            'schedule': crontab(minute='*/5'),  # every 5 minutes
+            'task': 'missioncontrol.etl.tasks.update_experiment_data',
+            'options': {
+                'expires': 5 * 60
+            }
         }
-
     })
 
 LOGGING_USE_JSON = config('LOGGING_USE_JSON', default=True, cast=bool)
