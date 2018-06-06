@@ -52,6 +52,11 @@ html, body, #root {
   justify-content: left;
 }
 
+.missioncontrol-card-link, .missioncontrol-card-link:hover {
+  color: inherit;
+  text-decoration: inherit;
+}
+
 .missioncontrol-card {
     cursor: pointer;
     width: 208px;
