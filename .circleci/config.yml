@@ -1,0 +1,96 @@
+# These environment variables must be set in CircleCI UI
+#
+# DOCKERHUB_REPO - docker hub repo, format: <username>/<repo>
+# DOCKER_USER    - login info for docker hub
+# DOCKER_PASS
+#
+
+version: 2
+jobs:
+  build:
+    docker:
+      - image: circleci/node:8-jessie
+    steps:
+      - checkout
+      - setup_remote_docker
+      - run: ./bin/build
+
+      # save the built docker container into CircleCI's cache. This is
+      # required since Workflows do not have the same remote docker instance.
+      - run:
+          name: docker save app:build
+          command: mkdir -p /tmp; docker save -o /tmp/docker.tar "app:build"
+      - save_cache:
+          key: v1-{{ .Branch }}-{{epoch}}
+          paths:
+            - /tmp/docker.tar
+            - .env-dist
+            - Dockerfile
+            - docker-compose.yml
+            - bin/deploy
+  test:
+    machine:
+      enable: true
+    environment:
+      DEVELOPMENT: 1
+    steps:
+      - checkout
+      - restore_cache:
+          key: v1-{{.Branch}}
+      - run:
+          name: Restore Docker image cache
+          command: docker load -i /tmp/docker.tar
+
+      - run:
+          name: Install Docker Compose
+          command: |
+            curl -L https://github.com/docker/compose/releases/download/1.19.0/docker-compose-`uname -s`-`uname -m` > ~/docker-compose
+            chmod +x ~/docker-compose
+            sudo mv ~/docker-compose /usr/local/bin/docker-compose
+            pip install --upgrade docker-compose
+
+      - run:
+          name: Test Code
+          command: |
+            cp .env-dist .env
+            docker-compose run -e DEVELOPMENT test-ci
+
+  deploy:
+    docker:
+      - image: docker:18.02.0-ce
+    steps:
+      - setup_remote_docker
+      - restore_cache:
+          key: v1-{{.Branch}}
+      - run:
+          name: Restore Docker image cache
+          command: docker load -i /cache/docker.tar
+      - run:
+          name: Deploy to Dockerhub
+          command: ./bin/deploy
+
+workflows:
+  version: 2
+  build-test-deploy:
+    jobs:
+      - build:
+          filters:
+            tags:
+              only: /.*/
+
+      - test:
+          requires:
+            - build
+          filters:
+            tags:
+              only: /.*/
+
+      - deploy:
+          requires:
+            - build
+            - test
+          filters:
+            tags:
+              only: /.*/
+            branches:
+              only: master
