@@ -27,7 +27,6 @@ jobs:
             - .env-dist
             - Dockerfile
             - docker-compose.yml
-            - bin/deploy
   test:
     machine:
       enable: true
@@ -59,6 +58,7 @@ jobs:
     docker:
       - image: docker:18.02.0-ce
     steps:
+      - checkout
       - setup_remote_docker
       - restore_cache:
           key: v1-{{.Branch}}
