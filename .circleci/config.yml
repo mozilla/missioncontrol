@@ -64,7 +64,7 @@ jobs:
           key: v1-{{.Branch}}
       - run:
           name: Restore Docker image cache
-          command: docker load -i /cache/docker.tar
+          command: docker load -i /tmp/docker.tar
       - run:
           name: Deploy to Dockerhub
           command: ./bin/deploy
