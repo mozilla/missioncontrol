@@ -134,6 +134,22 @@ def test_get_measure_summary_high_beta(prepopulated_version_cache, base_datapoin
                     "fieldDuration": 3600
                 },
                 {
+                    "version": "55.0b2",
+                    "adjustedCount": 6,
+                    "count": 6,
+                    "adjustedRate": 2000.0,
+                    "rate": 2000.0,
+                    "fieldDuration": 3600
+                },
+                {
+                    "version": "55.0b1",
+                    "adjustedCount": 6,
+                    "count": 6,
+                    "adjustedRate": 2000.0,
+                    "rate": 2000.0,
+                    "fieldDuration": 3600
+                },
+                {
                     "version": "55",
                     "adjustedCount": 18,
                     "adjustedRate": 2000.0,
