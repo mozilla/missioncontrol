@@ -160,3 +160,24 @@ def test_get_measure_summary_high_beta(prepopulated_version_cache, base_datapoin
             ],
             "lastUpdated": latest_timestamp
         }
+
+
+def test_get_measure_summary_recent_releases(prepopulated_version_cache, base_datapoint_time,
+                                             initial_data):
+    (application_name, platform_name, measure_name) = ('firefox', 'linux',
+                                                       'main_crashes')
+    for (channel_name, versions, expected_versions) in (
+            ('release', ['55.0.2', '55.0.1', '54.0.1', '54.0'],
+             ['55.0.2', '55.0.1', '55', '54']),
+            ('beta', ['55.0b6', '55.0b5', '55.0b4', '55.0b3', '54.0b8', '54.0b7'],
+             ['55.0b6', '55.0b5', '55.0b4', '55', '54']),
+            ('nightly', ['56.0a1', '55.0a1', '54.0a1'], ['56', '55', '54'])):
+        offsets = [datetime.timedelta(hours=i) for i in range(len(versions))]
+        for (version, offset) in zip(reversed(versions), offsets):
+            _generate_fake_data(application_name, platform_name,
+                                channel_name, measure_name,
+                                '20150629075044', version,
+                                base_datapoint_time + offset, 2)
+        measure_summary = get_measure_summary(
+            application_name, platform_name, channel_name, measure_name)
+        assert [version['version'] for version in measure_summary['versions']] == expected_versions
