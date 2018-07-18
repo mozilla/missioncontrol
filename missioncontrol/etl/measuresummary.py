@@ -154,8 +154,13 @@ def get_measure_summary(application_name, platform_name, channel_name, measure_n
     # we tack the last few versions on at the end just to give people an idea of
     # what's happening with the last few point releases / betas (except on
     # nightly where we basically have a continuous flow of new releases)
-    if channel_name is not 'nightly':
-        version_summaries.extend(_get_version_summaries(raw_version_data[-3:], None))
+    if channel_name != 'nightly':
+        recent_point_releases = [raw_version_datum for raw_version_datum in
+                                 raw_version_data[-3:] if
+                                 get_major_version(raw_version_datum[0]) ==
+                                 current_major_version]
+        version_summaries.extend(_get_version_summaries(recent_point_releases,
+                                                        None))
 
     if not version_summaries:
         return None

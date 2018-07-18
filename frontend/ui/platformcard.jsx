@@ -5,15 +5,17 @@ import { Card, CardBody, CardHeader } from 'reactstrap';
 import { KEY_MEASURES } from '../schema';
 
 const getChangeIndicator = versions => {
-  if (versions.length > 2 && versions[2].adjustedRate > 0.0) {
+  if (versions.length >= 2 && versions[1].adjustedRate > 0.0) {
     const pctChange =
-      (versions[1].adjustedRate - versions[2].adjustedRate) /
-      versions[2].adjustedRate *
+      (versions[0].adjustedRate - versions[1].adjustedRate) /
+      versions[1].adjustedRate *
       100.0;
     const pctFormat = Math.abs(pctChange) < 1 ? '0.0a' : '0a';
-    const title = `${versions[2].adjustedRate} → ${versions[1].adjustedRate}`;
+    const title = `${versions[1].adjustedRate} (${versions[1].version}) → ${
+      versions[0].adjustedRate
+    } (${versions[0].version})`;
 
-    if (versions[1].adjustedRate > versions[2].adjustedRate) {
+    if (versions[0].adjustedRate > versions[1].adjustedRate) {
       return (
         <span title={title} className={pctChange > 25 ? 'text-danger' : ''}>
           {numeral(pctChange).format(pctFormat)}%&nbsp;
@@ -88,26 +90,32 @@ class PlatformCard extends React.Component {
                       measure.versions.length &&
                       measure.versions[0].version === summary.latestVersionSeen
                   )
+                  .map(measure => ({
+                    majorVersions: measure.versions.filter(version =>
+                      version.version.match(/^\d+$/)
+                    ),
+                    ...measure,
+                  }))
                   .map(measure => (
                     <tr
                       key={`${summary.application}-${summary.platform}-${
                         measure.name
                       }`}
                       title={
-                        measure.versions.length > 1
+                        measure.majorVersions.length > 0
                           ? `Average ${
-                              measure.versions[1].adjustedRate
+                              measure.majorVersions[0].adjustedRate
                             } events per 1000 hours`
                           : ''
                       }>
                       <td>{measure.name}</td>
                       <td align="right">
-                        {measure.versions.length > 1 &&
-                          measure.versions[1].adjustedRate}
+                        {measure.majorVersions.length > 0 &&
+                          measure.majorVersions[0].adjustedRate}
                       </td>
                       <td align="right">
-                        {measure.versions &&
-                          getChangeIndicator(measure.versions)}
+                        {measure.majorVersions.length > 0 &&
+                          getChangeIndicator(measure.majorVersions)}
                       </td>
                     </tr>
                   ))}
