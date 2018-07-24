@@ -354,7 +354,7 @@ class DetailViewComponent extends React.Component {
 
         return {
           ...series,
-          data: series.data.filter(d => d[measure] < threshold),
+          data: series.data.filter(d => d[measure] <= threshold),
         };
       });
     }
