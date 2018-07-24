@@ -688,7 +688,8 @@ class DetailViewComponent extends React.Component {
               {}
             )
           : {}),
-        product: 'Firefox',
+        product:
+          this.state.platform === 'android' ? 'FennecAndroid' : 'Firefox',
         version: _.uniq(
           _.reduce(
             this.props.measureData,
