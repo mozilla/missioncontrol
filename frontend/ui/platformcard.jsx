@@ -51,6 +51,12 @@ class PlatformCard extends React.Component {
 
   render() {
     const { summary } = this.props;
+    const measures = summary.measures.filter(
+      measure =>
+        KEY_MEASURES.includes(measure.name) &&
+        measure.versions.length &&
+        measure.versions[0].version === summary.latestVersionSeen
+    );
 
     return (
       <a
@@ -83,42 +89,29 @@ class PlatformCard extends React.Component {
             </div>
             <table className="table table-sm summary-table">
               <tbody>
-                {summary.measures
-                  .filter(
-                    measure =>
-                      KEY_MEASURES.includes(measure.name) &&
-                      measure.versions.length &&
-                      measure.versions[0].version === summary.latestVersionSeen
-                  )
-                  .map(measure => ({
-                    majorVersions: measure.versions.filter(version =>
-                      version.version.match(/^\d+$/)
-                    ),
-                    ...measure,
-                  }))
-                  .map(measure => (
-                    <tr
-                      key={`${summary.application}-${summary.platform}-${
-                        measure.name
-                      }`}
-                      title={
-                        measure.majorVersions.length > 0
-                          ? `Average ${
-                              measure.majorVersions[0].adjustedRate
-                            } events per 1000 hours`
-                          : ''
-                      }>
-                      <td>{measure.name}</td>
-                      <td align="right">
-                        {measure.majorVersions.length > 0 &&
-                          measure.majorVersions[0].adjustedRate}
-                      </td>
-                      <td align="right">
-                        {measure.majorVersions.length > 0 &&
-                          getChangeIndicator(measure.majorVersions)}
-                      </td>
-                    </tr>
-                  ))}
+                {measures.map(measure => (
+                  <tr
+                    key={`${summary.application}-${summary.platform}-${
+                      measure.name
+                    }`}
+                    title={
+                      measure.majorVersions.length > 0
+                        ? `Average ${
+                            measure.majorVersions[0].adjustedRate
+                          } events per 1000 hours`
+                        : ''
+                    }>
+                    <td>{measure.name}</td>
+                    <td align="right">
+                      {measure.majorVersions.length > 0 &&
+                        measure.majorVersions[0].adjustedRate}
+                    </td>
+                    <td align="right">
+                      {measure.majorVersions.length > 0 &&
+                        getChangeIndicator(measure.majorVersions)}
+                    </td>
+                  </tr>
+                ))}
               </tbody>
             </table>
           </CardBody>
