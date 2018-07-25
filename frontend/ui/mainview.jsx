@@ -20,25 +20,35 @@ const mapStateToProps = state => {
       channelPlatformSummary: {
         ...state.channelPlatformSummary,
         summaries: state.channelPlatformSummary.summaries.map(summary => {
+          // augment summary measures with a major versions property that only
+          // includes major versions
+          const measures = summary.measures.map(measure => ({
+            majorVersions: measure.versions.filter(version =>
+              version.version.match(/^\d+$/)
+            ),
+            ...measure,
+          }));
           // only pretend we have a summary rate if we've got all the key
           // measures for a particular channel/platform combo
           const summaryRate = _.every(
             _.intersection(KEY_MEASURES, summary.expectedMeasures).map(
-              keyMeasure =>
-                summary.measures.map(m => m.name).includes(keyMeasure)
+              keyMeasure => measures.map(m => m.name).includes(keyMeasure)
             )
           )
             ? _.sum(
-                summary.measures
+                measures
                   .filter(
-                    m => KEY_MEASURES.includes(m.name) && m.versions.length > 1
+                    m =>
+                      KEY_MEASURES.includes(m.name) &&
+                      m.majorVersions.length > 1
                   )
-                  .map(m => m.versions[1].adjustedRate)
+                  .map(m => m.majorVersions[0].adjustedRate)
               ).toFixed(2)
             : undefined;
 
           return {
             ...summary,
+            measures,
             summaryRate,
           };
         }),
