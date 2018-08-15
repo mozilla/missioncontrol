@@ -186,7 +186,13 @@ export class SubViewComponent extends React.Component {
                           </a>
                         </td>
                         {this.props.versions.map(versionStr => (
-                          <td key={`${measure.name}-${versionStr}`}>
+                          <td
+                            key={`${measure.name}-${versionStr}`}
+                            title={
+                              versionStr.includes('.')
+                                ? `Events when ${versionStr} was latest`
+                                : `All values from all point releases during selected time window when ${versionStr} was latest`
+                            }>
                             {getReleaseValue(
                               measure.versions.find(
                                 release => release.version === versionStr
