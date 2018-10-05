@@ -7,6 +7,7 @@ import { connect } from 'react-redux';
 import { Button, ButtonGroup } from 'reactstrap';
 import Loading from './loading';
 import SubViewNav from './subviewnav';
+import { semVerCompare } from '../version';
 
 const mapStateToProps = (state, ownProps) => {
   const { channel, platform } = ownProps.match.params;
@@ -31,11 +32,7 @@ const mapStateToProps = (state, ownProps) => {
             )
           )
         )
-          .sort((a, b) => {
-            const difference = parseInt(a, 10) - parseInt(b, 10);
-
-            return difference || a.localeCompare(b);
-          })
+          .sort((a, b) => semVerCompare(a, b))
           .reverse(),
         latestReleaseAge: channelPlatformSummary.latestVersionFieldDuration,
       };
