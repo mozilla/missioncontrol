@@ -132,9 +132,6 @@ def update_measures(application_name, platform_name, channel_name,
             # writing -- https://bugzilla.mozilla.org/show_bug.cgi?id=1447038)
             if measure_count < 0 or usage_hours <= 0:
                 continue
-            # HACK: if channel is esr, tack on "esr" to the version
-            if channel.name == 'esr':
-                version += 'esr'
             build = build_cache.get((build_id, version))
             if not build:
                 try:
