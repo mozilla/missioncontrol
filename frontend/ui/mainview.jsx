@@ -40,7 +40,7 @@ const mapStateToProps = state => {
                   .filter(
                     m =>
                       KEY_MEASURES.includes(m.name) &&
-                      m.majorVersions.length > 1
+                      m.majorVersions.length >= 1
                   )
                   .map(m => m.majorVersions[0].adjustedRate)
               ).toFixed(2)
