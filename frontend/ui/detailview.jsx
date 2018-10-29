@@ -31,6 +31,7 @@ import {
   PERCENTILES,
   TIME_INTERVALS,
   TIME_INTERVALS_RELATIVE,
+  MAX_VISIBLE_SERIES,
 } from '../schema';
 import { semVerCompare } from '../version';
 
@@ -280,9 +281,10 @@ class DetailViewComponent extends React.Component {
 
     const sortedSeriesValues = data =>
       _.values(data).sort((a, b) => a.date - b.date);
+    const maxVisibleSeries = MAX_VISIBLE_SERIES[this.state.channel];
+    // if we have <= maxVisibleSeries series, just return all verbatim
 
-    // if we have <= 3 series, just return all verbatim
-    if (Object.keys(seriesMap).length <= 3) {
+    if (Object.keys(seriesMap).length <= maxVisibleSeries) {
       return _.map(seriesMap, (data, name) => ({
         name,
         data: sortedSeriesValues(data),
@@ -291,10 +293,10 @@ class DetailViewComponent extends React.Component {
         .reverse();
     }
 
-    // take two most recent versions
+    // take maxVisibleSeries most recent versions
     let mostRecent = Object.keys(seriesMap)
       .sort(semVerCompare)
-      .slice(-2);
+      .slice(-maxVisibleSeries);
 
     // if the second most recent has negligible results (<10% of) relative
     // to the most recent, just concatenate it in with the other results under

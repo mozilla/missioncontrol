@@ -47,6 +47,11 @@ export const DEFAULT_TIME_INTERVAL = 1209600;
 export const DEFAULT_TIME_INTERVAL_RELATIVE = 604800;
 export const DEFAULT_PERCENTILE = 99;
 export const DEFAULT_VERSION_GROUPING_TYPE = 'version';
+export const MAX_VISIBLE_SERIES = {
+  release: 5,
+  beta: 3,
+  nightly: 2,
+};
 
 export const KEY_MEASURES = ['content_crashes', 'main_crashes'];
 
