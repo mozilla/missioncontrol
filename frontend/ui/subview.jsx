@@ -8,6 +8,7 @@ import { Button, ButtonGroup } from 'reactstrap';
 import Loading from './loading';
 import SubViewNav from './subviewnav';
 import { semVerCompare } from '../version';
+import { ORDER } from '../schema';
 
 const mapStateToProps = (state, ownProps) => {
   const { channel, platform } = ownProps.match.params;
@@ -71,6 +72,7 @@ export class SubViewComponent extends React.Component {
       isLoading: true,
       timeWindow: 'adjusted',
       countType: 'rate',
+      measures: {},
     };
     this.ontimeWindowBtnClick = this.ontimeWindowBtnClick.bind(this);
     this.onCountTypeBtnClick = this.onCountTypeBtnClick.bind(this);
@@ -83,6 +85,7 @@ export class SubViewComponent extends React.Component {
         platform: [this.state.platform],
       })
       .then(() => this.setState({ isLoading: false }));
+    this.splitByOrder(this.props.measures);
   }
 
   ontimeWindowBtnClick(selected) {
@@ -91,6 +94,23 @@ export class SubViewComponent extends React.Component {
 
   onCountTypeBtnClick(selected) {
     this.setState({ countType: selected });
+  }
+
+  splitByOrder(measures) {
+    const main = [];
+
+    for (let i = 0; i < ORDER.length; i += 1) {
+      main.push(measures.find(element => element.name === ORDER[i]));
+    }
+
+    const others = _.orderBy(_.difference(measures, main), ['name']);
+
+    this.setState({
+      measures: {
+        main,
+        others,
+      },
+    });
   }
 
   render() {
@@ -159,6 +179,7 @@ export class SubViewComponent extends React.Component {
                   </p>
                 </center>
               </div>
+              <h3>Crash Measures</h3>
               <table className="table">
                 <thead>
                   <tr>
@@ -170,42 +191,88 @@ export class SubViewComponent extends React.Component {
                   </tr>
                 </thead>
                 <tbody>
-                  {this.props.measures
-                    .sort((m, n) => m.name > n.name)
-                    .map(measure => (
-                      <tr key={measure.name}>
-                        <td>
-                          <a
-                            href={`#/${this.state.channel}/${
-                              this.state.platform
-                            }/${measure.name}`}>
-                            {measure.name}
-                          </a>
+                  {this.state.measures.main.map(measure => (
+                    <tr key={measure.name}>
+                      <td>
+                        <a
+                          href={`#/${this.state.channel}/${
+                            this.state.platform
+                          }/${measure.name}`}>
+                          {measure.name}
+                        </a>
+                      </td>
+                      {this.props.versions.map(versionStr => (
+                        <td
+                          key={`${measure.name}-${versionStr}`}
+                          title={
+                            versionStr.includes('.')
+                              ? `Events when ${versionStr} was latest`
+                              : `All values from all point releases during selected time window when ${versionStr} was latest`
+                          }>
+                          {getReleaseValue(
+                            measure.versions.find(
+                              release => release.version === versionStr
+                            ),
+                            this.state.countType,
+                            this.state.timeWindow
+                          )}
                         </td>
-                        {this.props.versions.map(versionStr => (
-                          <td
-                            key={`${measure.name}-${versionStr}`}
-                            title={
-                              versionStr.includes('.')
-                                ? `Events when ${versionStr} was latest`
-                                : `All values from all point releases during selected time window when ${versionStr} was latest`
-                            }>
-                            {getReleaseValue(
-                              measure.versions.find(
-                                release => release.version === versionStr
-                              ),
-                              this.state.countType,
-                              this.state.timeWindow
-                            )}
-                          </td>
-                        ))}
-                        <td al>
-                          {measure.lastUpdated
-                            ? moment(measure.lastUpdated).fromNow()
-                            : 'N/A'}
-                        </td>
-                      </tr>
+                      ))}
+                      <td al>
+                        {measure.lastUpdated
+                          ? moment(measure.lastUpdated).fromNow()
+                          : 'N/A'}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+              <h3>Others</h3>
+              <table className="table">
+                <thead>
+                  <tr>
+                    <th>Measure</th>
+                    {this.props.versions.map(version => (
+                      <th key={`th-${version}`}>{version}</th>
                     ))}
+                    <th>Last updated</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {this.state.measures.others.map(measure => (
+                    <tr key={measure.name}>
+                      <td>
+                        <a
+                          href={`#/${this.state.channel}/${
+                            this.state.platform
+                          }/${measure.name}`}>
+                          {measure.name}
+                        </a>
+                      </td>
+                      {this.props.versions.map(versionStr => (
+                        <td
+                          key={`${measure.name}-${versionStr}`}
+                          title={
+                            versionStr.includes('.')
+                              ? `Events when ${versionStr} was latest`
+                              : `All values from all point releases during selected time window when ${versionStr} was latest`
+                          }>
+                          {getReleaseValue(
+                            measure.versions.find(
+                              release => release.version === versionStr
+                            ),
+                            this.state.countType,
+                            this.state.timeWindow
+                          )}
+                        </td>
+                      ))}
+                      <td al>
+                        {measure.lastUpdated
+                          ? moment(measure.lastUpdated).fromNow()
+                          : 'N/A'}
+                      </td>
+                    </tr>
+                  ))}
                 </tbody>
               </table>
               {this.props.latestReleaseAge &&
