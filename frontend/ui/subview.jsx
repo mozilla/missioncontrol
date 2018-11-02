@@ -8,7 +8,7 @@ import Loading from './loading';
 import SubViewNav from './subviewnav';
 import { semVerCompare } from '../version';
 import { CRASH_MEASURE_ORDER } from '../schema';
-import MeasureTable from './measureTable';
+import MeasureTable from './measuretable';
 
 const mapStateToProps = (state, ownProps) => {
   const { channel, platform } = ownProps.match.params;
