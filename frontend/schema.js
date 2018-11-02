@@ -54,7 +54,7 @@ export const MAX_VISIBLE_SERIES = {
 };
 
 export const KEY_MEASURES = ['content_crashes', 'main_crashes'];
-export const ORDER = [
+export const CRASH_MEASURE_ORDER = [
   'main_crashes',
   'content_crashes',
   'startup_crashes',
