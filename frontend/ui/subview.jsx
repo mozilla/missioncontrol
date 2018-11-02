@@ -1,6 +1,5 @@
 import _ from 'lodash';
 import moment from 'moment';
-import numeral from 'numeral';
 import React from 'react';
 import { Helmet } from 'react-helmet';
 import { connect } from 'react-redux';
@@ -8,6 +7,8 @@ import { Button, ButtonGroup } from 'reactstrap';
 import Loading from './loading';
 import SubViewNav from './subviewnav';
 import { semVerCompare } from '../version';
+import { CRASH_MEASURE_ORDER } from '../schema';
+import MeasureTable from './measuretable';
 
 const mapStateToProps = (state, ownProps) => {
   const { channel, platform } = ownProps.match.params;
@@ -42,26 +43,6 @@ const mapStateToProps = (state, ownProps) => {
   return { measures: [] };
 };
 
-const getReleaseValue = (release, countType, timeWindow) => {
-  const property =
-    timeWindow === 'adjusted'
-      ? `adjusted${_.capitalize(countType)}`
-      : countType;
-
-  if (_.isUndefined(release) || _.isUndefined(release[property])) {
-    return 'N/A';
-  }
-
-  return (
-    <span
-      title={
-        countType === 'count' ? numeral(release[property]).format('0,0') : null
-      }>
-      {numeral(release[property]).format('0.00a')}
-    </span>
-  );
-};
-
 export class SubViewComponent extends React.Component {
   constructor(props) {
     super(props);
@@ -71,6 +52,7 @@ export class SubViewComponent extends React.Component {
       isLoading: true,
       timeWindow: 'adjusted',
       countType: 'rate',
+      measures: {},
     };
     this.ontimeWindowBtnClick = this.ontimeWindowBtnClick.bind(this);
     this.onCountTypeBtnClick = this.onCountTypeBtnClick.bind(this);
@@ -83,6 +65,7 @@ export class SubViewComponent extends React.Component {
         platform: [this.state.platform],
       })
       .then(() => this.setState({ isLoading: false }));
+    this.splitByOrder(this.props.measures);
   }
 
   ontimeWindowBtnClick(selected) {
@@ -91,6 +74,22 @@ export class SubViewComponent extends React.Component {
 
   onCountTypeBtnClick(selected) {
     this.setState({ countType: selected });
+  }
+
+  splitByOrder(measures) {
+    const crashMeasures = CRASH_MEASURE_ORDER.map(measureName =>
+      measures.find(element => element.name === measureName)
+    );
+    const otherMeasures = _.orderBy(_.difference(measures, crashMeasures), [
+      'name',
+    ]);
+
+    this.setState({
+      measures: {
+        crashMeasures,
+        otherMeasures,
+      },
+    });
   }
 
   render() {
@@ -159,60 +158,24 @@ export class SubViewComponent extends React.Component {
                   </p>
                 </center>
               </div>
-              <table className="table">
-                <thead>
-                  <tr>
-                    <th>Measure</th>
-                    {this.props.versions.map(version => (
-                      <th key={`th-${version}`}>{version}</th>
-                    ))}
-                    <th>Last updated</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {this.props.measures
-                    .sort((m, n) => m.name > n.name)
-                    .map(measure => (
-                      <tr key={measure.name}>
-                        <td>
-                          <a
-                            href={`#/${this.state.channel}/${
-                              this.state.platform
-                            }/${measure.name}`}>
-                            {measure.name}
-                          </a>
-                        </td>
-                        {this.props.versions.map(versionStr => (
-                          <td
-                            key={`${measure.name}-${versionStr}`}
-                            title={
-                              versionStr.includes('.')
-                                ? `Events when ${versionStr} was latest`
-                                : `All values from all point releases during selected time window when ${versionStr} was latest`
-                            }>
-                            {getReleaseValue(
-                              measure.versions.find(
-                                release => release.version === versionStr
-                              ),
-                              this.state.countType,
-                              this.state.timeWindow
-                            )}
-                          </td>
-                        ))}
-                        <td al>
-                          {measure.lastUpdated
-                            ? moment(measure.lastUpdated).fromNow()
-                            : 'N/A'}
-                        </td>
-                      </tr>
-                    ))}
-                </tbody>
-              </table>
+              <MeasureTable
+                title="Crash Measures"
+                measures={this.state.measures.crashMeasures}
+                versions={this.props.versions}
+                subviewState={this.state}
+              />
+              <MeasureTable
+                title="Other Measures"
+                measures={this.state.measures.otherMeasures}
+                versions={this.props.versions}
+                subviewState={this.state}
+              />
               {this.props.latestReleaseAge &&
                 this.props.latestReleaseAge < 86400 && (
                   <p className="text-danger">
                     <center>
-                      Latest release is new ({moment
+                      Latest release is new (
+                      {moment
                         .duration(this.props.latestReleaseAge, 'seconds')
                         .humanize()}{' '}
                       in field), numbers should be viewed with skepticism

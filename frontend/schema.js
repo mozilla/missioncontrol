@@ -54,6 +54,15 @@ export const MAX_VISIBLE_SERIES = {
 };
 
 export const KEY_MEASURES = ['content_crashes', 'main_crashes'];
+export const CRASH_MEASURE_ORDER = [
+  'main_crashes',
+  'content_crashes',
+  'startup_crashes',
+  'gpu_crashes',
+  'content_shutdown_crashes',
+  'gmplugin_crashes',
+  'plugin_crashes',
+];
 
 export const CHANNEL_ICON_MAPPING = {
   beta: betaIcon,
