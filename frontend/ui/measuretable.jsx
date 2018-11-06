@@ -66,7 +66,7 @@ class MeasureTable extends React.Component {
                     )}
                   </td>
                 ))}
-                <td al>
+                <td>
                   {measure.lastUpdated
                     ? moment(measure.lastUpdated).fromNow()
                     : 'N/A'}

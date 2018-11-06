@@ -64,8 +64,13 @@ export class SubViewComponent extends React.Component {
         channel: [this.state.channel],
         platform: [this.state.platform],
       })
-      .then(() => this.setState({ isLoading: false }));
-    this.splitByOrder(this.props.measures);
+      .then(() => {
+        this.splitByOrder(this.props.measures);
+        this.setState({
+          isLoading: false,
+          measures: this.splitByOrder(this.props.measures),
+        });
+      });
   }
 
   ontimeWindowBtnClick(selected) {
@@ -77,19 +82,19 @@ export class SubViewComponent extends React.Component {
   }
 
   splitByOrder(measures) {
-    const crashMeasures = CRASH_MEASURE_ORDER.map(measureName =>
-      measures.find(element => element.name === measureName)
+    const crashMeasures = _.filter(
+      CRASH_MEASURE_ORDER.map(measureName =>
+        measures.find(element => element.name === measureName)
+      )
     );
     const otherMeasures = _.orderBy(_.difference(measures, crashMeasures), [
       'name',
     ]);
 
-    this.setState({
-      measures: {
-        crashMeasures,
-        otherMeasures,
-      },
-    });
+    return {
+      crashMeasures,
+      otherMeasures,
+    };
   }
 
   render() {
