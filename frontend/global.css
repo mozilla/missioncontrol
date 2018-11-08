@@ -152,3 +152,7 @@ html, body, #root {
 .release-selector .channel-icon {
   padding: 4px;
 }
+
+.measure-table td:first-child {
+  width: 240px;
+}
