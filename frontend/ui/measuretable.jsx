@@ -28,7 +28,7 @@ class MeasureTable extends React.Component {
     return (
       <div>
         <h3>{this.props.title}</h3>
-        <table className="table">
+        <table className="table measure-table">
           <thead>
             <tr>
               <th>Measure</th>
