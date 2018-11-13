@@ -102,7 +102,7 @@ def update_measures(application_name, platform_name, channel_name,
         window_start > timestamp %(min_timestamp)s and
         submission_date_s3 = %(submission_date)s
         group by (window_start, build_id, display_version)
-        sum(usage_hours) > 0'''.replace('\n', '').strip()
+        having sum(usage_hours) > 0'''.replace('\n', '').strip()
     params = {
         'application_name': application.telemetry_name,
         'min_version': str(min_version),
