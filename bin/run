@@ -59,6 +59,7 @@ case $1 in
     ;;
   test)
     pytest tests/ missioncontrol/
+    yarn test
     if [[ ! -z ${CI+check} ]]; then
       # submit coverage
       bash <(curl -s https://codecov.io/bash) -s /tmp

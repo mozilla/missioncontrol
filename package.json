@@ -7,9 +7,10 @@
     "coverage": "neutrino test --coverage"
   },
   "devDependencies": {
-    "enzyme": "^2.8.2",
+    "@neutrinojs/jest": "^8.3.0",
+    "enzyme": "^3.7.0",
     "eslint-plugin-react": "^7.1.0",
-    "react-addons-test-utils": "^15.5.1"
+    "react-addons-test-utils": "^15.6.2"
   },
   "dependencies": {
     "@neutrinojs/env": "^8.2.0",
