@@ -81,6 +81,9 @@ def update_measures(application_name, platform_name, channel_name,
                 build_id__lte=max_buildid_timestamp.strftime('%Y%m%d')).values_list(
                     'version', flat=True)
         ), key=parse_version)
+    if not valid_versions:
+        raise Exception('No valid versions found for combination: {}'.format(
+            '/'.join(('application', 'channel', 'platform'))))
     (min_version, max_version) = (get_major_version(valid_versions[0]),
                                   get_major_version(valid_versions[-1]) + 1)
 
