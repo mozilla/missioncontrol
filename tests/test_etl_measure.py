@@ -33,6 +33,14 @@ def mock_raw_query(monkeypatch, mock_raw_query_data):
     monkeypatch.setattr(missioncontrol.etl.presto, 'raw_query', _raw_query)
 
 
+def test_update_measures_no_build_data(initial_data, mock_raw_query,
+                                       mock_raw_query_data):
+    (application, platform, channel) = ('firefox', 'linux', 'release')
+    with pytest.raises(Exception, match='No valid versions'):
+        from missioncontrol.etl.measure import update_measures
+        update_measures(application, platform, channel)
+
+
 @freeze_time('2017-07-01 13:00')
 def test_update_measures(prepopulated_builds,
                          mock_raw_query,
