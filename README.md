@@ -40,7 +40,7 @@ yarn start
 
 This should start up a webserver at http://localhost:5000 which you can connect to.
 
-To run Jest tests for React Components, execute:
+To run [Jest](https://jestjs.io/) tests for React Components, execute:
 
 ```bash
 yarn test
