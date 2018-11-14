@@ -16,5 +16,6 @@ module.exports = {
   use: [
     'neutrino-preset-mozilla-frontend-infra/react',
     ['@neutrinojs/env', Object.keys(envs)],
+    '@neutrinojs/jest'
   ]
 };
