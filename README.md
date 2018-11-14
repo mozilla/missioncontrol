@@ -40,7 +40,7 @@ yarn start
 
 This should start up a webserver at http://localhost:5000 which you can connect to.
 
-To run [Jest](https://jestjs.io/) tests for React Components, execute:
+To run the [Jest](https://jestjs.io/) tests for Mission Control's React components, execute:
 
 ```bash
 yarn test
