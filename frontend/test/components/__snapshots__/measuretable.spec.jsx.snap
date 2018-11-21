@@ -1,0 +1,1365 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`MeasureTable should render the measures table correctly 1`] = `
+ShallowWrapper {
+  Symbol(enzyme.__root__): [Circular],
+  Symbol(enzyme.__unrendered__): <MeasureTable
+    measures={
+      Array [
+        Object {
+          "lastUpdated": "2018-11-20T15:00:00Z",
+          "name": "content_crashes",
+          "versions": Array [
+            Object {
+              "adjustedCount": 2280274,
+              "adjustedRate": 1.75,
+              "count": 2280274,
+              "fieldDuration": 156000,
+              "rate": 1.75,
+              "version": "63.0.3",
+            },
+            Object {
+              "adjustedCount": 15773585,
+              "adjustedRate": 1.25,
+              "count": 15773585,
+              "fieldDuration": 1408500,
+              "rate": 1.25,
+              "version": "63.0.1",
+            },
+            Object {
+              "adjustedCount": 7133231,
+              "adjustedRate": 1.56,
+              "count": 7133231,
+              "fieldDuration": 954000,
+              "rate": 1.56,
+              "version": "63.0",
+            },
+            Object {
+              "adjustedCount": 26432214,
+              "adjustedRate": 1.25,
+              "count": 26432214,
+              "fieldDuration": 2518500,
+              "rate": 1.25,
+              "version": "63",
+            },
+            Object {
+              "adjustedCount": 17006151,
+              "adjustedRate": 1.13,
+              "count": 30932336,
+              "fieldDuration": 4148100,
+              "rate": 1.08,
+              "version": "62",
+            },
+            Object {
+              "adjustedCount": 39355015,
+              "adjustedRate": 1.32,
+              "count": 112777330,
+              "fieldDuration": 6100800,
+              "rate": 1.17,
+              "version": "61",
+            },
+            Object {
+              "adjustedCount": 14980209,
+              "adjustedRate": 1.19,
+              "count": 27772666,
+              "fieldDuration": 4160100,
+              "rate": 1.13,
+              "version": "60",
+            },
+          ],
+        },
+      ]
+    }
+    subviewState={Object {}}
+    title="Crash Measures"
+    versions={
+      Array [
+        "63.0.3",
+        "63.0.1",
+        "63.0",
+        "63",
+        "62",
+        "61",
+        "60",
+      ]
+    }
+  />,
+  Symbol(enzyme.__renderer__): Object {
+    "batchedUpdates": [Function],
+    "getNode": [Function],
+    "render": [Function],
+    "simulateError": [Function],
+    "simulateEvent": [Function],
+    "unmount": [Function],
+  },
+  Symbol(enzyme.__node__): Object {
+    "instance": null,
+    "key": undefined,
+    "nodeType": "host",
+    "props": Object {
+      "children": Array [
+        <h3>
+          Crash Measures
+        </h3>,
+        <table
+          className="table measure-table"
+        >
+          <thead>
+            <tr>
+              <th>
+                Measure
+              </th>
+              <th>
+                63.0.3
+              </th>
+              <th>
+                63.0.1
+              </th>
+              <th>
+                63.0
+              </th>
+              <th>
+                63
+              </th>
+              <th>
+                62
+              </th>
+              <th>
+                61
+              </th>
+              <th>
+                60
+              </th>
+              <th>
+                Last updated
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>
+                <a
+                  href="#/undefined/undefined/content_crashes"
+                >
+                  content_crashes
+                </a>
+              </td>
+              <td
+                title="Events when 63.0.3 was latest"
+              >
+                N/A
+              </td>
+              <td
+                title="Events when 63.0.1 was latest"
+              >
+                N/A
+              </td>
+              <td
+                title="Events when 63.0 was latest"
+              >
+                N/A
+              </td>
+              <td
+                title="All values from all point releases during selected time window when 63 was latest"
+              >
+                N/A
+              </td>
+              <td
+                title="All values from all point releases during selected time window when 62 was latest"
+              >
+                N/A
+              </td>
+              <td
+                title="All values from all point releases during selected time window when 61 was latest"
+              >
+                N/A
+              </td>
+              <td
+                title="All values from all point releases during selected time window when 60 was latest"
+              >
+                N/A
+              </td>
+              <td>
+                2 hours ago
+              </td>
+            </tr>
+          </tbody>
+        </table>,
+      ],
+    },
+    "ref": null,
+    "rendered": Array [
+      Object {
+        "instance": null,
+        "key": undefined,
+        "nodeType": "host",
+        "props": Object {
+          "children": "Crash Measures",
+        },
+        "ref": null,
+        "rendered": "Crash Measures",
+        "type": "h3",
+      },
+      Object {
+        "instance": null,
+        "key": undefined,
+        "nodeType": "host",
+        "props": Object {
+          "children": Array [
+            <thead>
+              <tr>
+                <th>
+                  Measure
+                </th>
+                <th>
+                  63.0.3
+                </th>
+                <th>
+                  63.0.1
+                </th>
+                <th>
+                  63.0
+                </th>
+                <th>
+                  63
+                </th>
+                <th>
+                  62
+                </th>
+                <th>
+                  61
+                </th>
+                <th>
+                  60
+                </th>
+                <th>
+                  Last updated
+                </th>
+              </tr>
+            </thead>,
+            <tbody>
+              <tr>
+                <td>
+                  <a
+                    href="#/undefined/undefined/content_crashes"
+                  >
+                    content_crashes
+                  </a>
+                </td>
+                <td
+                  title="Events when 63.0.3 was latest"
+                >
+                  N/A
+                </td>
+                <td
+                  title="Events when 63.0.1 was latest"
+                >
+                  N/A
+                </td>
+                <td
+                  title="Events when 63.0 was latest"
+                >
+                  N/A
+                </td>
+                <td
+                  title="All values from all point releases during selected time window when 63 was latest"
+                >
+                  N/A
+                </td>
+                <td
+                  title="All values from all point releases during selected time window when 62 was latest"
+                >
+                  N/A
+                </td>
+                <td
+                  title="All values from all point releases during selected time window when 61 was latest"
+                >
+                  N/A
+                </td>
+                <td
+                  title="All values from all point releases during selected time window when 60 was latest"
+                >
+                  N/A
+                </td>
+                <td>
+                  2 hours ago
+                </td>
+              </tr>
+            </tbody>,
+          ],
+          "className": "table measure-table",
+        },
+        "ref": null,
+        "rendered": Array [
+          Object {
+            "instance": null,
+            "key": undefined,
+            "nodeType": "host",
+            "props": Object {
+              "children": <tr>
+                <th>
+                  Measure
+                </th>
+                <th>
+                  63.0.3
+                </th>
+                <th>
+                  63.0.1
+                </th>
+                <th>
+                  63.0
+                </th>
+                <th>
+                  63
+                </th>
+                <th>
+                  62
+                </th>
+                <th>
+                  61
+                </th>
+                <th>
+                  60
+                </th>
+                <th>
+                  Last updated
+                </th>
+              </tr>,
+            },
+            "ref": null,
+            "rendered": Object {
+              "instance": null,
+              "key": undefined,
+              "nodeType": "host",
+              "props": Object {
+                "children": Array [
+                  <th>
+                    Measure
+                  </th>,
+                  Array [
+                    <th>
+                      63.0.3
+                    </th>,
+                    <th>
+                      63.0.1
+                    </th>,
+                    <th>
+                      63.0
+                    </th>,
+                    <th>
+                      63
+                    </th>,
+                    <th>
+                      62
+                    </th>,
+                    <th>
+                      61
+                    </th>,
+                    <th>
+                      60
+                    </th>,
+                  ],
+                  <th>
+                    Last updated
+                  </th>,
+                ],
+              },
+              "ref": null,
+              "rendered": Array [
+                Object {
+                  "instance": null,
+                  "key": undefined,
+                  "nodeType": "host",
+                  "props": Object {
+                    "children": "Measure",
+                  },
+                  "ref": null,
+                  "rendered": "Measure",
+                  "type": "th",
+                },
+                Object {
+                  "instance": null,
+                  "key": "th-63.0.3",
+                  "nodeType": "host",
+                  "props": Object {
+                    "children": "63.0.3",
+                  },
+                  "ref": null,
+                  "rendered": "63.0.3",
+                  "type": "th",
+                },
+                Object {
+                  "instance": null,
+                  "key": "th-63.0.1",
+                  "nodeType": "host",
+                  "props": Object {
+                    "children": "63.0.1",
+                  },
+                  "ref": null,
+                  "rendered": "63.0.1",
+                  "type": "th",
+                },
+                Object {
+                  "instance": null,
+                  "key": "th-63.0",
+                  "nodeType": "host",
+                  "props": Object {
+                    "children": "63.0",
+                  },
+                  "ref": null,
+                  "rendered": "63.0",
+                  "type": "th",
+                },
+                Object {
+                  "instance": null,
+                  "key": "th-63",
+                  "nodeType": "host",
+                  "props": Object {
+                    "children": "63",
+                  },
+                  "ref": null,
+                  "rendered": "63",
+                  "type": "th",
+                },
+                Object {
+                  "instance": null,
+                  "key": "th-62",
+                  "nodeType": "host",
+                  "props": Object {
+                    "children": "62",
+                  },
+                  "ref": null,
+                  "rendered": "62",
+                  "type": "th",
+                },
+                Object {
+                  "instance": null,
+                  "key": "th-61",
+                  "nodeType": "host",
+                  "props": Object {
+                    "children": "61",
+                  },
+                  "ref": null,
+                  "rendered": "61",
+                  "type": "th",
+                },
+                Object {
+                  "instance": null,
+                  "key": "th-60",
+                  "nodeType": "host",
+                  "props": Object {
+                    "children": "60",
+                  },
+                  "ref": null,
+                  "rendered": "60",
+                  "type": "th",
+                },
+                Object {
+                  "instance": null,
+                  "key": undefined,
+                  "nodeType": "host",
+                  "props": Object {
+                    "children": "Last updated",
+                  },
+                  "ref": null,
+                  "rendered": "Last updated",
+                  "type": "th",
+                },
+              ],
+              "type": "tr",
+            },
+            "type": "thead",
+          },
+          Object {
+            "instance": null,
+            "key": undefined,
+            "nodeType": "host",
+            "props": Object {
+              "children": Array [
+                <tr>
+                  <td>
+                    <a
+                      href="#/undefined/undefined/content_crashes"
+                    >
+                      content_crashes
+                    </a>
+                  </td>
+                  <td
+                    title="Events when 63.0.3 was latest"
+                  >
+                    N/A
+                  </td>
+                  <td
+                    title="Events when 63.0.1 was latest"
+                  >
+                    N/A
+                  </td>
+                  <td
+                    title="Events when 63.0 was latest"
+                  >
+                    N/A
+                  </td>
+                  <td
+                    title="All values from all point releases during selected time window when 63 was latest"
+                  >
+                    N/A
+                  </td>
+                  <td
+                    title="All values from all point releases during selected time window when 62 was latest"
+                  >
+                    N/A
+                  </td>
+                  <td
+                    title="All values from all point releases during selected time window when 61 was latest"
+                  >
+                    N/A
+                  </td>
+                  <td
+                    title="All values from all point releases during selected time window when 60 was latest"
+                  >
+                    N/A
+                  </td>
+                  <td>
+                    2 hours ago
+                  </td>
+                </tr>,
+              ],
+            },
+            "ref": null,
+            "rendered": Array [
+              Object {
+                "instance": null,
+                "key": "content_crashes",
+                "nodeType": "host",
+                "props": Object {
+                  "children": Array [
+                    <td>
+                      <a
+                        href="#/undefined/undefined/content_crashes"
+                      >
+                        content_crashes
+                      </a>
+                    </td>,
+                    Array [
+                      <td
+                        title="Events when 63.0.3 was latest"
+                      >
+                        N/A
+                      </td>,
+                      <td
+                        title="Events when 63.0.1 was latest"
+                      >
+                        N/A
+                      </td>,
+                      <td
+                        title="Events when 63.0 was latest"
+                      >
+                        N/A
+                      </td>,
+                      <td
+                        title="All values from all point releases during selected time window when 63 was latest"
+                      >
+                        N/A
+                      </td>,
+                      <td
+                        title="All values from all point releases during selected time window when 62 was latest"
+                      >
+                        N/A
+                      </td>,
+                      <td
+                        title="All values from all point releases during selected time window when 61 was latest"
+                      >
+                        N/A
+                      </td>,
+                      <td
+                        title="All values from all point releases during selected time window when 60 was latest"
+                      >
+                        N/A
+                      </td>,
+                    ],
+                    <td>
+                      2 hours ago
+                    </td>,
+                  ],
+                },
+                "ref": null,
+                "rendered": Array [
+                  Object {
+                    "instance": null,
+                    "key": undefined,
+                    "nodeType": "host",
+                    "props": Object {
+                      "children": <a
+                        href="#/undefined/undefined/content_crashes"
+                      >
+                        content_crashes
+                      </a>,
+                    },
+                    "ref": null,
+                    "rendered": Object {
+                      "instance": null,
+                      "key": undefined,
+                      "nodeType": "host",
+                      "props": Object {
+                        "children": "content_crashes",
+                        "href": "#/undefined/undefined/content_crashes",
+                      },
+                      "ref": null,
+                      "rendered": "content_crashes",
+                      "type": "a",
+                    },
+                    "type": "td",
+                  },
+                  Object {
+                    "instance": null,
+                    "key": "content_crashes-63.0.3",
+                    "nodeType": "host",
+                    "props": Object {
+                      "children": "N/A",
+                      "title": "Events when 63.0.3 was latest",
+                    },
+                    "ref": null,
+                    "rendered": "N/A",
+                    "type": "td",
+                  },
+                  Object {
+                    "instance": null,
+                    "key": "content_crashes-63.0.1",
+                    "nodeType": "host",
+                    "props": Object {
+                      "children": "N/A",
+                      "title": "Events when 63.0.1 was latest",
+                    },
+                    "ref": null,
+                    "rendered": "N/A",
+                    "type": "td",
+                  },
+                  Object {
+                    "instance": null,
+                    "key": "content_crashes-63.0",
+                    "nodeType": "host",
+                    "props": Object {
+                      "children": "N/A",
+                      "title": "Events when 63.0 was latest",
+                    },
+                    "ref": null,
+                    "rendered": "N/A",
+                    "type": "td",
+                  },
+                  Object {
+                    "instance": null,
+                    "key": "content_crashes-63",
+                    "nodeType": "host",
+                    "props": Object {
+                      "children": "N/A",
+                      "title": "All values from all point releases during selected time window when 63 was latest",
+                    },
+                    "ref": null,
+                    "rendered": "N/A",
+                    "type": "td",
+                  },
+                  Object {
+                    "instance": null,
+                    "key": "content_crashes-62",
+                    "nodeType": "host",
+                    "props": Object {
+                      "children": "N/A",
+                      "title": "All values from all point releases during selected time window when 62 was latest",
+                    },
+                    "ref": null,
+                    "rendered": "N/A",
+                    "type": "td",
+                  },
+                  Object {
+                    "instance": null,
+                    "key": "content_crashes-61",
+                    "nodeType": "host",
+                    "props": Object {
+                      "children": "N/A",
+                      "title": "All values from all point releases during selected time window when 61 was latest",
+                    },
+                    "ref": null,
+                    "rendered": "N/A",
+                    "type": "td",
+                  },
+                  Object {
+                    "instance": null,
+                    "key": "content_crashes-60",
+                    "nodeType": "host",
+                    "props": Object {
+                      "children": "N/A",
+                      "title": "All values from all point releases during selected time window when 60 was latest",
+                    },
+                    "ref": null,
+                    "rendered": "N/A",
+                    "type": "td",
+                  },
+                  Object {
+                    "instance": null,
+                    "key": undefined,
+                    "nodeType": "host",
+                    "props": Object {
+                      "children": "2 hours ago",
+                    },
+                    "ref": null,
+                    "rendered": "2 hours ago",
+                    "type": "td",
+                  },
+                ],
+                "type": "tr",
+              },
+            ],
+            "type": "tbody",
+          },
+        ],
+        "type": "table",
+      },
+    ],
+    "type": "div",
+  },
+  Symbol(enzyme.__nodes__): Array [
+    Object {
+      "instance": null,
+      "key": undefined,
+      "nodeType": "host",
+      "props": Object {
+        "children": Array [
+          <h3>
+            Crash Measures
+          </h3>,
+          <table
+            className="table measure-table"
+          >
+            <thead>
+              <tr>
+                <th>
+                  Measure
+                </th>
+                <th>
+                  63.0.3
+                </th>
+                <th>
+                  63.0.1
+                </th>
+                <th>
+                  63.0
+                </th>
+                <th>
+                  63
+                </th>
+                <th>
+                  62
+                </th>
+                <th>
+                  61
+                </th>
+                <th>
+                  60
+                </th>
+                <th>
+                  Last updated
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>
+                  <a
+                    href="#/undefined/undefined/content_crashes"
+                  >
+                    content_crashes
+                  </a>
+                </td>
+                <td
+                  title="Events when 63.0.3 was latest"
+                >
+                  N/A
+                </td>
+                <td
+                  title="Events when 63.0.1 was latest"
+                >
+                  N/A
+                </td>
+                <td
+                  title="Events when 63.0 was latest"
+                >
+                  N/A
+                </td>
+                <td
+                  title="All values from all point releases during selected time window when 63 was latest"
+                >
+                  N/A
+                </td>
+                <td
+                  title="All values from all point releases during selected time window when 62 was latest"
+                >
+                  N/A
+                </td>
+                <td
+                  title="All values from all point releases during selected time window when 61 was latest"
+                >
+                  N/A
+                </td>
+                <td
+                  title="All values from all point releases during selected time window when 60 was latest"
+                >
+                  N/A
+                </td>
+                <td>
+                  2 hours ago
+                </td>
+              </tr>
+            </tbody>
+          </table>,
+        ],
+      },
+      "ref": null,
+      "rendered": Array [
+        Object {
+          "instance": null,
+          "key": undefined,
+          "nodeType": "host",
+          "props": Object {
+            "children": "Crash Measures",
+          },
+          "ref": null,
+          "rendered": "Crash Measures",
+          "type": "h3",
+        },
+        Object {
+          "instance": null,
+          "key": undefined,
+          "nodeType": "host",
+          "props": Object {
+            "children": Array [
+              <thead>
+                <tr>
+                  <th>
+                    Measure
+                  </th>
+                  <th>
+                    63.0.3
+                  </th>
+                  <th>
+                    63.0.1
+                  </th>
+                  <th>
+                    63.0
+                  </th>
+                  <th>
+                    63
+                  </th>
+                  <th>
+                    62
+                  </th>
+                  <th>
+                    61
+                  </th>
+                  <th>
+                    60
+                  </th>
+                  <th>
+                    Last updated
+                  </th>
+                </tr>
+              </thead>,
+              <tbody>
+                <tr>
+                  <td>
+                    <a
+                      href="#/undefined/undefined/content_crashes"
+                    >
+                      content_crashes
+                    </a>
+                  </td>
+                  <td
+                    title="Events when 63.0.3 was latest"
+                  >
+                    N/A
+                  </td>
+                  <td
+                    title="Events when 63.0.1 was latest"
+                  >
+                    N/A
+                  </td>
+                  <td
+                    title="Events when 63.0 was latest"
+                  >
+                    N/A
+                  </td>
+                  <td
+                    title="All values from all point releases during selected time window when 63 was latest"
+                  >
+                    N/A
+                  </td>
+                  <td
+                    title="All values from all point releases during selected time window when 62 was latest"
+                  >
+                    N/A
+                  </td>
+                  <td
+                    title="All values from all point releases during selected time window when 61 was latest"
+                  >
+                    N/A
+                  </td>
+                  <td
+                    title="All values from all point releases during selected time window when 60 was latest"
+                  >
+                    N/A
+                  </td>
+                  <td>
+                    2 hours ago
+                  </td>
+                </tr>
+              </tbody>,
+            ],
+            "className": "table measure-table",
+          },
+          "ref": null,
+          "rendered": Array [
+            Object {
+              "instance": null,
+              "key": undefined,
+              "nodeType": "host",
+              "props": Object {
+                "children": <tr>
+                  <th>
+                    Measure
+                  </th>
+                  <th>
+                    63.0.3
+                  </th>
+                  <th>
+                    63.0.1
+                  </th>
+                  <th>
+                    63.0
+                  </th>
+                  <th>
+                    63
+                  </th>
+                  <th>
+                    62
+                  </th>
+                  <th>
+                    61
+                  </th>
+                  <th>
+                    60
+                  </th>
+                  <th>
+                    Last updated
+                  </th>
+                </tr>,
+              },
+              "ref": null,
+              "rendered": Object {
+                "instance": null,
+                "key": undefined,
+                "nodeType": "host",
+                "props": Object {
+                  "children": Array [
+                    <th>
+                      Measure
+                    </th>,
+                    Array [
+                      <th>
+                        63.0.3
+                      </th>,
+                      <th>
+                        63.0.1
+                      </th>,
+                      <th>
+                        63.0
+                      </th>,
+                      <th>
+                        63
+                      </th>,
+                      <th>
+                        62
+                      </th>,
+                      <th>
+                        61
+                      </th>,
+                      <th>
+                        60
+                      </th>,
+                    ],
+                    <th>
+                      Last updated
+                    </th>,
+                  ],
+                },
+                "ref": null,
+                "rendered": Array [
+                  Object {
+                    "instance": null,
+                    "key": undefined,
+                    "nodeType": "host",
+                    "props": Object {
+                      "children": "Measure",
+                    },
+                    "ref": null,
+                    "rendered": "Measure",
+                    "type": "th",
+                  },
+                  Object {
+                    "instance": null,
+                    "key": "th-63.0.3",
+                    "nodeType": "host",
+                    "props": Object {
+                      "children": "63.0.3",
+                    },
+                    "ref": null,
+                    "rendered": "63.0.3",
+                    "type": "th",
+                  },
+                  Object {
+                    "instance": null,
+                    "key": "th-63.0.1",
+                    "nodeType": "host",
+                    "props": Object {
+                      "children": "63.0.1",
+                    },
+                    "ref": null,
+                    "rendered": "63.0.1",
+                    "type": "th",
+                  },
+                  Object {
+                    "instance": null,
+                    "key": "th-63.0",
+                    "nodeType": "host",
+                    "props": Object {
+                      "children": "63.0",
+                    },
+                    "ref": null,
+                    "rendered": "63.0",
+                    "type": "th",
+                  },
+                  Object {
+                    "instance": null,
+                    "key": "th-63",
+                    "nodeType": "host",
+                    "props": Object {
+                      "children": "63",
+                    },
+                    "ref": null,
+                    "rendered": "63",
+                    "type": "th",
+                  },
+                  Object {
+                    "instance": null,
+                    "key": "th-62",
+                    "nodeType": "host",
+                    "props": Object {
+                      "children": "62",
+                    },
+                    "ref": null,
+                    "rendered": "62",
+                    "type": "th",
+                  },
+                  Object {
+                    "instance": null,
+                    "key": "th-61",
+                    "nodeType": "host",
+                    "props": Object {
+                      "children": "61",
+                    },
+                    "ref": null,
+                    "rendered": "61",
+                    "type": "th",
+                  },
+                  Object {
+                    "instance": null,
+                    "key": "th-60",
+                    "nodeType": "host",
+                    "props": Object {
+                      "children": "60",
+                    },
+                    "ref": null,
+                    "rendered": "60",
+                    "type": "th",
+                  },
+                  Object {
+                    "instance": null,
+                    "key": undefined,
+                    "nodeType": "host",
+                    "props": Object {
+                      "children": "Last updated",
+                    },
+                    "ref": null,
+                    "rendered": "Last updated",
+                    "type": "th",
+                  },
+                ],
+                "type": "tr",
+              },
+              "type": "thead",
+            },
+            Object {
+              "instance": null,
+              "key": undefined,
+              "nodeType": "host",
+              "props": Object {
+                "children": Array [
+                  <tr>
+                    <td>
+                      <a
+                        href="#/undefined/undefined/content_crashes"
+                      >
+                        content_crashes
+                      </a>
+                    </td>
+                    <td
+                      title="Events when 63.0.3 was latest"
+                    >
+                      N/A
+                    </td>
+                    <td
+                      title="Events when 63.0.1 was latest"
+                    >
+                      N/A
+                    </td>
+                    <td
+                      title="Events when 63.0 was latest"
+                    >
+                      N/A
+                    </td>
+                    <td
+                      title="All values from all point releases during selected time window when 63 was latest"
+                    >
+                      N/A
+                    </td>
+                    <td
+                      title="All values from all point releases during selected time window when 62 was latest"
+                    >
+                      N/A
+                    </td>
+                    <td
+                      title="All values from all point releases during selected time window when 61 was latest"
+                    >
+                      N/A
+                    </td>
+                    <td
+                      title="All values from all point releases during selected time window when 60 was latest"
+                    >
+                      N/A
+                    </td>
+                    <td>
+                      2 hours ago
+                    </td>
+                  </tr>,
+                ],
+              },
+              "ref": null,
+              "rendered": Array [
+                Object {
+                  "instance": null,
+                  "key": "content_crashes",
+                  "nodeType": "host",
+                  "props": Object {
+                    "children": Array [
+                      <td>
+                        <a
+                          href="#/undefined/undefined/content_crashes"
+                        >
+                          content_crashes
+                        </a>
+                      </td>,
+                      Array [
+                        <td
+                          title="Events when 63.0.3 was latest"
+                        >
+                          N/A
+                        </td>,
+                        <td
+                          title="Events when 63.0.1 was latest"
+                        >
+                          N/A
+                        </td>,
+                        <td
+                          title="Events when 63.0 was latest"
+                        >
+                          N/A
+                        </td>,
+                        <td
+                          title="All values from all point releases during selected time window when 63 was latest"
+                        >
+                          N/A
+                        </td>,
+                        <td
+                          title="All values from all point releases during selected time window when 62 was latest"
+                        >
+                          N/A
+                        </td>,
+                        <td
+                          title="All values from all point releases during selected time window when 61 was latest"
+                        >
+                          N/A
+                        </td>,
+                        <td
+                          title="All values from all point releases during selected time window when 60 was latest"
+                        >
+                          N/A
+                        </td>,
+                      ],
+                      <td>
+                        2 hours ago
+                      </td>,
+                    ],
+                  },
+                  "ref": null,
+                  "rendered": Array [
+                    Object {
+                      "instance": null,
+                      "key": undefined,
+                      "nodeType": "host",
+                      "props": Object {
+                        "children": <a
+                          href="#/undefined/undefined/content_crashes"
+                        >
+                          content_crashes
+                        </a>,
+                      },
+                      "ref": null,
+                      "rendered": Object {
+                        "instance": null,
+                        "key": undefined,
+                        "nodeType": "host",
+                        "props": Object {
+                          "children": "content_crashes",
+                          "href": "#/undefined/undefined/content_crashes",
+                        },
+                        "ref": null,
+                        "rendered": "content_crashes",
+                        "type": "a",
+                      },
+                      "type": "td",
+                    },
+                    Object {
+                      "instance": null,
+                      "key": "content_crashes-63.0.3",
+                      "nodeType": "host",
+                      "props": Object {
+                        "children": "N/A",
+                        "title": "Events when 63.0.3 was latest",
+                      },
+                      "ref": null,
+                      "rendered": "N/A",
+                      "type": "td",
+                    },
+                    Object {
+                      "instance": null,
+                      "key": "content_crashes-63.0.1",
+                      "nodeType": "host",
+                      "props": Object {
+                        "children": "N/A",
+                        "title": "Events when 63.0.1 was latest",
+                      },
+                      "ref": null,
+                      "rendered": "N/A",
+                      "type": "td",
+                    },
+                    Object {
+                      "instance": null,
+                      "key": "content_crashes-63.0",
+                      "nodeType": "host",
+                      "props": Object {
+                        "children": "N/A",
+                        "title": "Events when 63.0 was latest",
+                      },
+                      "ref": null,
+                      "rendered": "N/A",
+                      "type": "td",
+                    },
+                    Object {
+                      "instance": null,
+                      "key": "content_crashes-63",
+                      "nodeType": "host",
+                      "props": Object {
+                        "children": "N/A",
+                        "title": "All values from all point releases during selected time window when 63 was latest",
+                      },
+                      "ref": null,
+                      "rendered": "N/A",
+                      "type": "td",
+                    },
+                    Object {
+                      "instance": null,
+                      "key": "content_crashes-62",
+                      "nodeType": "host",
+                      "props": Object {
+                        "children": "N/A",
+                        "title": "All values from all point releases during selected time window when 62 was latest",
+                      },
+                      "ref": null,
+                      "rendered": "N/A",
+                      "type": "td",
+                    },
+                    Object {
+                      "instance": null,
+                      "key": "content_crashes-61",
+                      "nodeType": "host",
+                      "props": Object {
+                        "children": "N/A",
+                        "title": "All values from all point releases during selected time window when 61 was latest",
+                      },
+                      "ref": null,
+                      "rendered": "N/A",
+                      "type": "td",
+                    },
+                    Object {
+                      "instance": null,
+                      "key": "content_crashes-60",
+                      "nodeType": "host",
+                      "props": Object {
+                        "children": "N/A",
+                        "title": "All values from all point releases during selected time window when 60 was latest",
+                      },
+                      "ref": null,
+                      "rendered": "N/A",
+                      "type": "td",
+                    },
+                    Object {
+                      "instance": null,
+                      "key": undefined,
+                      "nodeType": "host",
+                      "props": Object {
+                        "children": "2 hours ago",
+                      },
+                      "ref": null,
+                      "rendered": "2 hours ago",
+                      "type": "td",
+                    },
+                  ],
+                  "type": "tr",
+                },
+              ],
+              "type": "tbody",
+            },
+          ],
+          "type": "table",
+        },
+      ],
+      "type": "div",
+    },
+  ],
+  Symbol(enzyme.__options__): Object {
+    "adapter": ReactSixteenAdapter {
+      "options": Object {
+        "enableComponentDidUpdateOnSetState": true,
+        "lifecycles": Object {
+          "componentDidUpdate": Object {
+            "onSetState": true,
+          },
+          "getDerivedStateFromProps": true,
+          "getSnapshotBeforeUpdate": true,
+          "setState": Object {
+            "skipsComponentDidUpdateOnNullish": true,
+          },
+        },
+      },
+    },
+  },
+}
+`;
