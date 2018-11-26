@@ -180,7 +180,7 @@ ShallowWrapper {
                 N/A
               </td>
               <td>
-                2 hours ago
+                a few seconds ago
               </td>
             </tr>
           </tbody>
@@ -282,7 +282,7 @@ ShallowWrapper {
                   N/A
                 </td>
                 <td>
-                  2 hours ago
+                  a few seconds ago
                 </td>
               </tr>
             </tbody>,
@@ -520,7 +520,7 @@ ShallowWrapper {
                     N/A
                   </td>
                   <td>
-                    2 hours ago
+                    a few seconds ago
                   </td>
                 </tr>,
               ],
@@ -578,7 +578,7 @@ ShallowWrapper {
                       </td>,
                     ],
                     <td>
-                      2 hours ago
+                      a few seconds ago
                     </td>,
                   ],
                 },
@@ -699,10 +699,10 @@ ShallowWrapper {
                     "key": undefined,
                     "nodeType": "host",
                     "props": Object {
-                      "children": "2 hours ago",
+                      "children": "a few seconds ago",
                     },
                     "ref": null,
-                    "rendered": "2 hours ago",
+                    "rendered": "a few seconds ago",
                     "type": "td",
                   },
                 ],
@@ -806,7 +806,7 @@ ShallowWrapper {
                   N/A
                 </td>
                 <td>
-                  2 hours ago
+                  a few seconds ago
                 </td>
               </tr>
             </tbody>
@@ -908,7 +908,7 @@ ShallowWrapper {
                     N/A
                   </td>
                   <td>
-                    2 hours ago
+                    a few seconds ago
                   </td>
                 </tr>
               </tbody>,
@@ -1146,7 +1146,7 @@ ShallowWrapper {
                       N/A
                     </td>
                     <td>
-                      2 hours ago
+                      a few seconds ago
                     </td>
                   </tr>,
                 ],
@@ -1204,7 +1204,7 @@ ShallowWrapper {
                         </td>,
                       ],
                       <td>
-                        2 hours ago
+                        a few seconds ago
                       </td>,
                     ],
                   },
@@ -1325,10 +1325,10 @@ ShallowWrapper {
                       "key": undefined,
                       "nodeType": "host",
                       "props": Object {
-                        "children": "2 hours ago",
+                        "children": "a few seconds ago",
                       },
                       "ref": null,
-                      "rendered": "2 hours ago",
+                      "rendered": "a few seconds ago",
                       "type": "td",
                     },
                   ],

@@ -2,6 +2,10 @@ import { shallow, configure } from 'enzyme';
 import Adapter from 'enzyme-adapter-react-16';
 import MeasureTable from '../../ui/measuretable';
 
+const referenceDate = new Date('2018-11-20T15:00:00Z');
+
+Date.now = jest.fn(() => referenceDate.getTime());
+
 configure({ adapter: new Adapter() });
 describe('MeasureTable', () => {
   it('should render the measures table correctly', () => {
