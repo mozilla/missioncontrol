@@ -163,18 +163,22 @@ export class SubViewComponent extends React.Component {
                   </p>
                 </center>
               </div>
-              <MeasureTable
-                title="Crash Measures"
-                measures={this.state.measures.crashMeasures}
-                versions={this.props.versions}
-                subviewState={this.state}
-              />
-              <MeasureTable
-                title="Other Measures"
-                measures={this.state.measures.otherMeasures}
-                versions={this.props.versions}
-                subviewState={this.state}
-              />
+              {this.state.measures.crashMeasures.length > 0 && (
+                <MeasureTable
+                  title="Crash Measures"
+                  measures={this.state.measures.crashMeasures}
+                  versions={this.props.versions}
+                  subviewState={this.state}
+                />
+              )}
+              {this.state.measures.otherMeasures.length > 0 && (
+                <MeasureTable
+                  title="Other Measures"
+                  measures={this.state.measures.otherMeasures}
+                  versions={this.props.versions}
+                  subviewState={this.state}
+                />
+              )}
               {this.props.latestReleaseAge &&
                 this.props.latestReleaseAge < 86400 && (
                   <p className="text-danger">
