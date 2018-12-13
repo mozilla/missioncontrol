@@ -192,9 +192,9 @@ chardet==3.0.4 \
 idna==2.7 \
     --hash=sha256:156a6814fb5ac1fc6850fb002e0852d56c0c8d2531923a51032d1b70760e186e \
     --hash=sha256:684a38a6f903c1d71d6d5fac066b58d7768af4de2b832e426ec79c30daa94a16
-urllib3==1.22 \
-    --hash=sha256:06330f386d6e4b195fbfc736b297f58c5a892e4440e54d294d7004e3a9bbea1b \
-    --hash=sha256:cc44da8e1145637334317feebd728bd869a35285b93cbb4cca2577da7e62db4f
+urllib3==1.24.1 \
+    --hash=sha256:61bf29cada3fc2fbefad4fdf059ea4bd1b4a86d2b6d15e1c7c0b582b9752fe39 \
+    --hash=sha256:de9529817c93f27c8ccbfead6985011db27bd0ddfcdb2d86f3f663385c6a9c22 
 
 celery==4.1.0 \
     --hash=sha256:81a67f0d53a688ec2bc8557bd5d6d7218f925a6f2e6df80e01560de9e28997ec \
