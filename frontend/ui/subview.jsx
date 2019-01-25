@@ -47,7 +47,7 @@ const getOptionalTimeWindow = props => {
   const urlParams = new URLSearchParams(props.location.search);
 
   return {
-    timeWindow: urlParams.get('window') ? urlParams.get('window') : 'adjusted',
+    timeWindow: urlParams.get('window') || 'adjusted',
   };
 };
 
@@ -55,7 +55,7 @@ const getOptionalCountType = props => {
   const urlParams = new URLSearchParams(props.location.search);
 
   return {
-    countType: urlParams.get('type') ? urlParams.get('type') : 'rate',
+    countType: urlParams.get('type') || 'rate',
   };
 };
 
