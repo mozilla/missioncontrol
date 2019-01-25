@@ -43,6 +43,22 @@ const mapStateToProps = (state, ownProps) => {
   return { measures: [] };
 };
 
+const getOptionalTimeWindow = props => {
+  const urlParams = new URLSearchParams(props.location.search);
+
+  return {
+    timeWindow: urlParams.get('window') || 'adjusted',
+  };
+};
+
+const getOptionalCountType = props => {
+  const urlParams = new URLSearchParams(props.location.search);
+
+  return {
+    countType: urlParams.get('type') || 'rate',
+  };
+};
+
 export class SubViewComponent extends React.Component {
   constructor(props) {
     super(props);
@@ -50,8 +66,8 @@ export class SubViewComponent extends React.Component {
       channel: props.match.params.channel,
       platform: props.match.params.platform,
       isLoading: true,
-      timeWindow: 'adjusted',
-      countType: 'rate',
+      ...getOptionalTimeWindow(props),
+      ...getOptionalCountType(props),
       measures: {},
     };
     this.ontimeWindowBtnClick = this.ontimeWindowBtnClick.bind(this);
@@ -75,10 +91,14 @@ export class SubViewComponent extends React.Component {
 
   ontimeWindowBtnClick(selected) {
     this.setState({ timeWindow: selected });
+    this.props.history.push(`?window=${selected}&type=${this.state.countType}`);
   }
 
   onCountTypeBtnClick(selected) {
     this.setState({ countType: selected });
+    this.props.history.push(
+      `?window=${this.state.timeWindow}&type=${selected}`
+    );
   }
 
   splitByOrder(measures) {

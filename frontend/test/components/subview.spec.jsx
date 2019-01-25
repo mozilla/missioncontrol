@@ -1,7 +1,10 @@
 import { configure, mount } from 'enzyme';
 import Adapter from 'enzyme-adapter-react-16';
 import { BrowserRouter as Router } from 'react-router-dom';
+import { URLSearchParams } from 'url';
 import { SubViewComponent } from '../../ui/subview';
+
+global.URLSearchParams = URLSearchParams;
 
 configure({ adapter: new Adapter() });
 
