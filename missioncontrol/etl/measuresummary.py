@@ -30,7 +30,7 @@ def _get_data_interval_for_version(builds, measure, version, start, end):
             timestamp__range=(start, end)
         ).values_list('value', 'usage_hours')
     )
-    return sorted([(value/(usage_hours*1000.0), value, usage_hours) for
+    return sorted([(value/(usage_hours/1000.0), value, usage_hours) for
                    (value, usage_hours) in value_usage_hours])
 
 
