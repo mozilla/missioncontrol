@@ -40,7 +40,7 @@ def _generate_fake_data(application_name, platform_name, channel_name,
     return latest_timestamp
 
 
-@pytest.mark.parametrize('num_datapoints', [2, 1, 0, 200])
+@pytest.mark.parametrize('num_datapoints', [2, 1, 0, 1000])
 def test_get_measure_summary(prepopulated_version_cache, base_datapoint_time,
                              initial_data, num_datapoints):
     '''
@@ -85,25 +85,25 @@ def test_get_measure_summary(prepopulated_version_cache, base_datapoint_time,
                 ],
                 "lastUpdated": latest_timestamp
             }
-    else:  # num_datapoints == 100
+    else:  # num_datapoints == 1000
         assert get_measure_summary(
             application_name, platform_name, channel_name, measure_name) == {
                 "versions": [
                     {
                         "version": "55.0",
-                        "adjustedCount": 10305,
-                        "count": 10305,
-                        "adjustedRate": 520.23,
-                        "rate": 520.23,
-                        "fieldDuration": 716400
+                        "adjustedCount": 252311,
+                        "count": 252311,
+                        "adjustedRate": 504.42,
+                        "rate": 504.42,
+                        "fieldDuration": 3596400
                     },
                     {
                         "version": "55",
-                        "adjustedCount": 10305,
-                        "adjustedRate": 520.23,
-                        "count": 10305,
-                        "rate": 520.23,
-                        "fieldDuration": 716400
+                        "adjustedCount": 252311,
+                        "adjustedRate": 504.42,
+                        "count": 252311,
+                        "rate": 504.42,
+                        "fieldDuration": 3596400
                     }
                 ],
                 "lastUpdated": latest_timestamp

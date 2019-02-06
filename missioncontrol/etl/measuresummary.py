@@ -137,8 +137,8 @@ def get_measure_summary(application_name, platform_name, channel_name, measure_n
                     version_summary[count_id] = raw_count
 
                     # to prevent outliers from impacting our rate calculation, we'll use
-                    # the 99th percentile of captured values
-                    end = math.ceil(len(values) * 0.99)
+                    # the 99.9th percentile of captured values for calculating the rate
+                    end = math.ceil(len(values) * 0.999)
                     rate_values = values[:end]
                     version_summary[rate_id] = round(
                         sum([v[1] for v in rate_values]) /
