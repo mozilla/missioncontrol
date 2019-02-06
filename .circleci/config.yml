@@ -52,7 +52,7 @@ jobs:
           name: Test Code
           command: |
             cp .env-dist .env
-            docker-compose run -e DEVELOPMENT test-ci
+            docker-compose run -e DEVELOPMENT web pytest tests/ missioncontrol/
 
   deploy:
     docker:

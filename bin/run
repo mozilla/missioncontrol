@@ -57,13 +57,6 @@ case $1 in
       events -l info -c django_celery_monitor.camera.Camera --frequency=2.0 \
       --pidfile ${MONITOR_PIDFILE}
     ;;
-  test)
-    pytest tests/ missioncontrol/
-    if [[ ! -z ${CI+check} ]]; then
-      # submit coverage
-      bash <(curl -s https://codecov.io/bash) -s /tmp
-    fi
-    ;;
   *)
     exec "$@"
     ;;
