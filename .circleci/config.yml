@@ -52,7 +52,7 @@ jobs:
           name: Test Code
           command: |
             cp .env-dist .env
-            docker-compose run -e DEVELOPMENT test-ci
+            docker-compose -f docker-compose-ci.yml run -e DEVELOPMENT test-ci
 
   deploy:
     docker:
