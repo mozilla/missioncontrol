@@ -16,6 +16,7 @@ services:
       command: "true"
 
   web:
+      image: app:build
       extends:
         service: app
       ports:
