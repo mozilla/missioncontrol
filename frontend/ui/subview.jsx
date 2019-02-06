@@ -47,7 +47,7 @@ const getOptionalTimeWindow = props => {
   const urlParams = new URLSearchParams(props.location.search);
 
   return {
-    timeWindow: urlParams.get('window') || 'adjusted',
+    timeWindow: urlParams.get('window') || 'all',
   };
 };
 
@@ -140,7 +140,7 @@ export class SubViewComponent extends React.Component {
               <div className="summary-options container center">
                 <center>
                   <ButtonGroup className="center summary-buttons">
-                    {['adjusted', 'all'].map(timeWindow => (
+                    {['all', 'adjusted'].map(timeWindow => (
                       <Button
                         key={`btn-${timeWindow}`}
                         onClick={() => this.ontimeWindowBtnClick(timeWindow)}
