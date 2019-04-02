@@ -1,4 +1,4 @@
-FROM python:3.6-slim
+FROM python:3.7-slim
 ENV PYTHONDONTWRITEBYTECODE 1
 
 EXPOSE 8000
