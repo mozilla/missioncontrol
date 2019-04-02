@@ -3,7 +3,7 @@ import time
 
 import pytest
 from django.core.cache import cache
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from freezegun import freeze_time
 
 from missioncontrol.etl.measuresummary import (get_measure_summary,
@@ -24,7 +24,7 @@ def test_get_channel_platform_summary_no_data(client, monkeypatch,
         for channel_name in Channel.objects.values_list('name', flat=True):
             for platform_name in Platform.objects.values_list('name', flat=True):
                 expected_measures = Measure.objects.filter(
-                    channels=Channel.objects.filter(name=channel_name),
+                    channels__name=channel_name,
                     application__name=application_name,
                     platform__name=platform_name)
                 if expected_measures.exists():
@@ -64,7 +64,7 @@ def test_measure_summary_incorporated(client, monkeypatch, prepopulated_version_
                 'latestVersionFieldDuration': 600,
                 'latestVersionSeen': '55.0.1',
                 'expectedMeasures': list(Measure.objects.filter(
-                    channels=Channel.objects.filter(name='release'),
+                    channels__name='release',
                     application__name='firefox',
                     platform__name='linux').values_list('name', flat=True)),
                 'measures': [

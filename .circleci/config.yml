@@ -27,6 +27,7 @@ jobs:
             - .env-dist
             - Dockerfile
             - docker-compose.yml
+            - docker-compose-ci.yml
   test:
     machine:
       enable: true
@@ -35,7 +36,7 @@ jobs:
     steps:
       - checkout
       - restore_cache:
-          key: v1-{{.Branch}}
+          key: v1-{{ .Branch }}
       - run:
           name: Restore Docker image cache
           command: docker load -i /tmp/docker.tar

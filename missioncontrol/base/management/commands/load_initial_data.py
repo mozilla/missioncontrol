@@ -42,7 +42,7 @@ class Command(BaseCommand):
                 measure, _ = Measure.objects.update_or_create(
                     name=measure_name, application=FIREFOX_APPLICATION,
                     platform=platform, defaults={'enabled': True})
-                measure.channels = Channel.objects.all()
+                measure.channels.set(Channel.objects.all())
                 measure.save()
 
         # gpu crashes is windows only
@@ -52,7 +52,7 @@ class Command(BaseCommand):
             application=FIREFOX_APPLICATION,
             platform=Platform.objects.get(name='windows'),
             defaults={'enabled': True})
-        gpu_crashes_measure.channels = Channel.objects.all()
+        gpu_crashes_measure.channels.set(Channel.objects.all())
         gpu_crashes_measure.save()
 
         # most desktop quality measures are on beta/nightly only
@@ -63,7 +63,7 @@ class Command(BaseCommand):
                 measure, _ = Measure.objects.update_or_create(
                     name=measure_name, application=FIREFOX_APPLICATION,
                     platform=platform, defaults={'enabled': True})
-                measure.channels = development_channels
+                measure.channels.set(development_channels)
                 measure.save()
 
         # create a set of non-platform-specific crash measures for experiments
@@ -77,5 +77,5 @@ class Command(BaseCommand):
             platform=Platform.objects.get(name='android'),
             defaults={'enabled': True})
         # there is no android/fennec on esr
-        measure.channels = Channel.objects.exclude(name__in=['esr'])
+        measure.channels.set(Channel.objects.exclude(name__in=['esr']))
         measure.save()
