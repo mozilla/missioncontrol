@@ -1,14 +1,6 @@
 version: "2"
 services:
 
-  app:
-      build: .
-      volumes:
-        - .:/app
-      env_file:
-        - .env
-      command: "true"
-
   db:
     image: postgres:9.5-alpine
     logging:

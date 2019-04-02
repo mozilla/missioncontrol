@@ -38,6 +38,16 @@ CORS_ORIGIN_ALLOW_ALL = True
 # Application definition
 
 INSTALLED_APPS = [
+    'django.contrib.auth',
+    'django.contrib.contenttypes',
+
+    'whitenoise.runserver_nostatic',
+    'django.contrib.staticfiles',
+
+    'django.contrib.admin',
+    'django.contrib.sessions',
+    'django.contrib.messages',
+
     # Project specific apps
     'missioncontrol.base',
     'missioncontrol.etl',
@@ -48,36 +58,25 @@ INSTALLED_APPS = [
     'django_celery_monitor',
     'django_celery_results',
 
-    # Django apps
-    'django.contrib.admin',
-    'django.contrib.auth',
-    'django.contrib.contenttypes',
-    'django.contrib.sessions',
-    'django.contrib.messages',
-    # Disable Django's own staticfiles handling in favour of WhiteNoise, for
-    # greater consistency between gunicorn and `./manage.py runserver`.
-    'whitenoise.runserver_nostatic',
-    'django.contrib.staticfiles',
 ]
 
 for app in config('EXTRA_APPS', default='', cast=Csv()):
     INSTALLED_APPS.append(app)
 
 
-MIDDLEWARE_CLASSES = (
+MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
-    'missioncontrol.middleware.CustomWhiteNoise',
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
+    'django.contrib.auth.middleware.AuthenticationMiddleware',
     'corsheaders.middleware.CorsMiddleware',
     'django.middleware.common.CommonMiddleware',
-    'django.contrib.auth.middleware.AuthenticationMiddleware',
     'session_csrf.CsrfMiddleware',
-    'django.contrib.auth.middleware.SessionAuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'csp.middleware.CSPMiddleware',
     'dockerflow.django.middleware.DockerflowMiddleware',
-)
+]
 
 ROOT_URLCONF = 'missioncontrol.urls'
 
@@ -118,6 +117,9 @@ USE_TZ = config('USE_TZ', default=True, cast=bool)
 
 # Files in this directory will be served by WhiteNoise at the site root.
 WHITENOISE_ROOT = os.path.join(ROOT, 'dist')
+
+# serve index.html as /
+WHITENOISE_INDEX_FILE = True
 
 STATIC_ROOT = config('STATIC_ROOT', default=os.path.join(BASE_DIR, 'static'))
 STATIC_URL = config('STATIC_URL', '/static/')
