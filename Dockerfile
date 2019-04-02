@@ -17,7 +17,7 @@ RUN mkdir -p \
         /usr/share/man/man8 && \
     apt-get update && \
     apt-get install -y --no-install-recommends build-essential libpq-dev \
-      mime-support postgresql-client gettext curl && \
+      mime-support postgresql-client gettext curl netcat && \
       apt-get autoremove -y && \
       apt-get clean && \
       rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*

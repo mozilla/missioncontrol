@@ -16,11 +16,9 @@ usage() {
 wait_for() {
   tries=0
   echo "Waiting for $1 to listen on $2..."
-  while true; do
-    [[ $tries -lt $TRIES ]] || return
-    (echo > /dev/tcp/$1/$2) >/dev/null 2>&1
-    result=
+  until nc -z $1 $2; do
     [[ $? -eq 0 ]] && return
+    [[ $tries -lt $TRIES ]] || (echo "Timed out!" && exit 1)
     sleep $SLEEP
     tries=$((tries + 1))
   done
