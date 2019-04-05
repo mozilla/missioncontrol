@@ -122,7 +122,7 @@ class Datum(models.Model):
                                           on_delete=models.CASCADE,
                                           default=None)
     measure = models.ForeignKey(Measure, on_delete=models.CASCADE)
-    timestamp = models.DateTimeField()
+    timestamp = models.DateTimeField(db_index=True)
     value = models.FloatField()
     usage_hours = models.FloatField()
     client_count = models.PositiveIntegerField()
