@@ -267,6 +267,10 @@ if FETCH_MEASURE_DATA:
             'options': {
                 'expires': 5 * 60
             }
+        },
+        'expire_old_data': {
+            'schedule': crontab(minute=0, hour=0),  # every day at midnight
+            'task': 'missioncontrol.base.tasks.expire_old_data'
         }
     })
 
