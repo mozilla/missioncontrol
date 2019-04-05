@@ -356,8 +356,8 @@ LOGGING = {
     },
 }
 
-BUILDHUB_SERVER = config('BUILDHUB_SERVER', default='buildhub.prod.mozaws.net')
-BUILDHUB_URL = 'https://{}/v1/buckets/build-hub/collections/releases/search'.format(BUILDHUB_SERVER)
+BUILDHUB_SERVER = config('BUILDHUB_SERVER', default='buildhub.moz.tools')
+BUILDHUB_URL = 'https://{}/api/search'.format(BUILDHUB_SERVER)
 FIREFOX_VERSION_URL = 'https://product-details.mozilla.org/1.0/firefox_versions.json'
 FIREFOX_VERSION_CACHE_TIMEOUT = 300
 
