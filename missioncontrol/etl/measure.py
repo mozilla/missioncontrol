@@ -5,6 +5,7 @@ from pkg_resources import parse_version
 
 import newrelic.agent
 from django.core.cache import cache
+from django.db import transaction
 from django.db.models import Max
 from django.db.utils import IntegrityError
 
@@ -158,7 +159,8 @@ def update_measures(application_name, platform_name, channel_name,
     else:
         for datum_obj in datum_objs:
             try:
-                datum_obj.save()
+                with transaction.atomic():
+                    datum_obj.save()
             except IntegrityError:
                 continue
 
