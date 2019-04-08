@@ -3,6 +3,7 @@ import asyncio
 import datetime
 import json
 
+from django.db import transaction
 from django.db.utils import IntegrityError
 from django.utils import timezone
 
@@ -99,9 +100,10 @@ async def _fetch_version_data(session, buildhub_platform_name, application,
     for r in aggs:
         for version_record in r['version']['buckets']:
             try:
-                Build.objects.create(application=application, platform=platform,
-                                     channel=channel, build_id=r['key'],
-                                     version=version_record['key'])
+                with transaction.atomic():
+                    Build.objects.create(application=application, platform=platform,
+                                         channel=channel, build_id=r['key'],
+                                         version=version_record['key'])
             except IntegrityError:
                 # already exists
                 pass
