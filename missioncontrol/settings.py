@@ -230,10 +230,10 @@ CELERY_RESULT_BACKEND = 'django-db'
 CELERY_RESULT_EXPIRES = timedelta(days=1)
 #: Track if a task has been started, not only pending etc.
 CELERY_TASK_TRACK_STARTED = True
-#: Add a 10 minute soft timeout to all Celery tasks.
-CELERY_TASK_SOFT_TIME_LIMIT = 60 * 10
-#: And a 15 minute hard timeout.
-CELERY_TASK_TIME_LIMIT = 60 * 15
+#: Add a 30 minute soft timeout to all Celery tasks.
+CELERY_TASK_SOFT_TIME_LIMIT = 60 * 30
+#: And a 35 minute hard timeout.
+CELERY_TASK_TIME_LIMIT = 60 * 35
 #: Send SENT events as well to know when the task has left the scheduler.
 CELERY_TASK_SEND_SENT_EVENT = True
 #: Completely disable the rate limiting feature since it's costly
