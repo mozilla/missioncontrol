@@ -1,13 +1,16 @@
 import datetime
 import math
 
+from django.core.cache import cache
 from django.db.models import (Max, Min)
 from pkg_resources import parse_version
 
 from missioncontrol.base.models import (Build,
                                         Datum,
                                         Measure)
-from missioncontrol.settings import MEASURE_SUMMARY_VERSION_INTERVAL
+from missioncontrol.celery import celery
+from missioncontrol.settings import (MEASURE_SUMMARY_CACHE_EXPIRY,
+                                     MEASURE_SUMMARY_VERSION_INTERVAL)
 from .versions import (get_current_firefox_version,
                        get_major_version)
 
@@ -169,3 +172,17 @@ def get_measure_summary(application_name, platform_name, channel_name, measure_n
         "versions": list(reversed(version_summaries)),
         "lastUpdated": datums.aggregate(Max('timestamp'))['timestamp__max']
     }
+
+
+@celery.task
+def update_measure_summary(application_name, platform_name, channel_name,
+                           measure_name):
+    measure_summary = get_measure_summary(application_name, platform_name,
+                                          channel_name, measure_name)
+    if measure_summary:
+        cache.set(
+            get_measure_summary_cache_key(application_name, platform_name,
+                                          channel_name, measure_name),
+            measure_summary,
+            MEASURE_SUMMARY_CACHE_EXPIRY
+        )
