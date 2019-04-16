@@ -74,7 +74,7 @@ def test_update_measures(prepopulated_builds,
     assert Datum.objects.count() == 2
 
 
-def test_all_measure_update_tasks_scheduled(initial_data, *args):
+def test_all_measure_update_tasks_scheduled(settings, initial_data, *args):
     # this test is a bit tautological, but at least exercises the function
     expected_calls = []
     for channel in Channel.objects.all():
@@ -86,7 +86,8 @@ def test_all_measure_update_tasks_scheduled(initial_data, *args):
                     expected_calls.append(
                         call(args=[application.name,
                                    platform.name,
-                                   channel.name])
+                                   channel.name],
+                             expires=settings.UPDATE_MEASURES_EXPIRY)
                     )
 
     from missioncontrol.etl.tasks import update_channel_measures

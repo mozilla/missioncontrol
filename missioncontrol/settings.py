@@ -292,6 +292,9 @@ if FETCH_EXPERIMENT_DATA:
         }
     })
 
+
+UPDATE_MEASURES_EXPIRY = 10 * 60
+
 LOGGING_USE_JSON = config('LOGGING_USE_JSON', default=True, cast=bool)
 
 LOGGING = {

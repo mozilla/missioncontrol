@@ -7,7 +7,8 @@ from missioncontrol.base.models import (Application,
                                         Measure,
                                         Platform)
 from missioncontrol.celery import celery
-from missioncontrol.settings import FIREFOX_EXPERIMENTS_URL
+from missioncontrol.settings import (FIREFOX_EXPERIMENTS_URL,
+                                     UPDATE_MEASURES_EXPIRY)
 from missioncontrol.etl.measure import update_measures
 from .builds import update_builds
 from .experiment import update_experiment
@@ -28,7 +29,8 @@ def update_channel_measures():
                         channels=channel, platform=platform,
                         application=application).exists():
                     update_measures.apply_async(
-                        args=[application.name, platform.name, channel.name])
+                        args=[application.name, platform.name, channel.name],
+                        expires=UPDATE_MEASURES_EXPIRY)
 
 
 @celery.task
