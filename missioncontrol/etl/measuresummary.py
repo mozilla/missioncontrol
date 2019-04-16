@@ -1,6 +1,7 @@
 import datetime
 import math
 
+import newrelic.agent
 from django.core.cache import cache
 from django.db.models import (Max, Min)
 from pkg_resources import parse_version
@@ -177,8 +178,14 @@ def get_measure_summary(application_name, platform_name, channel_name, measure_n
 @celery.task
 def update_measure_summary(application_name, platform_name, channel_name,
                            measure_name):
+    newrelic.agent.add_custom_parameter("application", application_name)
+    newrelic.agent.add_custom_parameter("platform", platform_name)
+    newrelic.agent.add_custom_parameter("channel", channel_name)
+    newrelic.agent.add_custom_parameter("measure", measure_name)
+
     measure_summary = get_measure_summary(application_name, platform_name,
                                           channel_name, measure_name)
+
     if measure_summary:
         cache.set(
             get_measure_summary_cache_key(application_name, platform_name,
