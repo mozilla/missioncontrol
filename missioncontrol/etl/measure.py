@@ -4,7 +4,6 @@ from dateutil.tz import tzutc
 from pkg_resources import parse_version
 
 import newrelic.agent
-from django.core.cache import cache
 from django.db import transaction
 from django.db.models import Max
 from django.db.utils import IntegrityError
@@ -16,10 +15,8 @@ from missioncontrol.base.models import (Application,
                                         Datum,
                                         Measure,
                                         Platform)
-from missioncontrol.settings import (MEASURE_SUMMARY_CACHE_EXPIRY,
-                                     MISSION_CONTROL_TABLE)
-from .measuresummary import (get_measure_summary_cache_key,
-                             get_measure_summary)
+from missioncontrol.settings import MISSION_CONTROL_TABLE
+from .measuresummary import update_measure_summary
 from .versions import get_major_version
 
 
@@ -166,12 +163,6 @@ def update_measures(application_name, platform_name, channel_name,
 
     # update the measure summary in our cache
     for measure in measures:
-        measure_summary = get_measure_summary(application_name, platform_name,
-                                              channel_name, measure.name)
-        if measure_summary:
-            cache.set(
-                get_measure_summary_cache_key(application_name, platform_name,
-                                              channel_name, measure.name),
-                measure_summary,
-                MEASURE_SUMMARY_CACHE_EXPIRY
-            )
+        update_measure_summary.apply_async(
+            args=[application_name, platform_name, channel_name,
+                  measure.name])
