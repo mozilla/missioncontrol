@@ -255,10 +255,10 @@ FETCH_EXPERIMENT_DATA = config('FETCH_EXPERIMENT_DATA', default=False, cast=bool
 if FETCH_MEASURE_DATA:
     CELERY_BEAT_SCHEDULE.update({
         'fetch_channel_measure_data': {
-            'schedule': crontab(minute='*/5'),  # every 5 minutes
+            'schedule': crontab(minute='*/15'),  # every 15 minutes
             'task': 'missioncontrol.etl.tasks.update_channel_measures',
             'options': {
-                'expires': 5 * 60
+                'expires': 15 * 60
             }
         },
         'update_build_data': {
