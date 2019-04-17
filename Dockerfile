@@ -5,7 +5,6 @@ EXPOSE 8000
 
 RUN useradd --uid 1000 --no-create-home --home-dir /app webdev
 
-
 RUN mkdir -p \
         /usr/share/man/man1 \
         /usr/share/man/man2 \
