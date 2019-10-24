@@ -25,13 +25,17 @@ def get_firefox_versions():
     return mapped_versions
 
 
-def get_current_firefox_version(channel):
-    return get_firefox_versions()[channel]
+def get_current_firefox_version(channel, application):
+    if application == 'fennec':
+        # fennec is always on esr now
+        return get_firefox_versions()['esr']
+    else:
+        return get_firefox_versions()[channel]
 
 
-def get_min_recent_firefox_version(channel):
+def get_min_recent_firefox_version(channel, application):
     current_version = get_current_firefox_version(channel)
-    if channel == 'esr':
+    if application == 'fennec' or channel == 'esr':
         return str(LooseVersion(current_version).version[0] - 7)
     return str(LooseVersion(current_version).version[0] - 1)
 

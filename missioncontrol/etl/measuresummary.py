@@ -45,7 +45,7 @@ def get_measure_summary(application_name, platform_name, channel_name, measure_n
     A dictionary with a summary of the current median result over the last
     24 hours, compared to previous versions.
     '''
-    current_version = get_current_firefox_version(channel_name)
+    current_version = get_current_firefox_version(channel_name, application_name)
     current_major_version = get_major_version(current_version)
 
     # if we are on esr, we will look up to 7 versions back
