@@ -20,7 +20,7 @@
     "d3": "^4.9.1",
     "d3-time-format": "^2.0.5",
     "font-awesome": "^4.7.0",
-    "lodash": "^4.17.4",
+    "lodash": "^4.17.13",
     "metrics-graphics": "^2.15.6",
     "moment": "^2.18.1",
     "neutrino": "^8.2.0",
