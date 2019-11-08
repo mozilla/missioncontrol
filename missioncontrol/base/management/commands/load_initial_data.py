@@ -23,22 +23,13 @@ class Command(BaseCommand):
             'content_shutdown_crashes',
             'startup_crashes'
         ]
-        UNIVERSAL_DESKTOP_QUALITY_MEASURES = [
-            'browser_shim_usage_blocked',
-        ]
-        PRERELEASE_DESKTOP_QUALITY_MEASURES = [
-            'slow_script_notice_count',
-            'slow_script_page_count',
-            'permissions_sql_corrupted',
-            'defective_permissions_sql_removed',
-        ]
+
         FIREFOX_APPLICATION = Application.objects.get(name='firefox')
 
         # all crash measures and a small number of quality measures are
         # applicable to all desktop platforms and channels
         for platform in Platform.objects.exclude(name='android'):
-            for measure_name in (DESKTOP_CRASH_MEASURES +
-                                 UNIVERSAL_DESKTOP_QUALITY_MEASURES):
+            for measure_name in DESKTOP_CRASH_MEASURES:
                 measure, _ = Measure.objects.update_or_create(
                     name=measure_name, application=FIREFOX_APPLICATION,
                     platform=platform, defaults={'enabled': True})
@@ -54,17 +45,6 @@ class Command(BaseCommand):
             defaults={'enabled': True})
         gpu_crashes_measure.channels.set(Channel.objects.all())
         gpu_crashes_measure.save()
-
-        # most desktop quality measures are on beta/nightly only
-        development_channels = Channel.objects.filter(
-            name__in=['nightly', 'beta'])
-        for platform in Platform.objects.exclude(name='android'):
-            for measure_name in PRERELEASE_DESKTOP_QUALITY_MEASURES:
-                measure, _ = Measure.objects.update_or_create(
-                    name=measure_name, application=FIREFOX_APPLICATION,
-                    platform=platform, defaults={'enabled': True})
-                measure.channels.set(development_channels)
-                measure.save()
 
         # create a set of non-platform-specific crash measures for experiments
         for measure_name in DESKTOP_CRASH_MEASURES + DESKTOP_CRASH_MEASURES:
