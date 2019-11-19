@@ -95,8 +95,6 @@ DATABASES = {
 
 CACHES = {'default': django_cache_url.config()}
 
-GCLOUD_SERVICE_ACCOUNT_CREDS_FILE = os.path.join(BASE_DIR, 'gcloud.json')
-
 PRESTO_URL = config('PRESTO_URL')
 MISSION_CONTROL_TABLE = config('MISSION_CONTROL_TABLE',
                                default='telemetry_derived.error_aggregates')

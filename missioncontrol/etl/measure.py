@@ -31,11 +31,6 @@ def update_measures(application_name, platform_name, channel_name,
     Updates (or creates) a local cache entry for a specify platform/channel/measure
     aggregate, which can later be retrieved by the API
     '''
-    # hack: importing raw_query here to make monkeypatching work
-    # (if we put it on top it is impossible to override if something
-    # else imports this module first)
-    from .presto import raw_query
-
     logger.info('Updating measures: %s %s (date: %s)', channel_name, platform_name,
                 submission_date or 'latest')
 
@@ -105,15 +100,15 @@ def update_measures(application_name, platform_name, channel_name,
         'submission_date': submission_date.strftime("%Y-%m-%d")
     }
 
-    bq_query = f'''
-    SELECT 
+    query_sql = f'''
+    SELECT
         window_start,
-        build_id, 
-        display_version, 
+        build_id,
+        display_version,
         SUM(usage_hours) summed_usage_hours,
         SUM(count),
         {measure_sums}
-    FROM 
+    FROM
         {MISSION_CONTROL_TABLE}
     WHERE
         submission_date = \'{submission_date.strftime('%Y-%m-%d')}\'
@@ -126,17 +121,17 @@ def update_measures(application_name, platform_name, channel_name,
         AND channel = \'{params['channel_name']}\'
         AND window_start > \'{params['min_timestamp']}\'
     GROUP BY
-        window_start, 
+        window_start,
         build_id, 
         display_version
     HAVING
         summed_usage_hours > 0
     '''.replace('\n', '').strip()
 
-    logger.info('Querying: %s', bq_query)
+    logger.info('Querying: %s', query_sql)
 
     client = get_bigquery_client()
-    query_job = client.query(query=bq_query)
+    query_job = client.query(query=query_sql)
 
     # bulk create any new datum objects from the returned results
     build_cache = {}
