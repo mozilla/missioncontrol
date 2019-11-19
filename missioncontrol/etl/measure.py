@@ -122,7 +122,7 @@ def update_measures(application_name, platform_name, channel_name,
         AND window_start > \'{params['min_timestamp']}\'
     GROUP BY
         window_start,
-        build_id, 
+        build_id,
         display_version
     HAVING
         summed_usage_hours > 0
