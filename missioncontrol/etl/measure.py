@@ -100,7 +100,7 @@ def update_measures(application_name, platform_name, channel_name,
         'submission_date': submission_date.strftime("%Y-%m-%d")
     }
 
-    query_sql = f'''
+    query_sql = ' '.join(f'''
     SELECT
         window_start,
         build_id,
@@ -126,7 +126,7 @@ def update_measures(application_name, platform_name, channel_name,
         display_version
     HAVING
         summed_usage_hours > 0
-    '''.replace('\n', '').strip()
+    '''.split())
 
     logger.info('Querying: %s', query_sql)
 

@@ -31,7 +31,10 @@ def mock_raw_query(monkeypatch, mock_raw_query_data):
         def query(self, query):
             return mock_raw_query_data
 
-    monkeypatch.setattr(missioncontrol.etl.bigquery, 'get_bigquery_client', MockClient)
+    def get_client():
+        return MockClient()
+
+    monkeypatch.setattr(missioncontrol.etl.bigquery, 'get_bigquery_client', get_client)
 
 
 def test_update_measures_no_build_data(initial_data, mock_raw_query,
