@@ -31,13 +31,10 @@ def mock_raw_query(monkeypatch, mock_raw_query_data):
         def query(self, query):
             return mock_raw_query_data
 
-    def get_client():
-        return MockClient()
-
-    monkeypatch.setattr(missioncontrol.etl.bigquery, 'get_bigquery_client', get_client)
+    monkeypatch.setattr(missioncontrol.etl.bigquery, 'get_bigquery_client', MockClient)
 
 
-def test_update_measures_no_build_data(initial_data, mock_raw_query,
+def test_update_measures_no_build_data(initial_data,
                                        mock_raw_query_data):
     (application, platform, channel) = ('firefox', 'linux', 'release')
     with pytest.raises(Exception, match='No valid versions'):

@@ -8,6 +8,7 @@ from django.db import transaction
 from django.db.models import Max
 from django.db.utils import IntegrityError
 
+from . import bigquery
 from missioncontrol.celery import celery
 from missioncontrol.base.models import (Application,
                                         Build,
@@ -15,7 +16,6 @@ from missioncontrol.base.models import (Application,
                                         Datum,
                                         Measure,
                                         Platform)
-from missioncontrol.etl.bigquery import get_bigquery_client
 from missioncontrol.settings import MISSION_CONTROL_TABLE
 from .measuresummary import update_measure_summary
 from .versions import get_major_version
@@ -130,7 +130,7 @@ def update_measures(application_name, platform_name, channel_name,
 
     logger.info('Querying: %s', query_sql)
 
-    client = get_bigquery_client()
+    client = bigquery.get_bigquery_client()
     query_job = client.query(query=query_sql)
 
     # bulk create any new datum objects from the returned results
