@@ -8,6 +8,7 @@ from django.db import transaction
 from django.db.models import Max
 from django.db.utils import IntegrityError
 
+from . import bigquery
 from missioncontrol.celery import celery
 from missioncontrol.base.models import (Application,
                                         Build,
@@ -30,11 +31,6 @@ def update_measures(application_name, platform_name, channel_name,
     Updates (or creates) a local cache entry for a specify platform/channel/measure
     aggregate, which can later be retrieved by the API
     '''
-    # hack: importing raw_query here to make monkeypatching work
-    # (if we put it on top it is impossible to override if something
-    # else imports this module first)
-    from .presto import raw_query
-
     logger.info('Updating measures: %s %s (date: %s)', channel_name, platform_name,
                 submission_date or 'latest')
 
@@ -47,7 +43,8 @@ def update_measures(application_name, platform_name, channel_name,
     channel = Channel.objects.get(name=channel_name)
     measures = Measure.objects.filter(channels=channel,
                                       application=application,
-                                      platform=platform)
+                                      platform=platform,
+                                      enabled=True)
     if submission_date is None:
         now = datetime.datetime.utcnow()
         submission_date = datetime.datetime(year=now.year, month=now.month,
@@ -90,20 +87,7 @@ def update_measures(application_name, platform_name, channel_name,
     # query from incorrect parameters
     measure_sums = ', '.join([
         'sum({})'.format(measure.name) for measure in measures])
-    query_template = f'''
-        select window_start, build_id, display_version, sum(usage_hours),
-        sum(count),
-        {measure_sums}
-        from {MISSION_CONTROL_TABLE} where
-        application=%(application_name)s and
-        display_version > %(min_version)s and display_version < %(max_version)s and
-        build_id > %(min_build_id)s and build_id < %(max_build_id)s and
-        os_name=%(os_name)s and
-        channel=%(channel_name)s and
-        window_start > timestamp %(min_timestamp)s and
-        submission_date_s3 = %(submission_date)s
-        group by (window_start, build_id, display_version)
-        having sum(usage_hours) > 0'''.replace('\n', '').strip()
+
     params = {
         'application_name': application.telemetry_name,
         'min_version': str(min_version),
@@ -113,14 +97,46 @@ def update_measures(application_name, platform_name, channel_name,
         'os_name': platform.telemetry_name,
         'channel_name': channel_name,
         'min_timestamp': min_timestamp.strftime("%Y-%m-%d %H:%M:%S"),
-        'submission_date': submission_date.strftime("%Y%m%d")
+        'submission_date': submission_date.strftime("%Y-%m-%d")
     }
-    logger.info('Querying: %s', query_template % params)
+
+    query_sql = ' '.join(f'''
+    SELECT
+        window_start,
+        build_id,
+        display_version,
+        SUM(usage_hours) summed_usage_hours,
+        SUM(count),
+        {measure_sums}
+    FROM
+        {MISSION_CONTROL_TABLE}
+    WHERE
+        submission_date = \'{submission_date.strftime('%Y-%m-%d')}\'
+        AND application = \'{params['application_name']}\'
+        AND display_version > \'{params['min_version']}\'
+        AND display_version < \'{params['max_version']}\'
+        AND build_id > \'{params['min_build_id']}\'
+        AND build_id < \'{params['max_build_id']}\'
+        AND os_name = \'{params['os_name']}\'
+        AND channel = \'{params['channel_name']}\'
+        AND window_start > \'{params['min_timestamp']}\'
+    GROUP BY
+        window_start,
+        build_id,
+        display_version
+    HAVING
+        summed_usage_hours > 0
+    '''.split())
+
+    logger.info('Querying: %s', query_sql)
+
+    client = bigquery.get_bigquery_client()
+    query_job = client.query(query=query_sql)
 
     # bulk create any new datum objects from the returned results
     build_cache = {}
     datum_objs = []
-    for row in raw_query(query_template, params):
+    for row in query_job:
         (window_start, build_id, version, usage_hours, client_count) = row[:5]
         for (measure, measure_count) in zip(measures, row[5:]):
             if measure_count is None:

@@ -25,15 +25,16 @@ def mock_raw_query_data(monkeypatch, base_datapoint_time):
 
 @pytest.fixture
 def mock_raw_query(monkeypatch, mock_raw_query_data):
-    import missioncontrol.etl.presto
+    import missioncontrol.etl.bigquery
 
-    def _raw_query(sql, params):
-        return mock_raw_query_data
+    class MockClient:
+        def query(self, query):
+            return mock_raw_query_data
 
-    monkeypatch.setattr(missioncontrol.etl.presto, 'raw_query', _raw_query)
+    monkeypatch.setattr(missioncontrol.etl.bigquery, 'get_bigquery_client', MockClient)
 
 
-def test_update_measures_no_build_data(initial_data, mock_raw_query,
+def test_update_measures_no_build_data(initial_data,
                                        mock_raw_query_data):
     (application, platform, channel) = ('firefox', 'linux', 'release')
     with pytest.raises(Exception, match='No valid versions'):
