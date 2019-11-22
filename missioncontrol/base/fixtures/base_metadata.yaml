@@ -15,12 +15,12 @@
   pk: 1
   fields:
     name: windows
-    telemetry_name: Windows_NT
+    telemetry_name: Windows
 - model: base.Platform
   pk: 2
   fields:
     name: mac
-    telemetry_name: Darwin
+    telemetry_name: Mac
 - model: base.Platform
   pk: 3
   fields:

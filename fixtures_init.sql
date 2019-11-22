@@ -19,12 +19,6 @@ CREATE TABLE hive.default.error_aggregates_v1 (
   gpu_crashes bigint,
   plugin_crashes bigint,
   gmplugin_crashes bigint,
-  content_shutdown_crashes bigint,
-  browser_shim_usage_blocked bigint,
-  permissions_sql_corrupted bigint,
-  defective_permissions_sql_removed bigint,
-  slow_script_notice_count bigint,
-  slow_script_page_count bigint,
   submission_date varchar,
   window_start timestamp,
   window_end timestamp
