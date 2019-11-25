@@ -66,7 +66,7 @@ def channel_platform_summary(request):
     if application_filter:
         applications = applications.filter(name__in=application_filter)
 
-    platforms = Platform.objects.all()
+    platforms = Platform.objects.order_by('id').all()
     if platform_filter:
         platforms = platforms.filter(name__in=platform_filter)
 
