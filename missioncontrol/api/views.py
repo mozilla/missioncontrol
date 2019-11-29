@@ -155,7 +155,7 @@ def measure(request):
         return HttpResponseBadRequest("All of channel, platform, measure, interval required")
     if not all([val is None or val.isdigit() for val in (start, interval)]):
         return HttpResponseBadRequest(
-            "Interval / start time must be specified in seconds (as an integer) %s" % interval)
+            "Interval / start time must be specified in seconds (as an integer)")
 
     builds = Build.objects.filter(channel__name=channel_name,
                                   platform__name=platform_name)
