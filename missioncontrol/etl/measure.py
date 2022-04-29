@@ -113,8 +113,8 @@ def update_measures(application_name, platform_name, channel_name,
     WHERE
         submission_date = \'{submission_date.strftime('%Y-%m-%d')}\'
         AND application = \'{params['application_name']}\'
-        AND display_version > \'{params['min_version']}\'
-        AND display_version < \'{params['max_version']}\'
+        AND mozfun.norm.truncate_version(display_version, \'major\') > {params['min_version']}
+        AND mozfun.norm.truncate_version(display_version, \'major\') < {params['max_version']}
         AND build_id > \'{params['min_build_id']}\'
         AND build_id < \'{params['max_build_id']}\'
         AND os_name = \'{params['os_name']}\'
