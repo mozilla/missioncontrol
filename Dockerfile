@@ -28,6 +28,10 @@ WORKDIR /app
 
 # First copy requirements so we can take advantage of docker caching.
 COPY requirements/*.txt /app/
+
+# temporary workaround for the following error: ImportError: cannot import name 'Feature' from 'setuptools'
+RUN pip install setuptools==45
+
 RUN pip install --require-hashes --no-cache-dir -r all.txt
 
 COPY . /app
