@@ -22,7 +22,7 @@
     "font-awesome": "^4.7.0",
     "lodash": "^4.17.13",
     "metrics-graphics": "^2.15.6",
-    "moment": "^2.18.1",
+    "moment": "^2.29.4",
     "neutrino": "^8.2.0",
     "neutrino-preset-mozilla-frontend-infra": "^4.1.0",
     "numeral": "^2.0.6",
